@@ -1,0 +1,288 @@
+import urllib
+import requests
+from splinter import Browser
+from selenium.webdriver.chrome.options import Options
+import requests
+import time
+from datetime import datetime
+import pandas as pd
+import numpy as np
+
+ok_reason = ''
+unauthorized_reason = 'Unauthorized'
+
+## Authentication Data
+# These items here are used to obtain an authorization token from TD Ameritrade. It involves navigating to web pages, so using a browser emulator # to navigate the page and set fields and submit pages.
+
+class AmeritradeRest:
+    
+    def __init__(self, username, password, client_id, callback_url=r'http://localhost'):
+        self.browser = None
+        self.username = username
+        self.password = password
+        self.client_id = client_id
+        self.callback_url = callback_url
+        self.consumer_key = client_id + '@AMER.OAUTHAP'
+        self.callback_url = r'http://localhost'
+        self.oauth_url = r'https://auth.tdameritrade.com/auth'
+        self.oath_token_url = r'https://api.tdameritrade.com/v1/oauth2/token'
+        self.user_data_dir = r'C:\Users\nmaiorana\AppData\Local\Google\Chrome\User Data\tduser'
+        self.executable_path = r'C:\Users\nmaiorana\Anaconda Projects\chromedriver\chromedriver'
+        self.browser_name = 'chrome'
+        self.authorization = None
+        self.account_data = None
+        self.positions_data = None
+
+    def start_browser(self):
+        # Note: If you already have a browser open, you will get an error unless you close the current one.
+        if not self.browser is None:
+            print('Quitting current browser...')
+            self.browser.quit()
+
+        # Tell us where the chromedriver is located on your computer
+        executable_path = {
+            'executable_path':self.executable_path
+        }
+
+        # This next field is optional, but if you have 2 factor authentication turned on for your account,
+        # you will have to manually add your texted code the first time and select 'Trust this Computer'.
+        # If you don't do this, you will have to manually authenticate via text code everytime you start
+        # this notebook, or run this cell.
+        # This option gives it a permanent profile to use instead of creating a temp one everytime.
+        options = Options()
+        options.add_argument('--user-data-dir='+self.user_data_dir)
+
+        self.browser = Browser(self.browser_name, **executable_path, headless = False, options=options)
+
+    ## Ameritrade Functions
+    
+    def authenticate(self):
+        self.start_browser()
+
+        # define the components of the url
+        method = 'GET'
+        payload = {
+                    'response_type':'code',
+                    'redirect_uri':self.callback_url,
+                    'client_id':self.consumer_key
+        }
+
+        # build url
+        built_url = requests.Request(method, self.oauth_url, params=payload).prepare().url
+
+        # go to URL
+        self.browser.visit(built_url)
+
+        #fill out form
+        self.browser.find_by_id('username0').first.fill(self.username)
+        self.browser.find_by_id('password').first.fill(self.password)
+        self.browser.find_by_id('accept').first.click()
+        self.browser.find_by_id('accept').first.click()
+
+        # give it a second
+        time.sleep(1)
+        new_url = self.browser.url
+
+        # grab the URL and parse it
+        code = urllib.parse.unquote(new_url.split('code=')[1])
+
+        #define the headers
+        headers = {'Content-Type':'application/x-www-form-urlencoded'}
+
+        # define payload
+        payload = {
+            'grant_type':'authorization_code',
+            'access_type': 'offline',
+            'code': code,
+            'client_id': self.client_id,
+            'redirect_uri': 'http://localhost'
+        }
+
+        # post the data to get a token
+        authreply = requests.post(self.oath_token_url, headers=headers, data=payload)
+
+        # convert json to dict
+        self.authorization = authreply.json()
+        self.browser.quit()
+        return self.authorization
+
+    def get_accounts(self):
+        self.account_data = None
+        # define endpoint
+        endpoint = 'https://api.tdameritrade.com/v1/accounts'
+        headers = {'Authorization': 'Bearer {}'.format(self.authorization['access_token'])}
+
+        # make a request
+        content = requests.get(url=endpoint, headers=headers)
+        if content.reason != ok_reason:
+            if content.reason == unauthorized_reason:
+                print('Error: {}'.format(content.reason))
+                return None
+
+        # convert data to data dictionary
+        self.account_data = content.json()
+        return self.parse_accounts()
+        
+    def parse_accounts(self):
+        if self.account_data is None:
+            self.get_accounts()
+            
+        if self.account_data is None:
+            print ("No account data.")
+            return None
+            
+        accounts_dict = {}
+        for securitiesAccount in self.account_data:
+            account = {}
+            account_details = securitiesAccount['securitiesAccount']
+            account['accountId'] = self.mask_account(account_details['accountId'])
+            account['initialBalances_cashBalance'] =  account_details['initialBalances']['cashBalance']
+            account['initialBalances_totalCash'] =  account_details['initialBalances']['totalCash']
+            account['initialBalances_equity'] =  account_details['initialBalances']['equity']
+            account['initialBalances_moneyMarketFund'] =  account_details['initialBalances']['moneyMarketFund']
+            account['currentBalances_cashBalance'] =  account_details['currentBalances']['cashBalance']
+            account['currentBalances_equity'] =  account_details['currentBalances']['equity']
+            account['currentBalances_moneyMarketFund'] =  account_details['currentBalances']['moneyMarketFund']
+            accounts_dict[account['accountId']] = account
+
+        accounts_df = pd.DataFrame.from_dict(accounts_dict, orient='index')
+        accounts_df['current_return'] = np.log(accounts_df['currentBalances_equity'] / accounts_df['initialBalances_equity'] )
+        accounts_df.set_index('accountId', drop=True, inplace=True)
+        return accounts_df
+
+    def get_positions(self):
+        # define endpoint
+        endpoint = 'https://api.tdameritrade.com/v1/accounts'
+        headers = {'Authorization': 'Bearer {}'.format(self.authorization['access_token'])}
+        payload = {'fields': 'positions'}
+
+        # make a request
+        content = requests.get(url=endpoint, headers=headers, params=payload)
+        if content.reason != ok_reason:
+            if content.reason == unauthorized_reason:
+                print('Error: {}'.format(content.reason))
+                return None
+
+        # convert data to data dictionary
+        self.positions_data =  content.json()
+        return self.positions_data
+    
+    def parse_portfolios_list(self):
+        if self.positions_data is None:
+            self.get_positions()
+            
+        if self.positions_data is None:
+            print ("No positons data.")
+            return None
+        
+        portfolio_list = []
+        total_portfolio = {}
+        for account in self.positions_data:
+            securitiesAccount = account['securitiesAccount']
+            masked_account_id = self.mask_account(securitiesAccount['accountId'])
+            for position in securitiesAccount['positions']:
+                instrument_data = {}
+                instrument_data['account'] = masked_account_id
+                instrument_data.update(position)
+                instrument_data.update(position['instrument'])
+                instrument_data.pop('instrument', None)
+
+                portfolio_list.append(instrument_data)
+
+        return pd.DataFrame.from_dict(portfolio_list).fillna(0)
+    
+    def parse_portfolios(self):
+        if self.positions_data is None:
+            self.get_positions()
+            
+        if self.positions_data is None:
+            print ("No positons data.")
+            return None
+        
+        total_portfolio = {}
+        for account in self.positions_data:
+            securitiesAccount = account['securitiesAccount']
+            masked_account_id = self.mask_account(securitiesAccount['accountId'])
+            account_portfolio = {}
+            total_portfolio[masked_account_id] = account_portfolio
+            positions = securitiesAccount['positions']
+            for position in positions:
+                instrument = position['instrument']
+                assetType = instrument['assetType']
+                if assetType == 'EQUITY':
+                    symbol = instrument['symbol']
+                    marketValue = position['marketValue']
+                    account_portfolio[symbol] = marketValue
+
+        return pd.DataFrame.from_dict(total_portfolio, orient='index').fillna(0).sort_index(axis=1)
+
+    def get_price_history(self, symbol, end_date, num_periods=1):
+        # define endpoint
+        endpoint = 'https://api.tdameritrade.com/v1/marketdata/{}/pricehistory'.format(symbol)
+        headers = {'Authorization': 'Bearer {}'.format(self.authorization['access_token'])}
+
+        endDate = int(datetime.fromisoformat('2020-10-31').timestamp()) * 1000
+        payload = {
+                    'apikey': self.client_id,
+                    'periodType': 'year',
+                    'period': str(num_periods),
+                    'frequencyType': 'daily',
+                    'endDate': str(endDate),
+                    'needExtendedHoursData':'true'
+        }
+
+        # make a request
+        content = requests.get(url=endpoint, headers=headers, params=payload)
+        if content.reason != ok_reason:
+            if content.reason == unauthorized_reason:
+                print('Error: {}'.format(content.reason))
+                return None
+
+        # convert data to data dictionary
+        return content.json()
+
+    def get_ticker_fundamentals(self, symbol, end_date, num_periods=1):
+        price_history = self.get_price_history(symbol, end_date, num_periods=num_periods)
+        candles = price_history['candles']
+        if len(candles) == 0:
+            return None
+        price_history_df = pd.DataFrame(price_history['candles'])
+
+        price_history_df['ticker'] = price_history['symbol']
+        price_history_df['date'] = pd.to_datetime(price_history_df['datetime'], unit='ms').dt.normalize()
+        price_history_df.drop(['datetime'], inplace=True, axis=1)
+        return price_history_df
+
+    def get_fundamentals(self, tickers, end_date, num_periods=1):
+        fundamentals_df = pd.DataFrame()
+        for symbol in tickers:
+            ticker_fundamentals = self.get_ticker_fundamentals(symbol, end_date, num_periods=num_periods)
+            if ticker_fundamentals is not None:
+                fundamentals_df = fundamentals_df.append([ticker_fundamentals])
+        fundamentals_df.reset_index(drop=True, inplace=True)
+        return fundamentals_df.sort_index(axis=1)
+
+    def print_positions_data(self, account_data):
+        if account_data is None:
+            print('NO DATA')
+            return
+
+        for account in account_data:
+            securitiesAccount = account['securitiesAccount']
+            masked_account_id = self.mask_account(securitiesAccount['accountId'])
+            print('Account Id: {} Type: {}'.format(masked_account_id, securitiesAccount['type']))
+            positions = securitiesAccount['positions']
+            for position in positions:
+                settledLongQuantity = position['settledLongQuantity']
+                settledShortQuantity = position['settledShortQuantity']
+                instrument = position['instrument']
+                assetType = instrument['assetType']
+                symbol = instrument['symbol']
+                marketValue = position['marketValue']
+                print('\t', symbol, settledLongQuantity, settledShortQuantity, assetType, marketValue)
+
+    def get_instrument_symbols(self, portfolio_df):
+        return portfolio_df.columns.values
+
+    def mask_account(self, account_id):
+        return '#---' + account_id[-4:]
