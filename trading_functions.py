@@ -85,14 +85,37 @@ class Portfolio:
 
         lookahead : Number of days to look ahead to compute returns
 
-        weights: float value for each proportion of stock weight
+        weights: Pandas Series with indexed by symbol containing each proportion of stock weight
 
         Returns
         -------
         portfolio_returns : DataFrame
             Expected portfolio returns for each ticker and date
         """
-        return weights *  Returns().compute_log_returns(close, lookahead)
+        return weights.values.T[0] * Returns().compute_log_returns(close, lookahead)
+    
+    def generate_dollar_volume_weights(self, close, volume):
+        """
+        Generate dollar volume weights.
+
+        Parameters
+        ----------
+        close : DataFrame
+            Close price for each ticker and date
+        volume : str
+            Volume for each ticker and date
+
+        Returns
+        -------
+        dollar_volume_weights : DataFrame
+            The dollar volume weights for each ticker and date
+        """
+        assert close.index.equals(volume.index)
+        assert close.columns.equals(volume.columns)
+
+        dollar_volume = close * volume
+
+        return dollar_volume.div(dollar_volume.sum(axis=1), axis=0)
 
     def get_optimal_weights(self, returns, index_weights, scale=2.0):
         """
@@ -100,8 +123,8 @@ class Portfolio:
 
         Parameters
         ----------
-        covariance_returns : 2 dimensional Ndarray
-            The covariance of the returns
+        returns : Pandas Dataframe
+            2D array containing stock return series in each row.
         index_weights : Pandas Series
             Index weights for all tickers at a period in time
         scale : int
@@ -176,8 +199,8 @@ class Portfolio:
         for last_day in range(chunk_size, len(returns), shift_size):
 
             first_day = last_day - chunk_size
-            covariance_returns = Returns().get_covariance_returns(returns.iloc[first_day:last_day])
-            new_weights = self.get_optimal_weights(covariance_returns, index_weights.iloc[last_day-1])
+            chunk_returns = returns.iloc[first_day:last_day]
+            new_weights = self.get_optimal_weights(chunk_returns, index_weights.iloc[last_day-1])
             rebalanced.append(new_weights)
 
         return rebalanced
@@ -191,11 +214,11 @@ class Portfolio:
 
         Parameters
         ----------
-        returns : numpy.ndarray
+        returns : Pandas Dataframe
             2D array containing stock return series in each row.
 
-        index_weights : numpy.ndarray
-            1D numpy array containing weights of the index.
+        index_weights : Pandas Series
+            Indexed by symbol containing each proportion of stock weight
 
         scale : float
             The scaling factor applied to the distance between portfolio and index weights
@@ -209,12 +232,13 @@ class Portfolio:
         #covariance matrix of returns
         cov = Returns().get_covariance_returns(returns)
         
+        weights = index_weights.values.T[0]
         assert len(cov.shape) == 2
-        assert len(index_weights.shape) == 1
-        assert cov.shape[0] == cov.shape[1]  == index_weights.shape[0]
+        assert len(weights.shape) == 1
+        assert cov.shape[0] == cov.shape[1]  == weights.shape[0]
         
         # number of stocks m is number of rows of returns, and also number of index weights
-        m = len(index_weights)
+        m = len(weights)
         
         # x variables (to be found with optimization)
         x = cvx.Variable(m)
@@ -223,7 +247,7 @@ class Portfolio:
         portfolio_variance = cvx.quad_form(x, cov)
 
         # euclidean distance (L2 norm) between portfolio and index weights
-        distance_to_index = cvx.norm(x - index_weights)
+        distance_to_index = cvx.norm(x - weights)
 
         #objective function
         objective = cvx.Minimize(portfolio_variance + scale*distance_to_index)
@@ -310,7 +334,6 @@ class Returns:
         returns_covariance  : 2 dimensional Ndarray
             The covariance of the returns
         """
-
         return np.cov(returns.fillna(0).T.values)
     
 class Selection:
