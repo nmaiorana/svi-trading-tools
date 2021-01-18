@@ -75,7 +75,7 @@ class AmeritradeRest:
 
         #fill out form
         self.browser.find_by_id('username0').first.fill(self.username)
-        self.browser.find_by_id('password').first.fill(self.password)
+        self.browser.find_by_id('password1').first.fill(self.password)
         self.browser.find_by_id('accept').first.click()
         self.browser.find_by_id('accept').first.click()
 
@@ -105,18 +105,21 @@ class AmeritradeRest:
         self.authorization = authreply.json()
         self.browser.quit()
         return self.authorization
+    
+    def get_access_token(self):
+        return self.authorization['access_token']
 
     def get_accounts(self):
         self.account_data = None
         # define endpoint
         endpoint = 'https://api.tdameritrade.com/v1/accounts'
-        headers = {'Authorization': 'Bearer {}'.format(self.authorization['access_token'])}
+        headers = {'Authorization': f'Bearer {self.get_access_token()}'}
 
         # make a request
         content = requests.get(url=endpoint, headers=headers)
         if content.reason != ok_reason:
             if content.reason == unauthorized_reason:
-                print('Error: {}'.format(content.reason))
+                print(f'Error: {content.reason}')
                 return None
 
         # convert data to data dictionary
@@ -216,33 +219,31 @@ class AmeritradeRest:
 
         return pd.DataFrame.from_dict(total_portfolio, orient='index').fillna(0).sort_index(axis=1)
 
-    def get_price_history(self, symbol, end_date, num_periods=1):
+    def get_daily_price_history(self, symbol, end_date, num_periods=1):
         # define endpoint
-        endpoint = 'https://api.tdameritrade.com/v1/marketdata/{}/pricehistory'.format(symbol)
-        headers = {'Authorization': 'Bearer {}'.format(self.authorization['access_token'])}
+        endpoint = f'https://api.tdameritrade.com/v1/marketdata/{symbol}/pricehistory'
 
-        endDate = int(datetime.fromisoformat('2020-10-31').timestamp()) * 1000
         payload = {
                     'apikey': self.client_id,
                     'periodType': 'year',
                     'period': str(num_periods),
                     'frequencyType': 'daily',
-                    'endDate': str(endDate),
+                    'endDate': str(int(datetime.fromisoformat(end_date).timestamp()) * 1000),
                     'needExtendedHoursData':'true'
         }
 
         # make a request
-        content = requests.get(url=endpoint, headers=headers, params=payload)
+        content = requests.get(url=endpoint, params=payload)
         if content.reason != ok_reason:
             if content.reason == unauthorized_reason:
-                print('Error: {}'.format(content.reason))
+                print(f'Error: {content.reason}')
                 return None
 
         # convert data to data dictionary
         return content.json()
-
+    
     def get_ticker_fundamentals(self, symbol, end_date, num_periods=1):
-        price_history = self.get_price_history(symbol, end_date, num_periods=num_periods)
+        price_history = self.get_daily_price_history(symbol, end_date, num_periods=num_periods)
         candles = price_history['candles']
         if len(candles) == 0:
             return None
