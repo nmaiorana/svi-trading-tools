@@ -9,6 +9,7 @@
 import pandas as pd
 import numpy as np
 import cvxpy as cvx
+from sklearn.decomposition import PCA
 import time
 from datetime import datetime
 
@@ -167,7 +168,7 @@ class Portfolio:
         #retrieve the weights of the optimized portfolio
         x_values = x.value
 
-        return x_values
+        return pd.DataFrame(x_values, columns=['weight'], index=index_weights.index)
     
     def rebalance_portfolio(self, returns, index_weights, shift_size, chunk_size):
         """
@@ -262,7 +263,7 @@ class Portfolio:
         #retrieve the weights of the optimized portfolio
         x_values = x.value
 
-        return x_values
+        return pd.DataFrame(x_values, columns=['weight'], index=index_weights.index)
     
 class Returns:
     
@@ -335,11 +336,47 @@ class Returns:
             The covariance of the returns
         """
         return np.cov(returns.fillna(0).T.values)
+
+class RiskModelPCA(object):
+    def __init__(self, returns, ann_factor, num_factor_exposures):
+        self.factor_names_ = list(range(0, num_factor_exposures))
+        pca = self.fit_pca(returns, num_factor_exposures, 'full')
+        self.factor_betas_ = self.factor_betas(pca, returns.columns.values, self.factor_names_)
+        self.factor_returns_ = self.factor_returns(pca, returns, returns.index, self.factor_names_)
+        self.factor_cov_matrix_ = self.factor_cov_matrix(self.factor_returns_, ann_factor)
+        self.idiosyncratic_var_matrix_ = self.idiosyncratic_var_matrix(returns, self.factor_returns_, self.factor_betas_, ann_factor)
+
+    def fit_pca(self, returns, num_factor_exposures, svd_solver):
+        pca = PCA(num_factor_exposures, svd_solver=svd_solver)
+        pca.fit(returns)
+        return  pca
+    
+    def factor_betas(self, pca, factor_beta_indices, factor_beta_columns):
+        return pd.DataFrame(pca.components_.T, index=factor_beta_indices, columns=factor_beta_columns)
+
+    def factor_returns(self, pca, returns, factor_return_indices, factor_return_columns):
+        return pd.DataFrame(pca.transform(returns), index=factor_return_indices, columns=factor_return_columns)
+
+    def idiosyncratic_var_matrix(self, returns, factor_returns, factor_betas, ann_factor):
+        common_returns_ = pd.DataFrame(np.dot(factor_returns, factor_betas.T), returns.index, returns.columns)
+        residuals_ = (returns - common_returns_)
+        return pd.DataFrame(np.diag(np.var(residuals_))*ann_factor, returns.columns, returns.columns)
+    
+    def factor_cov_matrix(self, factor_returns, ann_factor):
+        return np.diag(factor_returns.var(axis=0, ddof=1)*ann_factor)
+    
+    def compute_portfolio_variance(self, weights):
+        X = np.array(weights).reshape((-1,1))
+        return self.portfolio_variance_using_factors(X,self.factor_betas_.values,self.factor_cov_matrix_,self.idiosyncratic_var_matrix_)
+    
+    def portfolio_variance_using_factors(self, X, B, F, S):
+        var_portfolio = X.T.dot(B.dot(F).dot(B.T) + S).dot(X)
+        return var_portfolio
     
 class Selection:
     
     def volatility(self, returns):
-        return returns.std()
+        return pd.DataFrame(returns.std(), columns=['volatility'], index=returns.columns)
     
     def generate_dollar_volume_weights(self, close, volume):
         """
