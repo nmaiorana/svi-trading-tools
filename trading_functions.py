@@ -16,12 +16,18 @@ from datetime import datetime
 
 class Data:
     
-    def save_fundamentals(self, dataframe, file_name):
+    def save_port_data(self, dataframe, file_name):
         dataframe.to_csv(file_name, index=False)
 
-    def read_fundamentals(self, file_name):
-        return pd.read_csv(file_name, parse_dates=['date'], index_col=False)
+    def read_port_data(self, file_name):
+        return pd.read_csv(file_name)
+     
+    def save_price_histories(self, dataframe, file_name):
+        dataframe.to_csv(file_name, index=False)
 
+    def read_price_histories(self, file_name):
+        return pd.read_csv(file_name, parse_dates=['date'], index_col=False)
+    
     def get_instrument_symbols(self, portfolio_df):
             return portfolio_df.columns.values.sort_index()
         
