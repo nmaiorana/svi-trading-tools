@@ -240,7 +240,16 @@ class AmeritradeRest:
                 return None
 
         # convert data to data dictionary
-        return content.json()
+        price_history = content.json()
+        candles = price_history['candles']
+        if len(candles) == 0:
+            return None
+        price_history_df = pd.DataFrame(price_history['candles'])
+
+        price_history_df['ticker'] = price_history['symbol']
+        price_history_df['date'] = pd.to_datetime(price_history_df['datetime'], unit='ms').dt.normalize()
+        price_history_df.drop(['datetime'], inplace=True, axis=1)
+        return price_history_df
     
     def get_ticker_fundamentals(self, symbol, end_date, num_periods=1):
         price_history = self.get_daily_price_history(symbol, end_date, num_periods=num_periods)
@@ -254,10 +263,10 @@ class AmeritradeRest:
         price_history_df.drop(['datetime'], inplace=True, axis=1)
         return price_history_df
 
-    def get_fundamentals(self, tickers, end_date, num_periods=1):
+    def get_price_histories(self, tickers, end_date, num_periods=1):
         fundamentals_df = pd.DataFrame()
         for symbol in tickers:
-            ticker_fundamentals = self.get_ticker_fundamentals(symbol, end_date, num_periods=num_periods)
+            ticker_fundamentals = self.get_daily_price_history(symbol, end_date, num_periods=num_periods)
             if ticker_fundamentals is not None:
                 fundamentals_df = fundamentals_df.append([ticker_fundamentals])
         fundamentals_df.reset_index(drop=True, inplace=True)
