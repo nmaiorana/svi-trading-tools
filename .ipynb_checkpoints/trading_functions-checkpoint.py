@@ -273,6 +273,9 @@ class Portfolio:
     
 class Returns:
     
+    def compute_returns(self, prices):
+        return prices.pct_change()
+    
     def compute_log_returns(self, prices, lookahead=1):
         """
         Compute log returns for each ticker.

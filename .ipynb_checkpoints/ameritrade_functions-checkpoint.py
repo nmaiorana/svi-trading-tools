@@ -193,31 +193,6 @@ class AmeritradeRest:
                 portfolio_list.append(instrument_data)
 
         return pd.DataFrame.from_dict(portfolio_list).fillna(0)
-    
-    def parse_portfolios(self):
-        if self.positions_data is None:
-            self.get_positions()
-            
-        if self.positions_data is None:
-            print ("No positons data.")
-            return None
-        
-        total_portfolio = {}
-        for account in self.positions_data:
-            securitiesAccount = account['securitiesAccount']
-            masked_account_id = self.mask_account(securitiesAccount['accountId'])
-            account_portfolio = {}
-            total_portfolio[masked_account_id] = account_portfolio
-            positions = securitiesAccount['positions']
-            for position in positions:
-                instrument = position['instrument']
-                assetType = instrument['assetType']
-                if assetType == 'EQUITY':
-                    symbol = instrument['symbol']
-                    marketValue = position['marketValue']
-                    account_portfolio[symbol] = marketValue
-
-        return pd.DataFrame.from_dict(total_portfolio, orient='index').fillna(0).sort_index(axis=1)
 
     def get_daily_price_history(self, symbol, end_date, num_periods=1):
         # define endpoint
@@ -270,7 +245,7 @@ class AmeritradeRest:
             if ticker_fundamentals is not None:
                 fundamentals_df = fundamentals_df.append([ticker_fundamentals])
         fundamentals_df.reset_index(drop=True, inplace=True)
-        return fundamentals_df.sort_index(axis=1)
+        return fundamentals_df.sort_values(by=['date'])
 
     def print_positions_data(self, account_data):
         if account_data is None:
