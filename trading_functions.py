@@ -31,15 +31,15 @@ class Data:
     def get_instrument_symbols(self, portfolio_df):
             return portfolio_df.columns.values.sort_index()
         
-    def get_fundamental_symbols(self, fundamentals_df):
-        return sorted(fundamentals_df['ticker'].unique())
+    def get_fundamental_symbols(self, price_histories_df):
+        return sorted(price_histories_df['ticker'].unique())
 
-    def get_values_by_date(self, fundamentals_df, values):
-        return fundamentals_df.reset_index().pivot(index='date', columns='ticker', values=values)
+    def get_values_by_date(self, price_histories_df, values):
+        return price_histories_df.reset_index().pivot(index='date', columns='ticker', values=values)
     
-    def get_close_values(self, fundamentals_df):
-        open_values = self.get_values_by_date(fundamentals_df, 'open')
-        close_values = self.get_values_by_date(fundamentals_df, 'close')
+    def get_close_values(self, price_histories_df):
+        open_values = self.get_values_by_date(price_histories_df, 'open')
+        close_values = self.get_values_by_date(price_histories_df, 'close')
         close_values = close_values.fillna(open_values.ffill())
         close_values = close_values.fillna(open_values.bfill())
         return close_values
@@ -274,7 +274,7 @@ class Portfolio:
 class Returns:
     
     def compute_returns(self, prices):
-        return prices.pct_change().fillna(0)
+        return prices.pct_change()[1:]
     
     def compute_log_returns(self, prices, lookahead=1):
         """

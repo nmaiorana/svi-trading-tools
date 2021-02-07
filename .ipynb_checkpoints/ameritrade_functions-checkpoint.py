@@ -11,6 +11,8 @@ import numpy as np
 ok_reason = ''
 unauthorized_reason = 'Unauthorized'
 
+date_format = '%Y-%m-%d'
+
 ## Authentication Data
 # These items here are used to obtain an authorization token from TD Ameritrade. It involves navigating to web pages, so using a browser emulator # to navigate the page and set fields and submit pages.
 
@@ -194,7 +196,9 @@ class AmeritradeRest:
 
         return pd.DataFrame.from_dict(portfolio_list).fillna(0)
 
-    def get_daily_price_history(self, symbol, end_date, num_periods=1):
+    def get_daily_price_history(self, symbol, end_date=None, num_periods=1):
+        if end_date is None:
+            end_date = datetime.today().strftime(date_format)
         # define endpoint
         endpoint = f'https://api.tdameritrade.com/v1/marketdata/{symbol}/pricehistory'
 
@@ -203,7 +207,7 @@ class AmeritradeRest:
                     'periodType': 'year',
                     'period': str(num_periods),
                     'frequencyType': 'daily',
-                    'endDate': str(int(datetime.fromisoformat(end_date).timestamp()) * 1000),
+                    'endDate': str(int(datetime.strptime(end_date, date_format).timestamp()) * 1000),
                     'needExtendedHoursData':'true'
         }
 
@@ -238,7 +242,7 @@ class AmeritradeRest:
         price_history_df.drop(['datetime'], inplace=True, axis=1)
         return price_history_df
 
-    def get_price_histories(self, tickers, end_date, num_periods=1):
+    def get_price_histories(self, tickers, end_date=None, num_periods=1):
         fundamentals_df = pd.DataFrame()
         for symbol in tickers:
             ticker_fundamentals = self.get_daily_price_history(symbol, end_date, num_periods=num_periods)
