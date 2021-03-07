@@ -12,6 +12,7 @@ import cvxpy as cvx
 from sklearn.decomposition import PCA
 import time
 from datetime import datetime
+import os
 
 
 class Data:
@@ -27,6 +28,20 @@ class Data:
 
     def read_price_histories(self, file_name):
         return pd.read_csv(file_name, parse_dates=['date'], index_col=False)
+    
+    def zipline_formatted(self, price_histories, directory, freq='daily'):
+    
+        formatted_data_dir = f'{directory}/{freq}'
+        os.makedirs(formatted_data_dir,exist_ok=True)
+        
+        zipline_df = price_histories.set_index(['date'])
+        zipline_df['dividend'] = 0
+        zipline_df['split'] = 1
+        tickers = zipline_df['ticker'].value_counts().index.values
+        for ticker in tickers:
+            ticker_data = zipline_df[zipline_df.ticker == ticker].drop(columns=['ticker'])
+            print(f'Daily data for {ticker}:')
+            ticker_data.to_csv(f'{formatted_data_dir}/{ticker}.csv', index=True)
     
     def get_instrument_symbols(self, portfolio_df):
             return portfolio_df.columns.values.sort_index()
@@ -345,6 +360,41 @@ class Returns:
             The covariance of the returns
         """
         return np.cov(returns.fillna(0).T.values)
+    
+    
+class Factors():
+    
+    # Simple Factors, not to be taken seriously
+    def factor_return_mean(self, returns_df):
+        factor_series = returns_df.mean(axis=1)
+        return pd.DataFrame(factor_series.values, index=factor_series.index, columns = ['factor_mean'])
+
+    def factor_return_median(self, returns_df):
+        factor_series = returns_df.median(axis=1)
+        return pd.DataFrame(factor_series.values, index=factor_series.index, columns = ['factor_median'])
+    
+    def momentum(self, returns_df):
+        factor_series = returns_df.mean(axis=1)
+        return pd.DataFrame(factor_series.values, index=factor_series.index, columns = ['factor_mean'])
+    
+    def sharpe_ratio(self, df, frequency="daily"):
+
+        if frequency == "daily":
+            # TODO: daily to annual conversion
+            annualization_factor = np.sqrt(252)
+        elif frequency == "monthly":
+            #TODO: monthly to annual conversion
+            annualization_factor = np.sqrt(12) 
+        else:
+            # TODO: no conversion
+            annualization_factor = 1
+
+        #TODO: calculate the sharpe ratio and store it in a dataframe.
+        # name the column 'Sharpe Ratio'.  
+        # round the numbers to 2 decimal places
+        df_sharpe = pd.DataFrame(data=annualization_factor*df.mean()/df.std(), columns=['Sharpe Ratio']).round(2)
+
+        return df_sharpe
 
 class RiskModelPCA(object):
     def __init__(self, returns, ann_factor, num_factor_exposures):
@@ -380,7 +430,7 @@ class RiskModelPCA(object):
     
     def portfolio_variance_using_factors(self, X, B, F, S):
         var_portfolio = X.T.dot(B.dot(F).dot(B.T) + S).dot(X)
-        return var_portfolio
+        return np.sqrt(var_portfolio.sum())
     
 class Selection:
     
