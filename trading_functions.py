@@ -59,6 +59,13 @@ class Data:
         close_values = close_values.fillna(open_values.bfill())
         return close_values
     
+    def get_open_values(self, price_histories_df):
+        open_values = self.get_values_by_date(price_histories_df, 'open')
+        close_values = self.get_values_by_date(price_histories_df, 'close')
+        open_values = open_values.fillna(close_values.ffill())
+        open_values = open_values.fillna(close_values.bfill())
+        return open_values
+    
     def get_account_portfolio_data(self, portfolios_df, account):
         return portfolios_df.query('account == "{}"'.format(account))
 
@@ -92,12 +99,12 @@ class Portfolio:
         return list(market_values_df.index)
         
     def get_investments_by_type(self, account_portfolio_df, investment_type='EQUITY'):
-        return account_portfolio_df.query('assetType == "{}"'.format(investment_type))
+        return account_portfolio_df.query(f'assetType == "{investment_type}"')
 
     def get_account_value(self, market_values_df):
         return market_values_df.sum(axis=1).sum() 
     
-    def portfolio_log_returns(self, close, weights, lookahead=1):
+    def portfolio_expected_returns(self, close, weights, lookahead=1):
         """
         Compute expected returns for the portfolio, assuming equal investment in each long/short stock.
 
@@ -398,12 +405,19 @@ class Factors():
 
 class RiskModelPCA(object):
     def __init__(self, returns, ann_factor, num_factor_exposures):
+        # Configure
         self.factor_names_ = list(range(0, num_factor_exposures))
-        pca = self.fit_pca(returns, num_factor_exposures, 'full')
-        self.factor_betas_ = self.factor_betas(pca, returns.columns.values, self.factor_names_)
-        self.factor_returns_ = self.factor_returns(pca, returns, returns.index, self.factor_names_)
-        self.factor_cov_matrix_ = self.factor_cov_matrix(self.factor_returns_, ann_factor)
-        self.idiosyncratic_var_matrix_ = self.idiosyncratic_var_matrix(returns, self.factor_returns_, self.factor_betas_, ann_factor)
+        self.tickers_ = returns.columns.values
+        self.num_factor_exposures_ = num_factor_exposures
+        self.ann_factor_ = ann_factor
+        
+        # Compute
+        self.pca_ = self.fit_pca(returns, self.num_factor_exposures_, 'full')
+        self.factor_betas_ = self.factor_betas(self.pca_, returns.columns.values, self.factor_names_)
+        self.factor_returns_ = self.factor_returns(self.pca_, returns, returns.index, self.factor_names_)
+        self.factor_cov_matrix_ = self.factor_cov_matrix(self.factor_returns_, self.ann_factor_)
+        self.idiosyncratic_var_matrix_ = self.idiosyncratic_var_matrix(returns, self.factor_returns_, self.factor_betas_, self.ann_factor_)
+        self.idiosyncratic_var_vector_ = self.idiosyncratic_var_vector(returns, self.idiosyncratic_var_matrix_)
 
     def fit_pca(self, returns, num_factor_exposures, svd_solver):
         pca = PCA(num_factor_exposures, svd_solver=svd_solver)
@@ -420,6 +434,9 @@ class RiskModelPCA(object):
         common_returns_ = pd.DataFrame(np.dot(factor_returns, factor_betas.T), returns.index, returns.columns)
         residuals_ = (returns - common_returns_)
         return pd.DataFrame(np.diag(np.var(residuals_))*ann_factor, returns.columns, returns.columns)
+    
+    def idiosyncratic_var_vector(self, returns, idiosyncratic_var_matrix):
+        return pd.DataFrame(data=np.diag(idiosyncratic_var_matrix.values), index=returns.columns)
     
     def factor_cov_matrix(self, factor_returns, ann_factor):
         return np.diag(factor_returns.var(axis=0, ddof=1)*ann_factor)
