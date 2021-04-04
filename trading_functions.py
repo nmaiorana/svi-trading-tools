@@ -371,6 +371,9 @@ class Returns:
     
 class Factors():
     
+    def demean(dataframe):
+        return dataframe.sub(dataframe.mean(axis=1), axis=0)
+    
     # Simple Factors, not to be taken seriously
     def factor_return_mean(self, returns_df):
         factor_series = returns_df.mean(axis=1)
