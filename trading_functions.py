@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import cvxpy as cvx
 from sklearn.decomposition import PCA
+from scipy import stats
 import time
 from datetime import datetime
 import os
@@ -370,22 +371,19 @@ class Returns:
     
     
 class Factors():
-    
-    def demean(dataframe):
+    def af_demean(self, dataframe):
         return dataframe.sub(dataframe.mean(axis=1), axis=0)
-    
-    # Simple Factors, not to be taken seriously
-    def factor_return_mean(self, returns_df):
-        factor_series = returns_df.mean(axis=1)
-        return pd.DataFrame(factor_series.values, index=factor_series.index, columns = ['factor_mean'])
 
-    def factor_return_median(self, returns_df):
-        factor_series = returns_df.median(axis=1)
-        return pd.DataFrame(factor_series.values, index=factor_series.index, columns = ['factor_median'])
-    
-    def momentum(self, returns_df):
-        factor_series = returns_df.mean(axis=1)
-        return pd.DataFrame(factor_series.values, index=factor_series.index, columns = ['factor_mean'])
+    def af_rank(self, dataframe):
+        return dataframe.rank(axis=1)
+
+    def af_zscore(self, dataframe):
+        return dataframe.apply(stats.zscore, axis='columns')
+
+    def finalize_factor_data(self, raw_data_df, factor_name, rank_direction=1):
+        demeaned_ranked_zscored_df = (self.af_zscore(self.af_rank(self.af_demean(raw_data_df))) * rank_direction).stack()
+        demeaned_ranked_zscored_df.name=factor_name
+        return demeaned_ranked_zscored_df
     
     def sharpe_ratio(self, df, frequency="daily"):
 
@@ -405,6 +403,38 @@ class Factors():
         df_sharpe = pd.DataFrame(data=annualization_factor*df.mean()/df.std(), columns=['Sharpe Ratio']).round(2)
 
         return df_sharpe
+    
+    def momentum(self, portfolio_price_histories, days=252):
+        factor_name = f'momentum_{days}_day_factor_returns'
+        raw_factor_data = Returns().compute_log_returns(Data().get_close_values(portfolio_price_histories), days)
+        return self.finalize_factor_data(raw_factor_data, factor_name)
+
+    def mean_revision_factor_returns(self, portfolio_price_histories, days=5):
+        # Note, The idea is that we are looking for underperormers to revert back towards the mean of the sector.
+        #       Since the ranking will sort from under perormers to over performers, we reverse the factor value by 
+        #       multiplying by -1, so that the largest underperormers are ranked higher.
+        factor_name = f'mean_revision{days}_day_factor_returns'
+        raw_factor_data = Returns().compute_log_returns(Data().get_close_values(portfolio_price_histories), days)
+        return self.finalize_factor_data(raw_factor_data, factor_name, -1)
+    
+    def mean_revision_factor_returns_smoothed(self, portfolio_price_histories, days=5):
+        factor_name = f'mean_revision{days}_day_factor_returns_smoothed'
+        raw_factor_data = self.mean_revision_factor_returns(portfolio_price_histories, days).unstack(1).rolling(window=days).mean()
+        return self.finalize_factor_data(raw_factor_data, factor_name)
+
+    def overnight_sentiment(self, portfolio_price_histories, days=5):
+        factor_name = f'overnight_sentiment'
+
+        close_prices = Data().get_close_values(portfolio_price_histories)
+        open_prices = Data().get_open_values(portfolio_price_histories)
+        overnight_returns = ((open_prices.shift(-1) - close_prices)  / close_prices)
+        raw_factor_data = overnight_returns.rolling(window=days).sum()
+        return self.finalize_factor_data(raw_factor_data, factor_name)
+    
+    def overnight_sentiment_smoothed(self, portfolio_price_histories, days=7):
+        factor_name = f'mean_revision{days}_day_factor_returns_smoothed'
+        raw_factor_data = self.mean_revision_factor_returns(portfolio_price_histories, days).unstack(1).rolling(window=days).mean()
+        return self.finalize_factor_data(raw_factor_data, factor_name)
 
 class RiskModelPCA(object):
     def __init__(self, returns, ann_factor, num_factor_exposures):
