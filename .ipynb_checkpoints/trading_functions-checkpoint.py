@@ -11,6 +11,7 @@ import numpy as np
 import cvxpy as cvx
 from sklearn.decomposition import PCA
 from scipy import stats
+import alphalens as al
 import time
 from datetime import datetime
 import os
@@ -385,6 +386,18 @@ class Factors():
         demeaned_ranked_zscored_df.name=factor_name
         return demeaned_ranked_zscored_df
     
+    def prepare_alpha_lense_factor_data(self, all_factors, pricing):
+        clean_factor_data = {
+        factor: al.utils.get_clean_factor_and_forward_returns(
+            factor=factor_data, prices=pricing, periods=[1]) for factor, factor_data in all_factors.iteritems()}
+
+        unixt_factor_data = {
+            factor: factor_data.set_index(pd.MultiIndex.from_tuples(
+                [(x.timestamp(), y) for x, y in factor_data.index.values],
+                names=['date', 'asset'])) for factor, factor_data in clean_factor_data.items()}
+        
+        return clean_factor_data, unixt_factor_data
+    
     def sharpe_ratio(self, df, frequency="daily"):
 
         if frequency == "daily":
@@ -413,27 +426,27 @@ class Factors():
         # Note, The idea is that we are looking for underperormers to revert back towards the mean of the sector.
         #       Since the ranking will sort from under perormers to over performers, we reverse the factor value by 
         #       multiplying by -1, so that the largest underperormers are ranked higher.
-        factor_name = f'mean_revision{days}_day_factor_returns'
+        factor_name = f'mean_revision_{days}_day_factor_returns'
         raw_factor_data = Returns().compute_log_returns(Data().get_close_values(portfolio_price_histories), days)
         return self.finalize_factor_data(raw_factor_data, factor_name, -1)
     
     def mean_revision_factor_returns_smoothed(self, portfolio_price_histories, days=5):
-        factor_name = f'mean_revision{days}_day_factor_returns_smoothed'
+        factor_name = f'mean_revision_{days}_day_factor_returns_smoothed'
         raw_factor_data = self.mean_revision_factor_returns(portfolio_price_histories, days).unstack(1).rolling(window=days).mean()
         return self.finalize_factor_data(raw_factor_data, factor_name)
 
     def overnight_sentiment(self, portfolio_price_histories, days=5):
-        factor_name = f'overnight_sentiment'
+        factor_name = f'overnight_sentiment_{days}_day'
 
         close_prices = Data().get_close_values(portfolio_price_histories)
         open_prices = Data().get_open_values(portfolio_price_histories)
         overnight_returns = ((open_prices.shift(-1) - close_prices)  / close_prices)
-        raw_factor_data = overnight_returns.rolling(window=days).sum()
+        raw_factor_data = overnight_returns.rolling(window=days, min_periods=1).sum()
         return self.finalize_factor_data(raw_factor_data, factor_name)
     
-    def overnight_sentiment_smoothed(self, portfolio_price_histories, days=7):
-        factor_name = f'mean_revision{days}_day_factor_returns_smoothed'
-        raw_factor_data = self.mean_revision_factor_returns(portfolio_price_histories, days).unstack(1).rolling(window=days).mean()
+    def overnight_sentiment_smoothed(self, portfolio_price_histories, days=5):
+        factor_name = f'overnight_sentiment_{days}_day_smoothed'
+        raw_factor_data = self.overnight_sentiment(portfolio_price_histories, days).unstack(1).rolling(window=days).mean()
         return self.finalize_factor_data(raw_factor_data, factor_name)
 
 class RiskModelPCA(object):
