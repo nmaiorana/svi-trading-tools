@@ -91,11 +91,11 @@ class Data:
         return close_prices.resample(freq).last().dropna()
     
 class Portfolio:
-    def get_portfolio_weights(self, market_values_df):
-        return (market_values_df / self.get_account_value(market_values_df)).rename(columns={'marketValue':'weight'}).sort_index()
+    def get_portfolio_weights(self, account_portfolio_df):
+        return (account_portfolio_df['marketValue'] / self.get_account_value(account_portfolio_df)).rename(columns={'marketValue':'weight'}).sort_index()
         
     def get_market_values(self, account_portfolio_df):
-        return account_portfolio_df[['symbol', 'marketValue']].set_index('symbol').sort_index()
+        return account_portfolio_df[['symbol', 'marketValue', 'longQuantity']].set_index('symbol').sort_index()
     
     def get_investment_symbols(self, market_values_df):
         return list(market_values_df.index)
@@ -103,8 +103,8 @@ class Portfolio:
     def get_investments_by_type(self, account_portfolio_df, investment_type='EQUITY'):
         return account_portfolio_df.query(f'assetType == "{investment_type}"')
 
-    def get_account_value(self, market_values_df):
-        return market_values_df.sum(axis=1).sum() 
+    def get_account_value(self, account_portfolio_df):
+        return account_portfolio_df['marketValue'].sum() 
     
     def portfolio_expected_returns(self, close, weights, lookahead=1):
         """
