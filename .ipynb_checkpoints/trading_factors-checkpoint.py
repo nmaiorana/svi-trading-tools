@@ -28,8 +28,14 @@ def af_rank(dataframe):
 def af_zscore(dataframe):
     return dataframe.apply(stats.zscore, axis='columns')
 
-def finalize_factor_data(raw_data_df, factor_name, rank_direction=1):
-    demeaned_ranked_zscored_df = (af_zscore(af_rank(af_demean(raw_data_df))) * rank_direction).stack()
+# need to add a demean flag, default True
+def finalize_factor_data(raw_data_df, factor_name, rank_direction=1, demean=True):
+    if demean:
+        data_df = af_demean(raw_data_df)
+    else:
+        data_df = raw_data_df
+        
+    demeaned_ranked_zscored_df = (af_zscore(af_rank(data_df)) * rank_direction).stack()
     demeaned_ranked_zscored_df.name=factor_name
     return demeaned_ranked_zscored_df
 
@@ -76,18 +82,24 @@ def momentum(portfolio_price_histories, days=252):
     raw_factor_data = Returns().compute_log_returns(Data().get_close_values(portfolio_price_histories), days)
     return finalize_factor_data(raw_factor_data, factor_name)
 
-def mean_revision_factor_returns(portfolio_price_histories, days=5):
+def mean_reversion_factor_returns(portfolio_price_histories, days=5):
     # Note, The idea is that we are looking for underperormers to revert back towards the mean of the sector.
     #       Since the ranking will sort from under perormers to over performers, we reverse the factor value by 
     #       multiplying by -1, so that the largest underperormers are ranked higher.
-    factor_name = f'mean_revision_{days}_day_factor_returns'
+    factor_name = f'mean_reversion_{days}_day_factor_returns'
     raw_factor_data = Returns().compute_log_returns(Data().get_close_values(portfolio_price_histories), days)
     return finalize_factor_data(raw_factor_data, factor_name, -1)
 
-def mean_revision_factor_returns_smoothed(portfolio_price_histories, days=5):
-    factor_name = f'mean_revision_{days}_day_factor_returns_smoothed'
-    raw_factor_data = mean_revision_factor_returns(portfolio_price_histories, days).unstack(1).rolling(window=days).mean()
-    return finalize_factor_data(raw_factor_data, factor_name)
+def mean_reversion_factor_returns_smoothed(portfolio_price_histories, days=5):
+    factor_name = f'mean_reversion_{days}_day_factor_returns_smoothed'
+    raw_factor_data = mean_reversion_factor_returns(portfolio_price_histories, days).unstack(1).rolling(window=days).mean()
+    return finalize_factor_data(raw_factor_data, factor_name, demean=False)
+
+def mean_factor_returns_smoothed(portfolio_price_histories, days=5):
+    factor_name = f'mean_{days}_day_factor_returns_smoothed'
+    returns = Returns().compute_log_returns(Data().get_close_values(portfolio_price_histories), 1)
+    raw_factor_data = returns.rolling(window=days).mean()
+    return finalize_factor_data(raw_factor_data, factor_name, demean=False)
 
 def overnight_sentiment(portfolio_price_histories, days=5):
     factor_name = f'overnight_sentiment_{days}_day'
@@ -101,7 +113,15 @@ def overnight_sentiment(portfolio_price_histories, days=5):
 def overnight_sentiment_smoothed(portfolio_price_histories, days=5):
     factor_name = f'overnight_sentiment_{days}_day_smoothed'
     raw_factor_data = overnight_sentiment(portfolio_price_histories, days).unstack(1).rolling(window=days).mean()
-    return finalize_factor_data(raw_factor_data, factor_name)
+    return finalize_factor_data(raw_factor_data, factor_name, demean=False)
+
+# Universal Quant Features
+
+def annualized_volatility(portfolio_price_histories, days=20, annualization_factor=252):
+    factor_name = f'annualzed_volatility_{days}_day'
+    raw_factor_data = Returns().compute_log_returns(Data().get_close_values(portfolio_price_histories), 1)
+    raw_factor_data = (raw_factor_data.rolling(days).std() * (annualization_factor ** .5)).dropna()
+    return finalize_factor_data(raw_factor_data, factor_name, demean=False)
 
 class RiskModelPCA(object):
     def __init__(self, returns, ann_factor, num_factor_exposures):
