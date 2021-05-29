@@ -20,9 +20,114 @@ from trading_functions import Returns
 from trading_functions import Data
 
 class FactorData:
-    def __init__(self, factor_data_df):
+    def __init__(self, factor_data_df, factor_name='Alpha Factor'):
         
-        self factor_data = factor_data_df
+        self.factor_data = factor_data_df
+        self.factor_name = factor_name
+        
+    def compute(self):
+        pass
+        
+    def demean(self):
+        return FactorData(self.factor_data.sub(self.factor_data.mean(axis=1), axis=0), self.factor_name)
+            
+    def rank(self):
+        return FactorData(self.factor_data.rank(axis=1), self.factor_name)
+    
+    def zscore(self):
+        return FactorData(self.factor_data.apply(stats.zscore, axis='columns'), self.factor_name)
+    
+    def smoothed(self, days=20):
+        return FactorData(self.factor_data.rolling(window=days).mean(), self.factor_name + '_smoothed')
+    
+    def for_al(self, factor_name=None):
+        if factor_name is not None:
+            self.factor_name = factor_name
+        alpha_lens_series = self.factor_data.stack()
+        alpha_lens_series.name= self.factor_name
+        return alpha_lens_series
+        
+class FactorReturns(FactorData):
+
+    def __init__(self, price_histories_df, days=1):
+        
+        self.compute(price_histories_df, days)
+
+    def compute(self, price_histories_df, days=1):
+        self.factor_name = f'logret_{days}_day'
+        self.factor_data = Returns().compute_log_returns(Data().get_close_values(price_histories_df), days)
+        return self
+    
+class FactorMomentum(FactorData):
+    
+    def __init__(self, price_histories_df, days=252):
+        
+        self.compute(price_histories_df, days)
+    
+    def compute(self, price_histories_df, days=252):
+        self.factor_name = f'momentum_{days}_day_logret'
+        self.factor_data = FactorReturns(price_histories_df, days).factor_data
+        return self
+    
+class FactorMeanReversion(FactorData):
+    def __init__(self, price_histories_df, days=5):
+        
+        self.compute(price_histories_df, days)
+        
+    def compute(self, price_histories_df, days=5):
+        # Note, The idea is that we are looking for underperormers to revert back towards the mean of the sector.
+        #       Since the ranking will sort from under perormers to over performers, we reverse the factor value by 
+        #       multiplying by -1, so that the largest underperormers are ranked higher.
+        self.factor_name = f'mean_reversion_{days}_day_logret'
+        self.factor_data = -FactorMomentum(price_histories_df, days).factor_data
+        return self
+    
+class OvernightSentiment(FactorData):
+    def __init__(self, price_histories_df, days=5):
+        
+        self.compute(price_histories_df, days)
+    
+    def compute(self, price_histories_df, days=5):
+        self.factor_name = f'overnight_sentiment_{days}_day'
+        close_prices = Data().get_close_values(price_histories_df)
+        open_prices = Data().get_open_values(price_histories_df)
+        self.factor_data = ((open_prices.shift(-1) - close_prices)  / close_prices).rolling(window=days, min_periods=1).sum()
+        return self
+    
+# Universal Quant Features
+class AnnualizedVolatility(FactorData):
+    def __init__(self, price_histories_df, days=20, annualization_factor=252):
+        self.annualization_factor = annualization_factor
+        
+        self.compute(price_histories_df, days)
+    
+    def compute(self, price_histories_df, days=20):
+        self.factor_name = f'annualzed_volatility_{days}_day'
+        self.factor_data = (FactorReturns(price_histories_df, days).factor_data.rolling(days).std() * (self.annualization_factor ** .5)).dropna()
+        return self
+    
+class AverageDollarVolume(FactorData):
+    def __init__(self, price_histories_df, days=5):
+        
+        self.compute(price_histories_df, days)
+        
+    def compute(self, price_histories_df, days=20):
+        self.factor_name = f'average_dollar_volume_{days}_day'
+        self.factor_data = (Data().get_values_by_date(price_histories_df, 'close') *
+                            Data().get_values_by_date(price_histories_df, 'volume')).fillna(0).rolling(days).mean()
+        return self
+    
+class MarketDispersion(FactorData):
+    def __init__(self, price_histories_df, days=20, return_days=1):
+        
+        self.return_days = return_days
+        self.compute(price_histories_df, days)
+        
+    def compute(self, price_histories_df, days=1):
+        self.factor_name = f'market_dispersion{days}_day'
+        returns = FactorReturns(price_histories_df, self.return_days).factor_data
+        self.factor_data = np.sqrt(returns.sub(returns.mean(axis=1), axis=0)** 2).rolling(days).mean()
+        return self
 
 def af_demean(dataframe):
     return dataframe.sub(dataframe.mean(axis=1), axis=0)
@@ -43,14 +148,6 @@ def finalize_factor_data(raw_data_df, factor_name, rank_direction=1, demean=True
     demeaned_ranked_zscored_df = (af_zscore(af_rank(data_df)) * rank_direction).stack()
     demeaned_ranked_zscored_df.name=factor_name
     return demeaned_ranked_zscored_df
-
-def returns_(portfolio_price_histories, days=252):
-    return Returns().compute_log_returns(Data().get_close_values(portfolio_price_histories), days)
-
-def momentum(portfolio_price_histories, days=252):
-    factor_name = f'momentum_{days}_day_factor_returns'
-    raw_factor_data = Returns().compute_log_returns(Data().get_close_values(portfolio_price_histories), days)
-    return finalize_factor_data(raw_factor_data, factor_name)
 
 def prepare_alpha_lense_factor_data(all_factors, pricing):
     clean_factor_data = {

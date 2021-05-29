@@ -220,9 +220,15 @@ class AmeritradeRest:
 
         # convert data to data dictionary
         price_history = content.json()
+        if 'candles' not in price_history:
+            print(f'No candle data for {symbol}')
+            return None
+        
         candles = price_history['candles']
         if len(candles) == 0:
+            print(f'Empty candle data for {symbol}')
             return None
+        
         price_history_df = pd.DataFrame(price_history['candles'])
 
         price_history_df['ticker'] = price_history['symbol']
@@ -243,13 +249,13 @@ class AmeritradeRest:
         return price_history_df
 
     def get_price_histories(self, tickers, end_date=None, num_periods=1):
-        fundamentals_df = pd.DataFrame()
+        price_histories_df = pd.DataFrame()
         for symbol in tickers:
-            ticker_fundamentals = self.get_daily_price_history(symbol, end_date, num_periods=num_periods)
-            if ticker_fundamentals is not None:
-                fundamentals_df = fundamentals_df.append([ticker_fundamentals])
-        fundamentals_df.reset_index(drop=True, inplace=True)
-        return fundamentals_df.sort_values(by=['date'])
+            ticker_price_history = self.get_daily_price_history(symbol, end_date, num_periods=num_periods)
+            if ticker_price_history is not None:
+                price_histories_df = price_histories_df.append([ticker_price_history])
+        price_histories_df.reset_index(drop=True, inplace=True)
+        return price_histories_df.sort_values(by=['date'])
 
     def print_positions_data(self, account_data):
         if account_data is None:
