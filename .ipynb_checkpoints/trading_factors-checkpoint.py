@@ -48,7 +48,6 @@ class FactorData:
         return alpha_lens_series
         
 class FactorReturns(FactorData):
-
     def __init__(self, price_histories_df, days=1):
         self.compute(price_histories_df, days)
 
@@ -58,7 +57,6 @@ class FactorReturns(FactorData):
         return self
     
 class FactorMomentum(FactorData):
-    
     def __init__(self, price_histories_df, days=252):
         self.compute(price_histories_df, days)
     
@@ -169,6 +167,18 @@ class FactorDateParts():
 
         #last day of quarter (Business Month)
         self.factors_df['quarter_end'] = (self.factors_df.index.get_level_values(0).isin(pd.date_range(start=self.start_date, end=self.end_date, freq='BQ'))).astype(int)
+        
+#Factor Targets
+class FactorReturnQuantiles(FactorData):
+    def __init__(self, price_histories_df, quantiles=5, return_days=1):
+        self.return_days = return_days
+        self.compute(price_histories_df, quantiles)
+    
+    def compute(self, price_histories_df, quantiles=5):
+        self.factor_name = f'logret_{self.return_days}_day_{quantiles}_quantiles'
+        self.factor_data = pd.qcut(FactorReturns(price_histories_df, self.return_days).for_al(), 5, labels=range(5))
+        self.factor_data.name = self.factor_name
+        return self
 
 def af_demean(dataframe):
     return dataframe.sub(dataframe.mean(axis=1), axis=0)

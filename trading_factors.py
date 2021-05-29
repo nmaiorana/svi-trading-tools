@@ -174,9 +174,10 @@ class FactorReturnQuantiles(FactorData):
         self.return_days = return_days
         self.compute(price_histories_df, quantiles)
     
-    def compute(self, price_histories_df, days=252):
-        self.factor_name = f'momentum_{days}_day_logret'
-        self.factor_data = (FactorReturns(price_histories_df, self.return_days).factor_data)
+    def compute(self, price_histories_df, quantiles=5):
+        self.factor_name = f'logret_{self.return_days}_day_{quantiles}_quantiles'
+        self.factor_data = pd.qcut(FactorReturns(price_histories_df, self.return_days).for_al(), 5, labels=range(5))
+        self.factor_data.name = self.factor_name
         return self
 
 def af_demean(dataframe):
