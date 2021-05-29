@@ -50,7 +50,6 @@ class FactorData:
 class FactorReturns(FactorData):
 
     def __init__(self, price_histories_df, days=1):
-        
         self.compute(price_histories_df, days)
 
     def compute(self, price_histories_df, days=1):
@@ -61,7 +60,6 @@ class FactorReturns(FactorData):
 class FactorMomentum(FactorData):
     
     def __init__(self, price_histories_df, days=252):
-        
         self.compute(price_histories_df, days)
     
     def compute(self, price_histories_df, days=252):
@@ -71,7 +69,6 @@ class FactorMomentum(FactorData):
     
 class FactorMeanReversion(FactorData):
     def __init__(self, price_histories_df, days=5):
-        
         self.compute(price_histories_df, days)
         
     def compute(self, price_histories_df, days=5):
@@ -84,7 +81,6 @@ class FactorMeanReversion(FactorData):
     
 class OvernightSentiment(FactorData):
     def __init__(self, price_histories_df, days=5):
-        
         self.compute(price_histories_df, days)
     
     def compute(self, price_histories_df, days=5):
@@ -98,7 +94,6 @@ class OvernightSentiment(FactorData):
 class AnnualizedVolatility(FactorData):
     def __init__(self, price_histories_df, days=20, annualization_factor=252):
         self.annualization_factor = annualization_factor
-        
         self.compute(price_histories_df, days)
     
     def compute(self, price_histories_df, days=20):
@@ -108,7 +103,6 @@ class AnnualizedVolatility(FactorData):
     
 class AverageDollarVolume(FactorData):
     def __init__(self, price_histories_df, days=5):
-        
         self.compute(price_histories_df, days)
         
     def compute(self, price_histories_df, days=20):
@@ -119,15 +113,62 @@ class AverageDollarVolume(FactorData):
     
 class MarketDispersion(FactorData):
     def __init__(self, price_histories_df, days=20, return_days=1):
-        
         self.return_days = return_days
         self.compute(price_histories_df, days)
         
-    def compute(self, price_histories_df, days=1):
+    def compute(self, price_histories_df, days=20):
         self.factor_name = f'market_dispersion{days}_day'
         returns = FactorReturns(price_histories_df, self.return_days).factor_data
         self.factor_data = np.sqrt(returns.sub(returns.mean(axis=1), axis=0)** 2).rolling(days).mean()
         return self
+    
+class MarketVolatility(FactorData):
+    def __init__(self, price_histories_df, days=20, return_days=1, annualization_factor=252):
+        self.return_days = return_days
+        self.annualization_factor = annualization_factor
+        self.compute(price_histories_df, days)
+        
+    def compute(self, price_histories_df, days=20):
+        self.factor_name = f'market_volatility{days}_day'
+        returns = FactorReturns(price_histories_df, self.return_days).factor_data
+        market_returns_mu = returns.rolling(days).mean()
+        self.factor_data = np.sqrt(self.annualization_factor * (market_returns_mu.sub(returns.mean(axis=1), axis=0)** 2))
+        return self
+    
+# Date Parts
+class FactorDateParts():
+    def __init__(self, factors_df):
+        self.factors_df = factors_df
+        self.start_date = factors_df.index.get_level_values(0).min()
+        self.end_date = factors_df.index.get_level_values(0).max()
+        self.isJanuary()
+        self.isDecember()
+        self.setWeekDayQuarterYear()
+        self.setStartEndDates()
+    
+    def isJanuary(self):
+        self.factors_df['is_January'] = (self.factors_df.index.get_level_values(0).month == 1).astype(int) 
+        
+    def isDecember(self):
+        self.factors_df['is_December'] = (self.factors_df.index.get_level_values(0).month == 12).astype(int) 
+    
+    def setWeekDayQuarterYear(self):
+        self.factors_df['weekday'] = self.factors_df.index.get_level_values(0).weekday
+        self.factors_df['quarter'] = self.factors_df.index.get_level_values(0).quarter
+        self.factors_df['year'] = self.factors_df.index.get_level_values(0).year
+        
+    def setStartEndDates(self):
+        #first day of month (Business Month Start)
+        self.factors_df['month_start'] = (self.factors_df.index.get_level_values(0).isin(pd.date_range(start=self.start_date, end=self.end_date, freq='BMS'))).astype(int)
+
+        #last day of month (Business Month)
+        self.factors_df['month_end'] = (self.factors_df.index.get_level_values(0).isin(pd.date_range(start=self.start_date, end=self.end_date, freq='BM'))).astype(int)
+
+        #first day of quarter (Business Month)
+        self.factors_df['quarter_start'] = (self.factors_df.index.get_level_values(0).isin(pd.date_range(start=self.start_date, end=self.end_date, freq='BQS'))).astype(int)
+
+        #last day of quarter (Business Month)
+        self.factors_df['quarter_end'] = (self.factors_df.index.get_level_values(0).isin(pd.date_range(start=self.start_date, end=self.end_date, freq='BQ'))).astype(int)
 
 def af_demean(dataframe):
     return dataframe.sub(dataframe.mean(axis=1), axis=0)
