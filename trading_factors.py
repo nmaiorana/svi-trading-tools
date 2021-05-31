@@ -111,7 +111,6 @@ class AverageDollarVolume(FactorData):
     
 class MarketDispersion(FactorData):
     def __init__(self, price_histories_df, days=20):
-        self.return_days = return_days
         self.compute(price_histories_df, days)
         
     def compute(self, price_histories_df, days=20):
@@ -122,17 +121,17 @@ class MarketDispersion(FactorData):
         return self
     
 class MarketVolatility(FactorData):
-    def __init__(self, price_histories_df, days=20, return_days=1, annualization_factor=252):
-        self.return_days = return_days
+    def __init__(self, price_histories_df, days=20, annualization_factor=252):
         self.annualization_factor = annualization_factor
         self.compute(price_histories_df, days)
         
     def compute(self, price_histories_df, days=20):
         self.factor_name = f'market_volatility{days}_day'
-        daily_vol = FactorReturns(price_histories_df, self.return_days).factor_data
+        daily_vol = FactorReturns(price_histories_df, 1).factor_data
         market_returns = daily_vol.mean(axis=1)
         market_returns_mu = market_returns.mean(axis=0)
-        self.factor_data = (np.sqrt(self.annualization_factor * (market_returns.sub(market_returns_mu, axis=0)** 2))), returns.shape).rolling(days).mean()
+        daily_vol[daily_vol.columns] = np.sqrt(self.annualization_factor * market_returns.sub(market_returns_mu, axis=0)** 2).values.reshape(-1, 1)
+        self.factor_data = daily_vol.rolling(days).mean()
         return self
     
 # Date Parts
