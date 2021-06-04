@@ -177,7 +177,8 @@ class FactorReturnQuantiles(FactorData):
     
     def compute(self, price_histories_df, quantiles=5):
         self.factor_name = f'logret_{self.return_days}_day_{quantiles}_quantiles'
-        self.factor_data = pd.qcut(FactorReturns(price_histories_df, self.return_days).for_al(), 5, labels=range(5))
+        returns = FactorReturns(price_histories_df, self.return_days).for_al().dropna()
+        self.factor_data = pd.qcut(returns, 6, labels=[0, 1, 2, 3, 4], duplicates='drop')
         self.factor_data.name = self.factor_name
         return self
 
