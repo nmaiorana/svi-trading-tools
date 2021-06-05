@@ -52,7 +52,7 @@ class Data:
         return sorted(price_histories_df['ticker'].unique())
 
     def get_values_by_date(self, price_histories_df, values):
-        return price_histories_df.reset_index().pivot(index='date', columns='ticker', values=values)
+        return price_histories_df.reset_index().pivot(index='date', columns='ticker', values=values).tz_localize('UTC', level='date')
     
     def get_close_values(self, price_histories_df):
         open_values = self.get_values_by_date(price_histories_df, 'open')
