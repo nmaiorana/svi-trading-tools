@@ -1,6 +1,6 @@
 # svi-trading-tools
 # Pourpose
-This repository is being created/morphed as I journey through my lessons in [Udacity's](https://www.udacity.com) AI for Trading Nano Degree Program. As I learn new concepts or techniqes I will build up a libray that someone can use to perform some high level portfolio/stock analysis. 
+This repository is being created/morphed as I journey through my lessons in [Udacity's](https://www.udacity.com) AI for Trading Nano Degree Program. As I learn new concepts or techniqes I will build up a libray that someone can use to perform  high level portfolio/stock analysis. 
 
 The project will consist of some python modules and then example notebooks on how to apply these functions. The source data for stock prices are retreived from [Ameritrade Developer API](https://developer.tdameritrade.com/). If you are just doing analyis on a list of tickers, then all you will need is to obtain a software key from Ameritrade Developer. If you want to analyze your own stock portfolios, and you have an Ameritrade account, then the library has an authentication method and funcitons to pull your data from Ameritrade.
 
