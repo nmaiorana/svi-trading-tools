@@ -36,12 +36,16 @@ def rank_features_by_importance(importances, feature_names):
 
     print('      Feature{space: <{padding}}      Importance'.format(padding=max_feature_name_length - 8, space=' '))
 
+    ranked_features = []
     for x_train_i in range(len(importances)):
+        ranked_features.append(feature_names[indices[x_train_i]])
         print('{number:>2}. {feature: <{padding}} ({importance})'.format(
             number=x_train_i + 1,
             padding=max_feature_name_length,
             feature=feature_names[indices[x_train_i]],
             importance=importances[indices[x_train_i]]))
+        
+    return ranked_features
         
 def train_valid_test_split(all_x, all_y, train_size, valid_size, test_size):
     """
@@ -79,8 +83,6 @@ def train_valid_test_split(all_x, all_y, train_size, valid_size, test_size):
     assert valid_size >= 0 and valid_size <= 1.0
     assert test_size >= 0 and test_size <= 1.0
     assert train_size + valid_size + test_size == 1.0
-    
-    # TODO: Implement
     
     all_dates = all_x.index.levels[0]
     train_end = int(all_dates.shape[0]*(train_size)) - 1
@@ -120,8 +122,6 @@ def non_overlapping_samples(x, y, n_skip_samples, start_i=0):
     """
     assert len(x.shape) == 2
     assert len(y.shape) == 1
-    
-    # TODO: Implement
     
     dates = sorted(list(set(x.index.get_level_values(0))))
     non_overlapping_dates = dates[start_i::n_skip_samples+1]
