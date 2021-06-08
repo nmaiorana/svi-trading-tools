@@ -1,4 +1,4 @@
-# svi-trading-tools
+# Silent Viper Investments (SVI) - Trading Tools
 # Pourpose
 This repository is being created/morphed as I journey through my lessons in [Udacity's](https://www.udacity.com) AI for Trading Nano Degree Program. As I learn new concepts or techniqes I will build up a libray that someone can use to perform  high level portfolio/stock analysis. 
 
