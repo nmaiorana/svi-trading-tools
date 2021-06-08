@@ -11,3 +11,34 @@ If you follow this project, you will notice large swings in the tools provided. 
 Throught the course Udacity promotes the use of [Quantopian's Zipline](https://github.com/quantopian/zipline) modules. When I started using this library, I had a hard time getting the latest stock prices and was only receiving the sample price histories. I struggled with making it work, even trying to create my own bundles from the Ameritrade data, but decide to abandon the effort an use the Ameritrade API to pull down price histories. 
 
 This forced me to create my own Alpha factors tools set using Pandas. I think I did a pretty good job of creating a frame work for this, but down the road I will figure out the zipline stuff so that I can work with a larger number of stocks in my analysis. Right now I limit the stocks to a portfolio and some stocks of interest I have either heard about or they landed in Ameritrade's top 10 movers.
+
+# Files
+
+## portfolio_analysis_ml (Jupter Notebook)
+
+This file puts together an entire flow. From authenticating to TD Ameritrace, getting portfolios and downloading price histories. Once most of this is done, a list of Alpha factors are created and processed using standard ML teqniques.
+
+## utils.py
+
+Various utility functions
+
+## project_helper.py
+
+Will be removed. This came with the classwork. 
+
+## ameritrade_functions.py
+
+Functions to interface with Ameritrade.
+
+## trading_factors.py
+
+Classes and functions to generate Alpha factors and standard quant factors.
+
+## trading_funcitons.py
+
+Some of these will be moved to utils. This was the starting point for organizing the data and generating information like returns. Some of this functionality (like Returns) will be moved to trading_factors.
+
+## portfolio_optimizer.py
+
+This contains a super class and class for using alpha and beta factors to assemble a portfolio mix.
+
