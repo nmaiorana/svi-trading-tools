@@ -28,7 +28,7 @@ Will be removed. This came with the classwork.
 
 ## ameritrade_functions.py
 
-Functions to interface with Ameritrade.
+Functions to interface with Ameritrade. In order to authenticate, I use Selenium through a Chrome driver. You will need to install a compatable Chrome driver (or one that works with your browser) in order to obtain an short term authentication token from Ameritrade. Once you have this, you can look at your own personal portfolios so that you can work them into your optimized portfolio.
 
 ## trading_factors.py
 
