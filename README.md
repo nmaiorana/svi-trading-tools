@@ -42,3 +42,7 @@ Some of these will be moved to utils. This was the starting point for organizing
 
 This contains a super class and class for using alpha and beta factors to assemble a portfolio mix.
 
+## Various other notebooks.
+
+These notebooks are at this time outdated, but they were used to construct an optimal portfolio using the optimizer.
+
