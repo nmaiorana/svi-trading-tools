@@ -1,4 +1,4 @@
-# svi-trading-tools
+# Silent Viper Investments (SVI) - Trading Tools
 # Pourpose
 This repository is being created/morphed as I journey through my lessons in [Udacity's](https://www.udacity.com) AI for Trading Nano Degree Program. As I learn new concepts or techniqes I will build up a libray that someone can use to perform  high level portfolio/stock analysis. 
 
@@ -28,7 +28,7 @@ Will be removed. This came with the classwork.
 
 ## ameritrade_functions.py
 
-Functions to interface with Ameritrade.
+Functions to interface with Ameritrade. In order to authenticate, I use Selenium through a Chrome driver. You will need to install a compatable Chrome driver (or one that works with your browser) in order to obtain an short term authentication token from Ameritrade. Once you have this, you can look at your own personal portfolios so that you can work them into your optimized portfolio.
 
 ## trading_factors.py
 
@@ -42,3 +42,17 @@ Some of these will be moved to utils. This was the starting point for organizing
 
 This contains a super class and class for using alpha and beta factors to assemble a portfolio mix.
 
+## Various other notebooks.
+
+These notebooks are at this time outdated, but they were used to construct an optimal portfolio using the optimizer.
+
+# Experimental
+
+# sentiment_finvis (Jupyter Notebook)
+Using the finvis website to gain sentiment for various stocks. Only look sback 30 days (I think) and not all the stocks I track can be found there. Eventually we will pull 10K documents (for thos available) to get some idea of sentiment for a ticker. What I found there as well, since some of my stocks are in other countries, that not all of them have these documents.
+
+# table_from_html (Jupyter Notebook)
+Another class document used to pull data from web sites
+
+# ameritrade_api (Jupyter Notebook)
+A notebook I used to experiment with the ameritrade_functions.py module.
