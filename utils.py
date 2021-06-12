@@ -4,6 +4,20 @@ from sklearn.tree import export_graphviz
 import graphviz
 from IPython.display import Image
 import numpy as np
+import pandas as pd
+
+
+def save_port_data(dataframe, file_name):
+    dataframe.to_csv(file_name, index=False)
+
+def read_port_data(file_name):
+    return pd.read_csv(file_name)
+
+def save_price_histories(dataframe, file_name):
+    dataframe.to_csv(file_name, index=False)
+
+def read_price_histories(file_name):
+    return pd.read_csv(file_name, parse_dates=['date'], index_col=False)
 
 def plot_results(tree_sizes, train_score, oob_score, valid_score, legend, title, xlabel):
     plt.plot(tree_sizes, train_score, 'xb-');

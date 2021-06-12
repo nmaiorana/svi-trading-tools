@@ -35,7 +35,7 @@ class FactorData:
         return FactorData(self.factor_data.rank(axis=1), self.factor_name)
     
     def zscore(self):
-        return FactorData(self.factor_data.apply(stats.zscore, axis='columns'), self.factor_name)
+        return FactorData(pd.DataFrame(stats.zscore(self.factor_data, axis=1), index=self.factor_data.index, columns=self.factor_data.columns), self.factor_name)
     
     def smoothed(self, days=20):
         return FactorData(self.factor_data.rolling(window=days).mean(), self.factor_name + '_smoothed')
@@ -138,8 +138,8 @@ class MarketVolatility(FactorData):
 class FactorDateParts():
     def __init__(self, factors_df):
         self.factors_df = factors_df
-        self.start_date = factors_df.index.get_level_values(0).min()
-        self.end_date = factors_df.index.get_level_values(0).max()
+        self.start_date = np.min(factors_df.index.get_level_values(0))
+        self.end_date = np.max(factors_df.index.get_level_values(0))
         self.isJanuary()
         self.isDecember()
         self.setWeekDayQuarterYear()
@@ -178,7 +178,7 @@ class FactorReturnQuantiles(FactorData):
     def compute(self, price_histories_df, quantiles=5):
         self.factor_name = f'logret_{self.return_days}_day_{quantiles}_quantiles'
         returns = FactorReturns(price_histories_df, self.return_days).factor_data
-        self.factor_data = pd.DataFrame(pd.qcut(returns, quantiles, labels=False, duplicates='drop'), index=returns.index, columns=returns.columns)
+        self.factor_data = returns.apply(lambda x: pd.qcut(x, quantiles, labels=False,  duplicates='drop'), axis=1)
         return self
 
 # Utils

@@ -19,18 +19,6 @@ import os
 
 class Data:
     
-    def save_port_data(self, dataframe, file_name):
-        dataframe.to_csv(file_name, index=False)
-
-    def read_port_data(self, file_name):
-        return pd.read_csv(file_name)
-     
-    def save_price_histories(self, dataframe, file_name):
-        dataframe.to_csv(file_name, index=False)
-
-    def read_price_histories(self, file_name):
-        return pd.read_csv(file_name, parse_dates=['date'], index_col=False)
-    
     def zipline_formatted(self, price_histories, directory, freq='daily'):
     
         formatted_data_dir = f'{directory}/{freq}'
