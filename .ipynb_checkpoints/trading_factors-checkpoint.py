@@ -198,6 +198,25 @@ def build_factor_data(factor_data, pricing):
     return {factor_name: al.utils.get_clean_factor_and_forward_returns(factor=data, prices=pricing, periods=[1])
         for factor_name, data in factor_data.iteritems()}
 
+def plot_factor_returns(factor_returns):
+    (1 + factor_returns).cumprod().plot(ylim=(0.8, 1.2))
+
+
+def plot_factor_rank_autocorrelation(factor_data):
+    ls_FRA = pd.DataFrame()
+
+    unixt_factor_data = {
+        factor: factor_data.set_index(pd.MultiIndex.from_tuples(
+            [(x.timestamp(), y) for x, y in factor_data.index.values],
+            names=['date', 'asset']))
+        for factor, factor_data in factor_data.items()}
+
+    for factor, factor_data in unixt_factor_data.items():
+        ls_FRA[factor] = al.performance.factor_rank_autocorrelation(factor_data)
+
+    ls_FRA.plot(title="Factor Rank Autocorrelation", ylim=(0.8, 1.0))
+
+
 def get_factor_returns(factor_data):
     ls_factor_returns = pd.DataFrame()
 
