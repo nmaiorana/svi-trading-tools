@@ -55,9 +55,6 @@ class Data:
         open_values = open_values.fillna(close_values.ffill())
         open_values = open_values.fillna(close_values.bfill())
         return open_values
-    
-    def get_account_portfolio_data(self, portfolios_df, account):
-        return portfolios_df.query('account == "{}"'.format(account))
 
     def resample_prices(self, close_prices, freq='M'):
         """
@@ -79,20 +76,6 @@ class Data:
         return close_prices.resample(freq).last().dropna()
     
 class Portfolio:
-    def get_portfolio_weights(self, account_portfolio_df):
-        return (account_portfolio_df['marketValue'] / self.get_account_value(account_portfolio_df)).rename(columns={'marketValue':'weight'}).sort_index()
-        
-    def get_market_values(self, account_portfolio_df):
-        return account_portfolio_df[['symbol', 'marketValue', 'longQuantity']].set_index('symbol').sort_index()
-    
-    def get_investment_symbols(self, market_values_df):
-        return list(market_values_df.index)
-        
-    def get_investments_by_type(self, account_portfolio_df, investment_type='EQUITY'):
-        return account_portfolio_df.query(f'assetType == "{investment_type}"')
-
-    def get_account_value(self, account_portfolio_df):
-        return account_portfolio_df['marketValue'].sum() 
     
     def portfolio_expected_returns(self, close, weights, lookahead=1):
         """

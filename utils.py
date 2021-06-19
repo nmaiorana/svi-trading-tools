@@ -6,7 +6,9 @@ from IPython.display import Image
 import numpy as np
 import pandas as pd
 
-
+#####################
+# Portfolio Functions
+#####################
 def save_port_data(dataframe, file_name):
     dataframe.to_csv(file_name, index=False)
 
@@ -19,6 +21,32 @@ def save_price_histories(dataframe, file_name):
 def read_price_histories(file_name):
     return pd.read_csv(file_name, parse_dates=['date'], index_col=False)
 
+def get_account_portfolio_data(portfolios_df, account):
+    return portfolios_df.query('account == "{}"'.format(account))
+
+def get_account_value(account_portfolio_df):
+    return account_portfolio_df['marketValue'].sum() 
+
+def get_investments_by_type(account_portfolio_df, investment_type='EQUITY'):
+    return account_portfolio_df.query(f'assetType == "{investment_type}"')
+
+def get_investment_symbols(account_portfolio_df):
+    return list(account_portfolio_df['symbol'].values)
+
+def get_holdings(account_portfolio_df, universe):
+    current_holdings = account_portfolio_df[['symbol', 'marketValue', 'longQuantity']].set_index('symbol').sort_index()
+    non_portfolio_symbols = universe - set(current_holdings.index.values)
+    non_portfolio_values = pd.DataFrame.from_dict({ symbol : [0, 0] for symbol in non_portfolio_symbols}, orient='index')
+    non_portfolio_values.index.name='symbol'
+    non_portfolio_values.columns = ['marketValue', 'longQuantity']
+    return current_holdings.append(non_portfolio_values)
+
+def get_portfolio_weights(holdings):
+    return (holdings / np.sum(holdings)).rename(columns={'marketValue':'weight'}).sort_index()
+
+########################
+# General analysis tools
+########################
 def plot_results(tree_sizes, train_score, oob_score, valid_score, legend, title, xlabel):
     plt.plot(tree_sizes, train_score, 'xb-');
     plt.plot(tree_sizes, oob_score, 'xg-');
@@ -30,7 +58,6 @@ def plot_results(tree_sizes, train_score, oob_score, valid_score, legend, title,
     #plt.ylim(y_range[0], y_range[1]);
     
     plt.show()
-    
     
 def plot_tree_classifier(clf, feature_names=None):
     dot_data = export_graphviz(

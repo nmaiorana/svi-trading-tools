@@ -32,9 +32,6 @@ class Data:
             ticker_data = zipline_df[zipline_df.ticker == ticker].drop(columns=['ticker'])
             print(f'Daily data for {ticker}:')
             ticker_data.to_csv(f'{formatted_data_dir}/{ticker}.csv', index=True)
-    
-    def get_instrument_symbols(self, portfolio_df):
-            return portfolio_df.columns.values.sort_index()
         
     def get_fundamental_symbols(self, price_histories_df):
         return sorted(price_histories_df['ticker'].unique())
@@ -55,9 +52,6 @@ class Data:
         open_values = open_values.fillna(close_values.ffill())
         open_values = open_values.fillna(close_values.bfill())
         return open_values
-    
-    def get_account_portfolio_data(self, portfolios_df, account):
-        return portfolios_df.query('account == "{}"'.format(account))
 
     def resample_prices(self, close_prices, freq='M'):
         """
@@ -79,20 +73,6 @@ class Data:
         return close_prices.resample(freq).last().dropna()
     
 class Portfolio:
-    def get_portfolio_weights(self, account_portfolio_df):
-        return (account_portfolio_df['marketValue'] / self.get_account_value(account_portfolio_df)).rename(columns={'marketValue':'weight'}).sort_index()
-        
-    def get_market_values(self, account_portfolio_df):
-        return account_portfolio_df[['symbol', 'marketValue', 'longQuantity']].set_index('symbol').sort_index()
-    
-    def get_investment_symbols(self, market_values_df):
-        return list(market_values_df.index)
-        
-    def get_investments_by_type(self, account_portfolio_df, investment_type='EQUITY'):
-        return account_portfolio_df.query(f'assetType == "{investment_type}"')
-
-    def get_account_value(self, account_portfolio_df):
-        return account_portfolio_df['marketValue'].sum() 
     
     def portfolio_expected_returns(self, close, weights, lookahead=1):
         """
