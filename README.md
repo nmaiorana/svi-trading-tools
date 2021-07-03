@@ -12,6 +12,33 @@ Throught the course Udacity promotes the use of [Quantopian's Zipline](https://g
 
 This forced me to create my own Alpha factors tools set using Pandas. I think I did a pretty good job of creating a frame work for this, but down the road I will figure out the zipline stuff so that I can work with a larger number of stocks in my analysis. Right now I limit the stocks to a portfolio and some stocks of interest I have either heard about or they landed in Ameritrade's top 10 movers.
 
+# General Usage (Under Construction)
+- Stage 1: Build a stock univers - This notebook is used to determine which stock you will analyze 
+  - Start with current portfolio stocks (Ameritrade API)
+  - Remove any stocks that should not be a part of the anslysis
+  - Add additional stocks you are interested in
+  - Add additional stocks using some creativity by doing web searches or some other means
+  - Gather 2 years of price histories (Ameritrade API)
+  - Store price histories and existing portfolio information
+- Stage 2: Generate Alpha
+  - Generate Alpha factors
+  - Generate standard Alphas
+  - Using ML, determine best Alphas (iterative)
+  - Using ML, generate Alpha vectors for each day for one year (iterative)
+  - Store Alphas (used in backtesting)
+  - Store models (used for production or actual analysis)
+- Stage 3: Generate Beta
+  - Using PCA, generate Beta factors
+  - Store daily Beta factors for one year (used for backtesting)
+  - Store Beta criteria (used for production or actual analysis)   
+- Stage 4: Backtesting
+  - Using the pricing history, alphas and betas perform a back test for last one year of data 
+  - Determine if models are profitable
+- Stage 5: Analyze the lastest data to determine new stock holdings
+  - Determine how often you want to adjust your portfolio 
+  - Make money! 
+  - Start over as necessary
+
 # Files
 
 ## portfolio_analysis_ml (Jupter Notebook)
