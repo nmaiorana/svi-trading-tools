@@ -8,6 +8,8 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 
+from pathlib import Path
+
 ok_reason = ''
 unauthorized_reason = 'Unauthorized'
 
@@ -19,6 +21,7 @@ date_format = '%Y-%m-%d'
 class AmeritradeRest:
     
     def __init__(self, username, password, client_id, callback_url=r'http://localhost'):
+        self.home = str(Path.home())
         self.browser = None
         self.username = username
         self.password = password
@@ -28,8 +31,8 @@ class AmeritradeRest:
         self.callback_url = r'http://localhost'
         self.oauth_url = r'https://auth.tdameritrade.com/auth'
         self.oath_token_url = r'https://api.tdameritrade.com/v1/oauth2/token'
-        self.user_data_dir = r'C:\Users\nmaiorana\AppData\Local\Google\Chrome\User Data\tduser'
-        self.executable_path = r'C:\Users\nmaiorana\Anaconda Projects\chromedriver\chromedriver'
+        self.user_data_dir = self.home + r'\AppData\Local\Google\Chrome\User Data\tduser'
+        self.executable_path = self.home + r'\Anaconda Projects\chromedriver\chromedriver'
         self.browser_name = 'chrome'
         self.authorization = None
         self.account_data = None
