@@ -39,10 +39,31 @@ def get_holdings(account_portfolio_df, universe):
     non_portfolio_values = pd.DataFrame.from_dict({ symbol : [0, 0] for symbol in non_portfolio_symbols}, orient='index')
     non_portfolio_values.index.name='symbol'
     non_portfolio_values.columns = ['marketValue', 'longQuantity']
-    return current_holdings.append(non_portfolio_values)
+    return current_holdings.append(non_portfolio_values).sort_index()
 
 def get_portfolio_weights(holdings):
     return (holdings / np.sum(holdings)).rename(columns={'marketValue':'weight'}).sort_index()
+
+########################
+# Stock Daily Price Functions
+########################
+
+def get_close_values(price_histories_df):
+    open_values = get_values_by_date(price_histories_df, 'open')
+    close_values = get_values_by_date(price_histories_df, 'close')
+    close_values = close_values.fillna(open_values.ffill())
+    close_values = close_values.fillna(open_values.bfill())
+    return close_values
+
+def get_open_values(price_histories_df):
+    open_values = get_values_by_date(price_histories_df, 'open')
+    close_values = get_values_by_date(price_histories_df, 'close')
+    open_values = open_values.fillna(close_values.ffill())
+    open_values = open_values.fillna(close_values.bfill())
+    return open_values
+
+def get_values_by_date(price_histories_df, values):
+    return price_histories_df.reset_index().pivot(index='date', columns='ticker', values=values).tz_localize('UTC', level='date')
 
 ########################
 # General analysis tools

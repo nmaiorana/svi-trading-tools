@@ -20,8 +20,17 @@ date_format = '%Y-%m-%d'
 
 class AmeritradeRest:
     
-    def __init__(self, username, password, client_id, callback_url=r'http://localhost'):
-        self.home = str(Path.home())
+    def __init__(self, username, password, client_id, callback_url=r'http://localhost', executable_path=None):
+        
+        if executable_path is None:
+            self.home = str(Path.home())
+            self.executable_path = self.home + r'\Anaconda Projects\chromedriver\chromedriver'
+        else:
+            self.executable_path = executable_path
+        
+        # This is used to cache credentials in Chromedriver. You will have to manually log in the first time.
+        self.user_data_dir = self.home + r'\AppData\Local\Google\Chrome\User Data\tduser'
+
         self.browser = None
         self.username = username
         self.password = password
@@ -31,13 +40,16 @@ class AmeritradeRest:
         self.callback_url = r'http://localhost'
         self.oauth_url = r'https://auth.tdameritrade.com/auth'
         self.oath_token_url = r'https://api.tdameritrade.com/v1/oauth2/token'
-        self.user_data_dir = self.home + r'\AppData\Local\Google\Chrome\User Data\tduser'
-        self.executable_path = self.home + r'\Anaconda Projects\chromedriver\chromedriver'
+
+        
         self.browser_name = 'chrome'
         self.authorization = None
         self.account_data = None
         self.positions_data = None
 
+    ###########################################################################################################
+    # Authentication Functions
+    ###########################################################################################################
     def start_browser(self):
         # Note: If you already have a browser open, you will get an error unless you close the current one.
         if not self.browser is None:
@@ -113,6 +125,32 @@ class AmeritradeRest:
     
     def get_access_token(self):
         return self.authorization['access_token']
+
+    
+    ###########################################################################################################
+    # Account Level Functions
+    ###########################################################################################################
+    def mask_account(self, account_id):
+        return '#---' + account_id[-4:]
+    
+    def print_positions_data(self, account_data):
+        if account_data is None:
+            print('NO DATA')
+            return
+
+        for account in account_data:
+            securitiesAccount = account['securitiesAccount']
+            masked_account_id = self.mask_account(securitiesAccount['accountId'])
+            print('Account Id: {} Type: {}'.format(masked_account_id, securitiesAccount['type']))
+            positions = securitiesAccount['positions']
+            for position in positions:
+                settledLongQuantity = position['settledLongQuantity']
+                settledShortQuantity = position['settledShortQuantity']
+                instrument = position['instrument']
+                assetType = instrument['assetType']
+                symbol = instrument['symbol']
+                marketValue = position['marketValue']
+                print('\t', symbol, settledLongQuantity, settledShortQuantity, assetType, marketValue)
 
     def get_accounts(self):
         self.account_data = None
@@ -198,7 +236,19 @@ class AmeritradeRest:
                 portfolio_list.append(instrument_data)
 
         return pd.DataFrame.from_dict(portfolio_list).fillna(0)
-
+    
+    ###########################################################################################################
+    # Ticker Level Functions
+    ###########################################################################################################
+    def get_price_histories(self, tickers, end_date=None, num_periods=1):
+        price_histories_df = pd.DataFrame()
+        for symbol in tickers:
+            ticker_price_history = self.get_daily_price_history(symbol, end_date, num_periods=num_periods)
+            if ticker_price_history is not None:
+                price_histories_df = price_histories_df.append([ticker_price_history])
+        price_histories_df.reset_index(drop=True, inplace=True)
+        return price_histories_df.sort_values(by=['date'])
+    
     def get_daily_price_history(self, symbol, end_date=None, num_periods=1):
         if end_date is None:
             end_date = datetime.today().strftime(date_format)
@@ -239,48 +289,13 @@ class AmeritradeRest:
         price_history_df.drop(['datetime'], inplace=True, axis=1)
         return price_history_df
     
-    def get_ticker_fundamentals(self, symbol, end_date, num_periods=1):
-        price_history = self.get_daily_price_history(symbol, end_date, num_periods=num_periods)
-        candles = price_history['candles']
-        if len(candles) == 0:
-            return None
-        price_history_df = pd.DataFrame(price_history['candles'])
+    def get_quotes(self, tickers):
+        endpoint = f'https://api.tdameritrade.com/v1/marketdata/quotes'
 
-        price_history_df['ticker'] = price_history['symbol']
-        price_history_df['date'] = pd.to_datetime(price_history_df['datetime'], unit='ms').dt.normalize()
-        price_history_df.drop(['datetime'], inplace=True, axis=1)
-        return price_history_df
-
-    def get_price_histories(self, tickers, end_date=None, num_periods=1):
-        price_histories_df = pd.DataFrame()
-        for symbol in tickers:
-            ticker_price_history = self.get_daily_price_history(symbol, end_date, num_periods=num_periods)
-            if ticker_price_history is not None:
-                price_histories_df = price_histories_df.append([ticker_price_history])
-        price_histories_df.reset_index(drop=True, inplace=True)
-        return price_histories_df.sort_values(by=['date'])
-
-    def print_positions_data(self, account_data):
-        if account_data is None:
-            print('NO DATA')
-            return
-
-        for account in account_data:
-            securitiesAccount = account['securitiesAccount']
-            masked_account_id = self.mask_account(securitiesAccount['accountId'])
-            print('Account Id: {} Type: {}'.format(masked_account_id, securitiesAccount['type']))
-            positions = securitiesAccount['positions']
-            for position in positions:
-                settledLongQuantity = position['settledLongQuantity']
-                settledShortQuantity = position['settledShortQuantity']
-                instrument = position['instrument']
-                assetType = instrument['assetType']
-                symbol = instrument['symbol']
-                marketValue = position['marketValue']
-                print('\t', symbol, settledLongQuantity, settledShortQuantity, assetType, marketValue)
-
-    def get_instrument_symbols(self, portfolio_df):
-        return portfolio_df.columns.values
-
-    def mask_account(self, account_id):
-        return '#---' + account_id[-4:]
+        payload = {
+                    'apikey': self.client_id,
+                    'symbol': ",".join(tickers)
+        }
+        content = requests.get(url=endpoint, params=payload)
+        return pd.DataFrame.from_dict(content.json(), orient='index')
+        
