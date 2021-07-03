@@ -18,6 +18,7 @@ This forced me to create my own Alpha factors tools set using Pandas. I think I 
     - You can make necessary changes to use your own source 
   - Get an Ameritrade account [TD Ameritrade](https://www.tdameritrade.com/)
   - Get an Ameritrade developers consumer key  [Ameritrade Developer API](https://developer.tdameritrade.com/)
+  - Python 3.8
 - Stage 1: Build a stock univers - This notebook is used to determine which stocks you will analyze 
   - Start with current portfolio stocks (Ameritrade API)
   - Remove any stocks that should not be a part of the anslysis
