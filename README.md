@@ -13,7 +13,7 @@ Throught the course Udacity promotes the use of [Quantopian's Zipline](https://g
 This forced me to create my own Alpha factors tools set using Pandas. I think I did a pretty good job of creating a frame work for this, but down the road I will figure out the zipline stuff so that I can work with a larger number of stocks in my analysis. Right now I limit the stocks to a portfolio and some stocks of interest I have either heard about or they landed in Ameritrade's top 10 movers.
 
 # General Usage (Under Construction)
-- Stage 1: Build a stock univers - This notebook is used to determine which stock you will analyze 
+- Stage 1: Build a stock univers - This notebook is used to determine which stocks you will analyze 
   - Start with current portfolio stocks (Ameritrade API)
   - Remove any stocks that should not be a part of the anslysis
   - Add additional stocks you are interested in
