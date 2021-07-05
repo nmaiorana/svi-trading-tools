@@ -182,6 +182,40 @@ class FactorReturnQuantiles(FactorData):
         return self
 
 # Utils
+
+def evaluate_ai_alpha(data, samples, classifier, factors, pricing):
+    # Calculate the Alpha Score
+    factor_probas = classifier.predict_proba(samples)
+    half_of_classifications = int(factor_probas.shape[1] / 2)
+    poor_returns = np.ones(half_of_classifications) * -1
+    good_returns = np.ones(half_of_classifications)
+
+    prob_array = np.concatenate([poor_returns, good_returns])
+    
+    alpha_score = factor_probas.dot(prob_array)
+    
+    # Add Alpha Score to rest of the factors
+    alpha_score_label = 'AI_ALPHA'
+    factors_with_alpha = data.loc[samples.index].copy().reset_index()
+    factors_with_alpha['date'] = pd.to_datetime(factors_with_alpha['date'])
+    factors_with_alpha.set_index(['date', 'ticker'], inplace=True)
+    factors_with_alpha[alpha_score_label] = alpha_score
+    
+    # Setup data for AlphaLens
+    print('Cleaning Data...\n')
+    factor_data = build_factor_data(factors_with_alpha[factors + [alpha_score_label]], pricing)
+    print('\n-----------------------\n')
+    
+    # Calculate Factor Returns and Sharpe Ratio
+    factor_returns = get_factor_returns(factor_data)
+    factors_sharpe_ratio = sharpe_ratio(factor_returns)
+    
+    # Show Results
+    print('             Sharpe Ratios')
+    print(factors_sharpe_ratio.round(2))
+    plot_factor_returns(factor_returns)
+    plot_factor_rank_autocorrelation(factor_data)
+    
 def prepare_alpha_lense_factor_data(all_factors, pricing):
     clean_factor_data = {
     factor: al.utils.get_clean_factor_and_forward_returns(

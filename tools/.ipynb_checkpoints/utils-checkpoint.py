@@ -144,6 +144,7 @@ def train_valid_test_split(all_x, all_y, train_size, valid_size, test_size):
     assert train_size >= 0 and train_size <= 1.0
     assert valid_size >= 0 and valid_size <= 1.0
     assert test_size >= 0 and test_size <= 1.0
+    print(train_size + valid_size + test_size)
     assert train_size + valid_size + test_size == 1.0
     
     all_dates = all_x.index.levels[0]
