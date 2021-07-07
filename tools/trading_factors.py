@@ -183,8 +183,7 @@ class FactorReturnQuantiles(FactorData):
 
 # Utils
 
-def evaluate_ai_alpha(data, samples, classifier, factors, pricing):
-    # Calculate the Alpha Score
+def compute_ai_alpha_score(samples, classifier):
     factor_probas = classifier.predict_proba(samples)
     half_of_classifications = int(factor_probas.shape[1] / 2)
     poor_returns = np.ones(half_of_classifications) * -1
@@ -192,29 +191,33 @@ def evaluate_ai_alpha(data, samples, classifier, factors, pricing):
 
     prob_array = np.concatenate([poor_returns, good_returns])
     
-    alpha_score = factor_probas.dot(prob_array)
-    
-    # Add Alpha Score to rest of the factors
-    alpha_score_label = 'AI_ALPHA'
-    factors_with_alpha = data.loc[samples.index].copy().reset_index()
-    factors_with_alpha['date'] = pd.to_datetime(factors_with_alpha['date'])
-    factors_with_alpha.set_index(['date', 'ticker'], inplace=True)
-    factors_with_alpha[alpha_score_label] = alpha_score
+    return factor_probas.dot(prob_array)
+
+def add_alpha_score(factor_data, classifier, factors, ai_factor_name='AI_ALPHA'):
+    alpha_score = compute_ai_alpha_score(factor_data, classifier)
+    factor_data[ai_factor_name] = alpha_score
+    return factor_data[factors + [ai_factor_name]]
+
+def evaluate_ai_alpha(data, samples, classifier, factors, pricing):
+    # Calculate the Alpha Score    
+    ai_alpha_label = 'AI_ALPHA'
+    factors_with_alpha = add_alpha_score(samples.copy(), classifier, factors, ai_alpha_label)
     
     # Setup data for AlphaLens
     print('Cleaning Data...\n')
-    factor_data = build_factor_data(factors_with_alpha[factors + [alpha_score_label]], pricing)
+    clean_factor_data, unixt_factor_data = prepare_alpha_lense_factor_data(factors_with_alpha, pricing)
     print('\n-----------------------\n')
     
     # Calculate Factor Returns and Sharpe Ratio
-    factor_returns = get_factor_returns(factor_data)
+    factor_returns = get_factor_returns(clean_factor_data)
     factors_sharpe_ratio = sharpe_ratio(factor_returns)
     
     # Show Results
     print('             Sharpe Ratios')
     print(factors_sharpe_ratio.round(2))
     plot_factor_returns(factor_returns)
-    plot_factor_rank_autocorrelation(factor_data)
+    plot_factor_rank_autocorrelation(unixt_factor_data)
+    plot_basis_points_per_day_quantile(unixt_factor_data)
     
 def prepare_alpha_lense_factor_data(all_factors, pricing):
     clean_factor_data = {
@@ -233,23 +236,29 @@ def build_factor_data(factor_data, pricing):
         for factor_name, data in factor_data.iteritems()}
 
 def plot_factor_returns(factor_returns):
-    (1 + factor_returns).cumprod().plot(ylim=(0.8, 1.2))
+    (1+factor_returns).cumprod().plot(title='Factor Returns')
 
-
-def plot_factor_rank_autocorrelation(factor_data):
+def plot_factor_rank_autocorrelation(unixt_factor_data):
     ls_FRA = pd.DataFrame()
-
-    unixt_factor_data = {
-        factor: factor_data.set_index(pd.MultiIndex.from_tuples(
-            [(x.timestamp(), y) for x, y in factor_data.index.values],
-            names=['date', 'asset']))
-        for factor, factor_data in factor_data.items()}
 
     for factor, factor_data in unixt_factor_data.items():
         ls_FRA[factor] = al.performance.factor_rank_autocorrelation(factor_data)
 
     ls_FRA.plot(title="Factor Rank Autocorrelation", ylim=(0.8, 1.0))
 
+def plot_basis_points_per_day_quantile(unixt_factor_data):
+    qr_factor_returns = pd.DataFrame()
+
+    for factor, factor_data in unixt_factor_data.items():
+        qr_factor_returns[factor] = al.performance.mean_return_by_quantile(factor_data)[0].iloc[:, 0]
+
+    (10000*qr_factor_returns).plot.bar(
+        title='Quantile Analysis',
+        subplots=True,
+        sharey=True,
+        layout=(4,2),
+        figsize=(14, 14),
+        legend=False)
 
 def get_factor_returns(factor_data):
     ls_factor_returns = pd.DataFrame()
