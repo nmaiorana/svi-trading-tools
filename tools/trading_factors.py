@@ -185,11 +185,12 @@ class FactorReturnQuantiles(FactorData):
 
 def compute_ai_alpha_score(samples, classifier):
     factor_probas = classifier.predict_proba(samples)
-    half_of_classifications = int(factor_probas.shape[1] / 2)
-    poor_returns = np.ones(half_of_classifications) * -1
-    good_returns = np.ones(half_of_classifications)
+    classification_count = factor_probas.shape[1]
+    
+    prob_array = [*range(-int(classification_count/2), 0)] + \
+        ([] if classification_count%2 == 0 else [0]) + \
+        [*range(1, int(classification_count/2) + 1)]
 
-    prob_array = np.concatenate([poor_returns, good_returns])
     
     return factor_probas.dot(prob_array)
 

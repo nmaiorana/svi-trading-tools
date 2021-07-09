@@ -192,3 +192,51 @@ def non_overlapping_samples(x, y, n_skip_samples, start_i=0):
     y_sub = y.loc[non_overlapping_dates]
     
     return x_sub, y_sub
+
+########################
+# Pull S&P 500 Stock data from wikitable
+########################
+# Import libraries
+from bs4 import BeautifulSoup
+import requests
+import pandas as pd
+import numpy as np
+
+def get_snp500():
+    # Create a Response object
+    r = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+
+    # Get HTML data
+    html_data = r.text
+
+    # Create a BeautifulSoup Object
+    paget_snp500ge_content = BeautifulSoup(html_data, 'html.parser')
+
+    # Find financipaget_snp500ge_contental table
+    #constituents
+    wikitable = paget_snp500ge_content.find('table', {'id': 'constituents'})
+
+    # Find all column titles
+    wikicolumns = wikitable.findAll('tr')[0].findAll('th')
+
+    # Loop through column titles and store into Python array
+    df_columns = []
+    for column in wikicolumns:
+        # remove <br/> inside <th> text, such as `<th>Total<br/>production</th>`
+        text = column.get_text(strip=True, separator=" ")
+        # append the text into df_columns
+        df_columns.append(text)
+
+    # Loop through the data rows and store into Python array
+    df_data = []
+    for row in wikitable.tbody.findAll('tr')[1:]:
+        row_data = []
+        for td in row.findAll('td'):
+            text = td.get_text(strip=True, separator=" ")
+            row_data.append(text)
+        df_data.append(np.array(row_data))    
+
+    # Print financial data in DataFrame format and set `Year` as index
+    dataframe = pd.DataFrame(data=df_data, columns=df_columns)
+    dataframe.set_index(['Symbol'], inplace=True)
+    return dataframe
