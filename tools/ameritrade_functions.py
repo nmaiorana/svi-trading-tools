@@ -7,6 +7,7 @@ import time
 from datetime import datetime
 import pandas as pd
 import numpy as np
+from tqdm.notebook import tqdm
 
 from pathlib import Path
 
@@ -242,10 +243,15 @@ class AmeritradeRest:
     ###########################################################################################################
     def get_price_histories(self, tickers, end_date=None, num_periods=1):
         price_histories_df = pd.DataFrame()
-        for symbol in tickers:
+        ticker_count = 0
+        for symbol in tqdm(tickers, desc='Tickers', unit='Price Histories'):
             ticker_price_history = self.get_daily_price_history(symbol, end_date, num_periods=num_periods)
             if ticker_price_history is not None:
                 price_histories_df = price_histories_df.append([ticker_price_history])
+                ticker_count += 1
+                if ticker_count % 30 == 0:
+                    time.sleep(10)
+                    
         price_histories_df.reset_index(drop=True, inplace=True)
         return price_histories_df.sort_values(by=['date'])
     

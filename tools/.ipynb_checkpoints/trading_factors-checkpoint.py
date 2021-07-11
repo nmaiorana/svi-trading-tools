@@ -219,6 +219,7 @@ def evaluate_ai_alpha(data, samples, classifier, factors, pricing):
     plot_factor_returns(factor_returns)
     plot_factor_rank_autocorrelation(unixt_factor_data)
     plot_basis_points_per_day_quantile(unixt_factor_data)
+    return factors_with_alpha[ai_alpha_label]
     
 def prepare_alpha_lense_factor_data(all_factors, pricing):
     clean_factor_data = {
