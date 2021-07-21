@@ -17,7 +17,8 @@ from datetime import datetime
 import os
 
 from trading_functions import Returns
-from trading_functions import Data
+
+import utils
 
 class FactorData:
     def __init__(self, factor_data_df, factor_name='Alpha Factor'):
@@ -53,7 +54,7 @@ class FactorReturns(FactorData):
 
     def compute(self, price_histories_df, days=1):
         self.factor_name = f'logret_{days}_day'
-        self.factor_data = Returns().compute_log_returns(Data().get_close_values(price_histories_df), days)
+        self.factor_data = utils.compute_log_returns(utils.get_close_values(price_histories_df), days)
         return self
     
 class FactorMomentum(FactorData):
@@ -83,8 +84,8 @@ class OvernightSentiment(FactorData):
     
     def compute(self, price_histories_df, days=5):
         self.factor_name = f'overnight_sentiment_{days}_day'
-        close_prices = Data().get_close_values(price_histories_df)
-        open_prices = Data().get_open_values(price_histories_df)
+        close_prices = utils.get_close_values(price_histories_df)
+        open_prices = utils.get_open_values(price_histories_df)
         self.factor_data = ((open_prices.shift(-1) - close_prices)  / close_prices).rolling(window=days, min_periods=1).sum()
         return self
     
@@ -105,8 +106,8 @@ class AverageDollarVolume(FactorData):
         
     def compute(self, price_histories_df, days=20):
         self.factor_name = f'average_dollar_volume_{days}_day'
-        self.factor_data = (Data().get_values_by_date(price_histories_df, 'close') *
-                            Data().get_values_by_date(price_histories_df, 'volume')).fillna(0).rolling(days).mean()
+        self.factor_data = (utils.get_values_by_date(price_histories_df, 'close') *
+                            utils.get_values_by_date(price_histories_df, 'volume')).fillna(0).rolling(days).mean()
         return self
     
 class MarketDispersion(FactorData):

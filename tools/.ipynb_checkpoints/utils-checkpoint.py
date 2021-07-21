@@ -45,7 +45,7 @@ def get_portfolio_weights(holdings):
     return (holdings / np.sum(holdings)).rename(columns={'marketValue':'weight'}).sort_index()
 
 ########################
-# Stock Daily Price Functions
+# Stock Daily Price & Returns Functions
 ########################
 
 def get_close_values(price_histories_df):
@@ -64,6 +64,12 @@ def get_open_values(price_histories_df):
 
 def get_values_by_date(price_histories_df, values):
     return price_histories_df.reset_index().pivot(index='date', columns='ticker', values=values).tz_localize('UTC', level='date')
+
+def compute_log_returns(prices, lookahead=1):
+    return np.log(prices / prices.shift(lookahead))[lookahead:].fillna(0)
+
+def compute_log_returns_days(buy_prices, sell_prices):
+    return np.log(sell_prices / buy_prices).to_frame()
 
 ########################
 # General analysis tools
