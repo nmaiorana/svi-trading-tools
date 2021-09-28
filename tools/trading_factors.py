@@ -75,7 +75,7 @@ class FactorMeanReversion(FactorData):
         #       Since the ranking will sort from under perormers to over performers, we reverse the factor value by 
         #       multiplying by -1, so that the largest underperormers are ranked higher.
         self.factor_name = f'mean_reversion_{days}_day_logret'
-        self.factor_data = -FactorMomentum(price_histories_df, days).factor_data
+        self.factor_data = -FactorReturns(price_histories_df, days).factor_data
         return self
     
 class OvernightSentiment(FactorData):
@@ -270,13 +270,12 @@ def get_factor_returns(factor_data):
 
     return ls_factor_returns
     
+# Annulized Sharpe Ratios (daily = daily to annual, ...)
 def sharpe_ratio(df, frequency="daily"):
 
     if frequency == "daily":
-        # TODO: daily to annual conversion
         annualization_factor = np.sqrt(252)
     elif frequency == "monthly":
-        #TODO: monthly to annual conversion
         annualization_factor = np.sqrt(12) 
     else:
         # TODO: no conversion

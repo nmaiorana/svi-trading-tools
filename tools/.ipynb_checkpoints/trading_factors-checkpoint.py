@@ -75,7 +75,7 @@ class FactorMeanReversion(FactorData):
         #       Since the ranking will sort from under perormers to over performers, we reverse the factor value by 
         #       multiplying by -1, so that the largest underperormers are ranked higher.
         self.factor_name = f'mean_reversion_{days}_day_logret'
-        self.factor_data = -FactorMomentum(price_histories_df, days).factor_data
+        self.factor_data = -FactorReturns(price_histories_df, days).factor_data
         return self
     
 class OvernightSentiment(FactorData):

@@ -205,7 +205,7 @@ def non_overlapping_samples(x, y, n_skip_samples, start_i=0):
     return x_sub, y_sub
 
 ########################
-# Pull S&P 500 Stock data from wikitable
+# Pull tock data from wikitables
 ########################
 # Import libraries
 from bs4 import BeautifulSoup
@@ -213,9 +213,9 @@ import requests
 import pandas as pd
 import numpy as np
 
-def get_snp500():
+def get_wiki_table_stocks(wiki_url, table_id):
     # Create a Response object
-    r = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+    r = requests.get(wiki_url)
 
     # Get HTML data
     html_data = r.text
@@ -225,7 +225,7 @@ def get_snp500():
 
     # Find financipaget_snp500ge_contental table
     #constituents
-    wikitable = paget_snp500ge_content.find('table', {'id': 'constituents'})
+    wikitable = paget_snp500ge_content.find('table', {'id': table_id})
 
     # Find all column titles
     wikicolumns = wikitable.findAll('tr')[0].findAll('th')
@@ -242,7 +242,7 @@ def get_snp500():
     df_data = []
     for row in wikitable.tbody.findAll('tr')[1:]:
         row_data = []
-        for td in row.findAll('td'):
+        for td in row.findAll(['td', 'th']):
             text = td.get_text(strip=True, separator=" ")
             row_data.append(text)
         df_data.append(np.array(row_data))    
@@ -251,6 +251,12 @@ def get_snp500():
     dataframe = pd.DataFrame(data=df_data, columns=df_columns)
     dataframe.set_index(['Symbol'], inplace=True)
     return dataframe
+
+def get_snp500():
+    return get_wiki_table_stocks('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies', 'constituents')
+
+def get_dow():
+    return get_wiki_table_stocks('https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average', 'constituents')
 
 ########################
 # Finvis Stock Sentiment
