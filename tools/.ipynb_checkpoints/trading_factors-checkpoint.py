@@ -270,13 +270,12 @@ def get_factor_returns(factor_data):
 
     return ls_factor_returns
     
+# Annulized Sharpe Ratios (daily = daily to annual, ...)
 def sharpe_ratio(df, frequency="daily"):
 
     if frequency == "daily":
-        # TODO: daily to annual conversion
         annualization_factor = np.sqrt(252)
     elif frequency == "monthly":
-        #TODO: monthly to annual conversion
         annualization_factor = np.sqrt(12) 
     else:
         # TODO: no conversion

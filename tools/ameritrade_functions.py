@@ -8,6 +8,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 from tqdm.notebook import tqdm
+import os
 
 from pathlib import Path
 
@@ -18,6 +19,13 @@ date_format = '%Y-%m-%d'
 
 ## Authentication Data
 # These items here are used to obtain an authorization token from TD Ameritrade. It involves navigating to web pages, so using a browser emulator # to navigate the page and set fields and submit pages.
+
+def configure_ameritrade(env_user_name, env_password, env_client_id):
+    username = os.getenv(env_user_name)
+    password = os.getenv(env_password)
+    client_id = os.getenv(env_client_id)
+
+    return username, password, client_id
 
 class AmeritradeRest:
     
