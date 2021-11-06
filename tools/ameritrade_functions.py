@@ -141,25 +141,6 @@ class AmeritradeRest:
     ###########################################################################################################
     def mask_account(self, account_id):
         return '#---' + account_id[-4:]
-    
-    def print_positions_data(self, account_data):
-        if account_data is None:
-            print('NO DATA')
-            return
-
-        for account in account_data:
-            securitiesAccount = account['securitiesAccount']
-            masked_account_id = self.mask_account(securitiesAccount['accountId'])
-            print('Account Id: {} Type: {}'.format(masked_account_id, securitiesAccount['type']))
-            positions = securitiesAccount['positions']
-            for position in positions:
-                settledLongQuantity = position['settledLongQuantity']
-                settledShortQuantity = position['settledShortQuantity']
-                instrument = position['instrument']
-                assetType = instrument['assetType']
-                symbol = instrument['symbol']
-                marketValue = position['marketValue']
-                print('\t', symbol, settledLongQuantity, settledShortQuantity, assetType, marketValue)
 
     def get_accounts(self):
         self.account_data = None
@@ -302,6 +283,29 @@ class AmeritradeRest:
         price_history_df['date'] = pd.to_datetime(price_history_df['datetime'], unit='ms').dt.normalize()
         price_history_df.drop(['datetime'], inplace=True, axis=1)
         return price_history_df
+
+    def get_fundamental(self, tickers):
+        endpoint = f'https://api.tdameritrade.com/v1/instruments'
+
+        payload = {
+                    'apikey': self.client_id,
+                    'symbol': ",".join(tickers),
+                    'projection': 'fundamental'
+        }
+        content = requests.get(url=endpoint, params=payload)
+        
+        fundamental_data = content.json()
+        fundamental_list = []
+        for ticker in fundamental_data:
+            ticker_fundamentals = {}
+            ticker_fundamentals.update(fundamental_data[ticker])
+            ticker_fundamentals.update(fundamental_data[ticker]['fundamental'])
+            ticker_fundamentals.pop('fundamental', None)
+
+            fundamental_list.append(ticker_fundamentals)
+
+        return pd.DataFrame.from_dict(fundamental_list).fillna(0)
+
     
     def get_quotes(self, tickers):
         endpoint = f'https://api.tdameritrade.com/v1/marketdata/quotes'
