@@ -29,8 +29,16 @@ class FactorData:
     def compute(self):
         pass
         
-    def demean(self):
-        return FactorData(self.factor_data.sub(self.factor_data.mean(axis=1), axis=0), self.factor_name)
+    def demean(self, groupby=None):
+        if groupby is None:
+            return FactorData(self.factor_data.sub(self.factor_data.mean(axis=1), axis=0), self.factor_name)
+        
+        demeaned_sectors = []
+        for sector_tickers in groupby:
+            sector_factor_data = self.factor_data[sector_tickers]
+            demeaned_sectors.append(sector_factor_data.sub(sector_factor_data.mean(axis=1), axis=0))
+    
+        return FactorData(pd.concat(demeaned_sectors, axis=1).sort_index(axis=1), self.factor_name)
             
     def rank(self):
         return FactorData(self.factor_data.rank(axis=1), self.factor_name)

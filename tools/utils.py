@@ -258,6 +258,14 @@ def get_snp500():
 def get_dow():
     return get_wiki_table_stocks('https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average', 'constituents')
 
+def get_sector_helper(stocks_df, sector_column, tickers):
+    sector_data = stocks_df[sector_column][tickers]
+    sector_helper = {}
+    for sector in set(sector_data.values):
+        sector_tickers = sector_data[lambda x: x==sector].index.to_list()
+        sector_helper[sector] = sector_tickers
+    return sector_helper
+
 ########################
 # Finvis Stock Sentiment
 ########################
