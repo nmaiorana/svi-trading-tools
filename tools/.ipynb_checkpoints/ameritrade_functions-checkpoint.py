@@ -311,7 +311,7 @@ class AmeritradeRest:
 
         return pd.DataFrame.from_dict(fundamental_list).fillna(0)
     
-    def place_sell_order(self, account, symbol, assetType='EQUITY', quantity=0, session='NORMAL', duration='DAY', orderType='MARKET'):
+    def place_order(self, account, symbol, assetType='EQUITY', quantity=0, instruction='SELL', session='NORMAL', duration='DAY', orderType='MARKET'):
         # "session": "'NORMAL' or 'AM' or 'PM' or 'SEAMLESS'",
         # "duration": "'DAY' or 'GOOD_TILL_CANCEL' or 'FILL_OR_KILL'",
         # "orderType": "'MARKET' or 'LIMIT' or 'STOP' or 'STOP_LIMIT' or 'TRAILING_STOP' or 'MARKET_ON_CLOSE' or 'EXERCISE' or 'TRAILING_STOP_LIMIT' or 'NET_DEBIT' or 'NET_CREDIT' or 'NET_ZERO'",
@@ -328,7 +328,7 @@ class AmeritradeRest:
                     'orderType': orderType,
                     'orderStrategyType': 'SINGLE',
                     'orderLegCollection': [
-                        {'instruction': 'SELL', 'quantity': quantity, 'instrument': {'symbol': symbol, 'assetType': assetType}}
+                        {'instruction': instruction, 'quantity': quantity, 'instrument': {'symbol': symbol, 'assetType': assetType}}
                     ]
                 }
         
@@ -336,14 +336,14 @@ class AmeritradeRest:
         if content.status_code != requests.codes.ok:
             print('Error: {}'.format(content.reason))
             return None        
-        print(f'Placed SELL order on {self.mask_account(account)} for {quantity} shares of {symbol}')
+        print(f'Placed {instruction} order on {self.mask_account(account)} for {quantity} shares of {symbol}')
         return content
     
     def place_bulk_sell_orders(self, account, stocks_df, session='NORMAL', duration='DAY', orderType='MARKET'):
         results = {}
         for row in stocks_df.itertuples():
             print(f'Placing SELL order on {self.mask_account(account)} for {row.longQuantity} shares of {row.symbol}...')
-            result = self.place_sell_order(account, row.symbol, row.assetType, row.longQuantity, session=session, duration=duration, orderType=orderType)
+            result = self.place_order(account, row.symbol, row.assetType, row.longQuantity, 'SELL', session=session, duration=duration, orderType=orderType)
             results[row.symbol] = result
             
         return results
