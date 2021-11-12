@@ -77,6 +77,19 @@ def compute_log_returns_days(buy_prices, sell_prices):
     return np.log(sell_prices / buy_prices).to_frame()
 
 ########################
+# Bulk Order Instructions
+########################
+
+def bulk_sell_order_instructions(stocks_df):
+    sell_instructions = []
+    for row in stocks_df.itertuples():
+        sell_instructions.append(
+            {"instruction": "SELL", "quantity": row.longQuantity, "instrument": {"symbol": row.symbol, "assetType": row.assetType}}
+        )
+    
+    return sell_instructions
+
+########################
 # General analysis tools
 ########################
 def plot_results(tree_sizes, train_score, oob_score, valid_score, legend, title, xlabel):

@@ -10,6 +10,8 @@ import numpy as np
 from tqdm.notebook import tqdm
 import os
 
+import json 
+
 from pathlib import Path
 
 ok_reason = ''
@@ -49,6 +51,7 @@ class AmeritradeRest:
         self.callback_url = r'http://localhost'
         self.oauth_url = r'https://auth.tdameritrade.com/auth'
         self.oath_token_url = r'https://api.tdameritrade.com/v1/oauth2/token'
+        self.unmasked_accounts = {}
 
         
         self.browser_name = 'chrome'
@@ -140,7 +143,9 @@ class AmeritradeRest:
     # Account Level Functions
     ###########################################################################################################
     def mask_account(self, account_id):
-        return '#---' + account_id[-4:]
+        masked_account = '#---' + account_id[-4:]
+        self.unmasked_accounts[masked_account] = account_id
+        return masked_account
 
     def get_accounts(self):
         self.account_data = None
@@ -305,8 +310,44 @@ class AmeritradeRest:
             fundamental_list.append(ticker_fundamentals)
 
         return pd.DataFrame.from_dict(fundamental_list).fillna(0)
-
     
+    def place_sell_order(self, account, symbol, assetType='EQUITY', quantity=0, session='NORMAL', duration='DAY', orderType='MARKET'):
+        # "session": "'NORMAL' or 'AM' or 'PM' or 'SEAMLESS'",
+        # "duration": "'DAY' or 'GOOD_TILL_CANCEL' or 'FILL_OR_KILL'",
+        # "orderType": "'MARKET' or 'LIMIT' or 'STOP' or 'STOP_LIMIT' or 'TRAILING_STOP' or 'MARKET_ON_CLOSE' or 'EXERCISE' or 'TRAILING_STOP_LIMIT' or 'NET_DEBIT' or 'NET_CREDIT' or 'NET_ZERO'",
+        endpoint = f'https://api.tdameritrade.com/v1/accounts/{account}/savedorders'
+        headers = {
+                    'Authorization': 'Bearer {}'.format(self.authorization['access_token']),
+                    'Content-type':'application/json'
+                  }
+
+        payload = {
+                    'complexOrderStrategyType': 'NONE',
+                    'session': session,
+                    'duration': duration,
+                    'orderType': orderType,
+                    'orderStrategyType': 'SINGLE',
+                    'orderLegCollection': [
+                        {'instruction': 'SELL', 'quantity': quantity, 'instrument': {'symbol': symbol, 'assetType': assetType}}
+                    ]
+                }
+        
+        content = requests.post(url=endpoint, headers=headers, json=payload)
+        if content.status_code != requests.codes.ok:
+            print('Error: {}'.format(content.reason))
+            return None        
+        print(f'Placed SELL order on {self.mask_account(account)} for {quantity} shares of {symbol}')
+        return content
+    
+    def place_bulk_sell_orders(self, account, stocks_df, session='NORMAL', duration='DAY', orderType='MARKET'):
+        results = {}
+        for row in stocks_df.itertuples():
+            print(f'Placing SELL order on {self.mask_account(account)} for {row.longQuantity} shares of {row.symbol}...')
+            result = self.place_sell_order(account, row.symbol, row.assetType, row.longQuantity, session=session, duration=duration, orderType=orderType)
+            results[row.symbol] = result
+            
+        return results
+
     def get_quotes(self, tickers):
         endpoint = f'https://api.tdameritrade.com/v1/marketdata/quotes'
 
