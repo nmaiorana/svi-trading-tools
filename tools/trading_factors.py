@@ -61,8 +61,8 @@ class FactorReturns(FactorData):
         self.compute(price_histories_df, days)
 
     def compute(self, price_histories_df, days=1):
-        self.factor_name = f'logret_{days}_day'
-        self.factor_data = utils.compute_log_returns(utils.get_close_values(price_histories_df), days)
+        self.factor_name = f'returns_{days}_day'
+        self.factor_data = utils.get_close_values(price_histories_df).pct_change(days)
         return self
     
 class FactorMomentum(FactorData):
@@ -70,7 +70,7 @@ class FactorMomentum(FactorData):
         self.compute(price_histories_df, days)
     
     def compute(self, price_histories_df, days=252):
-        self.factor_name = f'momentum_{days}_day_logret'
+        self.factor_name = f'momentum_{days}_day'
         self.factor_data = FactorReturns(price_histories_df, days).factor_data
         return self
     
@@ -226,7 +226,7 @@ def evaluate_ai_alpha(data, samples, classifier, factors, pricing):
     print('             Sharpe Ratios')
     print(factors_sharpe_ratio.round(2))
     plot_factor_returns(factor_returns)
-    plot_factor_rank_autocorrelation(unixt_factor_data)
+    plot_factor_rank_autocorrelation(clean_factor_data)
     plot_basis_points_per_day_quantile(unixt_factor_data)
     
 def prepare_alpha_lense_factor_data(all_factors, pricing):

@@ -9,7 +9,11 @@ import pandas as pd
 from urllib.request import urlopen, Request
 from bs4 import BeautifulSoup
 
-from tqdm import tqdm
+from tqdm.notebook import tqdm
+
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 #####################
 # Portfolio Functions
@@ -226,6 +230,7 @@ import requests
 import pandas as pd
 import numpy as np
 
+# Originally used to pull S&P and DOW stock information. Converted to use Pandas read_html() instead.
 def get_wiki_table_stocks(wiki_url, table_id):
     # Create a Response object
     r = requests.get(wiki_url)
@@ -266,10 +271,16 @@ def get_wiki_table_stocks(wiki_url, table_id):
     return dataframe
 
 def get_snp500():
-    return get_wiki_table_stocks('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies', 'constituents')
+    return pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies', 
+                        header=0, 
+                        attrs={'id': 'constituents'}, 
+                        index_col='Symbol')[0]
 
 def get_dow():
-    return get_wiki_table_stocks('https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average', 'constituents')
+    return pd.read_html('https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average', 
+                        header=0, 
+                        attrs={'id': 'constituents'}, 
+                        index_col='Symbol')[0]
 
 def get_sector_helper(stocks_df, sector_column, tickers):
     sector_data = stocks_df[sector_column][tickers]

@@ -1,8 +1,9 @@
 import urllib
 import requests
-from splinter import Browser
+from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import requests
+from selenium.webdriver.common.action_chains import ActionChains
+import selenium.common.exceptions as selexcept
 import time
 from datetime import datetime
 import pandas as pd
@@ -22,39 +23,21 @@ date_format = '%Y-%m-%d'
 ## Authentication Data
 # These items here are used to obtain an authorization token from TD Ameritrade. It involves navigating to web pages, so using a browser emulator # to navigate the page and set fields and submit pages.
 
-def configure_ameritrade(env_user_name, env_password, env_client_id):
-    username = os.getenv(env_user_name)
-    password = os.getenv(env_password)
-    client_id = os.getenv(env_client_id)
-
-    return username, password, client_id
 
 class AmeritradeRest:
     
-    def __init__(self, username, password, client_id, callback_url=r'http://localhost', executable_path=None):
+    def __init__(self, env_user_name='ameritradeuser', env_password='ameritradepw', env_client_id='ameritradeclientid'):
         
-        if executable_path is None:
-            self.home = str(Path.home())
-            self.executable_path = self.home + r'\Anaconda Projects\chromedriver\chromedriver'
-        else:
-            self.executable_path = executable_path
-        
+        self.configure_ameritrade(env_user_name, env_password, env_client_id)
         # This is used to cache credentials in Chromedriver. You will have to manually log in the first time.
-        self.user_data_dir = self.home + r'\AppData\Local\Google\Chrome\User Data\tduser'
+        self.user_data_dir = str(Path.home()) + r'\AppData\Local\Google\Chrome\User Data\tduser'
 
-        self.browser = None
-        self.username = username
-        self.password = password
-        self.client_id = client_id
-        self.callback_url = callback_url
-        self.consumer_key = client_id + '@AMER.OAUTHAP'
         self.callback_url = r'http://localhost'
         self.oauth_url = r'https://auth.tdameritrade.com/auth'
         self.oath_token_url = r'https://api.tdameritrade.com/v1/oauth2/token'
+        
         self.unmasked_accounts = {}
 
-        
-        self.browser_name = 'chrome'
         self.authorization = None
         self.account_data = None
         self.positions_data = None
@@ -62,82 +45,83 @@ class AmeritradeRest:
     ###########################################################################################################
     # Authentication Functions
     ###########################################################################################################
-    def start_browser(self):
-        # Note: If you already have a browser open, you will get an error unless you close the current one.
-        if not self.browser is None:
-            print('Quitting current browser...')
-            self.browser.quit()
-
-        # Tell us where the chromedriver is located on your computer
-        executable_path = {
-            'executable_path':self.executable_path
-        }
-
-        # This next field is optional, but if you have 2 factor authentication turned on for your account,
-        # you will have to manually add your texted code the first time and select 'Trust this Computer'.
-        # If you don't do this, you will have to manually authenticate via text code everytime you start
-        # this notebook, or run this cell.
-        # This option gives it a permanent profile to use instead of creating a temp one everytime.
-        options = Options()
-        options.add_argument('--user-data-dir='+self.user_data_dir)
-
-        self.browser = Browser(self.browser_name, **executable_path, headless = False, options=options)
-
-    ## Ameritrade Functions
+    """
+    Authentication Data
+    These items here are used to obtain an authorization token from TD Ameritrade. It involves navigating to web pages, so using a browser emulator # to navigate 
+    the page and set fields and submit pages.
+    """
+    def configure_ameritrade(self, env_user_name='ameritradeuser', env_password='ameritradepw', env_client_id='ameritradeclientid'):
+        """
+        In order to keep developers from setting usernames and passwords in a file, the credentials will be stored in environment varialbes.
+        """
+        self.username = os.getenv(env_user_name)
+        self.password = os.getenv(env_password)
+        self.client_id = os.getenv(env_client_id)
+        self.consumer_key = self.client_id + '@AMER.OAUTHAP'
     
     def authenticate(self):
-        self.start_browser()
+        chrome_options = Options()
+        chrome_options.add_argument('--user-data-dir='+self.user_data_dir)
+        browser = webdriver.Chrome(options=chrome_options)
+        try:
+            # define the components of the url
+            method = 'GET'
+            payload = {
+                        'response_type':'code',
+                        'redirect_uri':self.callback_url,
+                        'client_id':self.consumer_key
+            }
 
-        # define the components of the url
-        method = 'GET'
-        payload = {
-                    'response_type':'code',
-                    'redirect_uri':self.callback_url,
-                    'client_id':self.consumer_key
-        }
+            # build url
+            built_url = requests.Request(method, self.oauth_url, params=payload).prepare().url
 
-        # build url
-        built_url = requests.Request(method, self.oauth_url, params=payload).prepare().url
-
-        # go to URL
-        self.browser.visit(built_url)
-
-        #fill out form
-        self.browser.find_by_id('username0').first.fill(self.username)
-        self.browser.find_by_id('password1').first.fill(self.password)
-        self.browser.find_by_id('accept').first.click()
-        self.browser.find_by_id('accept').first.click()
-
-        # give it a second
-        time.sleep(1)
-        new_url = self.browser.url
-
-        # grab the URL and parse it
-        code = urllib.parse.unquote(new_url.split('code=')[1])
-
-        #define the headers
-        headers = {'Content-Type':'application/x-www-form-urlencoded'}
-
-        # define payload
-        payload = {
-            'grant_type':'authorization_code',
-            'access_type': 'offline',
-            'code': code,
-            'client_id': self.client_id,
-            'redirect_uri': 'http://localhost'
-        }
-
-        # post the data to get a token
-        authreply = requests.post(self.oath_token_url, headers=headers, data=payload)
-
-        # convert json to dict
-        self.authorization = authreply.json()
-        self.browser.quit()
-        return self.authorization
+            # go to URL
+            browser.get(built_url)
     
-    def get_access_token(self):
-        return self.authorization['access_token']
+            #fill out form
+            browser.find_element_by_id('username0').send_keys(self.username)
+            browser.find_element_by_id('password1').send_keys(self.password)
+            
+            # click Login button
+            browser.find_element_by_id('accept').click()
+            
+            # click allow on authorization screen
+            browser.find_element_by_id('accept').click()
 
+            # give it a second
+            time.sleep(1)
+            
+            # At this point you get an error back since there is no localhost server. But the URL contains the authentication code
+            new_url = urllib.parse.unquote(browser.current_url)
+
+            # grab the URL and parse it for the auth code
+            code = new_url.split('code=')[1]
+
+            # Use the auth code to get an auth token
+            #define the headers
+            headers = {'Content-Type':'application/x-www-form-urlencoded'}
+
+            # define payload
+            payload = {
+                'grant_type':'authorization_code',
+                'access_type': 'offline',
+                'code': code,
+                'client_id': self.client_id,
+                'redirect_uri': 'http://localhost'
+            }
+
+            # post the data to get a token
+            authreply = requests.post(self.oath_token_url, headers=headers, data=payload)
+
+            # convert json to dict
+            self.authorization = authreply.json()
+            return self.authorization
+        except selexcept.NoSuchElementException as error:
+            print(f'Error: {error}')
+        except selexcept.WebDriverException as error:
+            print(f'Error: {error}')
+        finally:
+            browser.close()
     
     ###########################################################################################################
     # Account Level Functions
