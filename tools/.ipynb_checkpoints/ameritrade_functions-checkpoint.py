@@ -2,7 +2,6 @@ import urllib
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.action_chains import ActionChains
 import selenium.common.exceptions as selexcept
 import time
 from datetime import datetime
@@ -30,7 +29,7 @@ class AmeritradeRest:
         
         self.configure_ameritrade(env_user_name, env_password, env_client_id)
         # This is used to cache credentials in Chromedriver. You will have to manually log in the first time.
-        self.user_data_dir = str(Path.home()) + r'\AppData\Local\Google\Chrome\User Data\tduser'
+        self.user_data_dir = str(Path.home()) + r'\svi-trading\chrome_browser_history'
 
         self.callback_url = r'http://localhost'
         self.oauth_url = r'https://auth.tdameritrade.com/auth'
@@ -52,7 +51,13 @@ class AmeritradeRest:
     """
     def configure_ameritrade(self, env_user_name='ameritradeuser', env_password='ameritradepw', env_client_id='ameritradeclientid'):
         """
-        In order to keep developers from setting usernames and passwords in a file, the credentials will be stored in environment varialbes.
+        In order to keep developers from setting usernames and passwords in a file, the credentials will be stored in environment varialbes. 
+        The default values for the variable names are:
+        - ameritradeuser    : Username
+        - ameritradepw      : Password
+        - ameritradeclientid: Client ID provided by Ameritrade Developer
+        
+        - These evnironment variable names can be overridden when the AmeritradeRest class is instantiated.
         """
         self.username = os.getenv(env_user_name)
         self.password = os.getenv(env_password)
@@ -60,9 +65,31 @@ class AmeritradeRest:
         self.consumer_key = self.client_id + '@AMER.OAUTHAP'
     
     def authenticate(self):
+        
+        """
+        Use the configured username, password and client id to obtain an authentication tocken from Ameritrade. This uses Ameritrade Developer's
+        serverless authentication (https://developer.tdameritrade.com/content/simple-auth-local-apps). 
+        
+        Depending on how you have your Ameritrade account setup (I use 2 factor authentication) you may need to manually establish some browser history by using 
+        the '--user-data-dir' Chrome option. By default it will put the Chrome browser history data (so you can set the trust this device option)
+        in the user's home directory under '\svi-trading\chrome_browser_history'. If you want to override this location, set the value prior to calling
+        the authenticate() method:
+            
+            import ameritrade_functions as amc
+            
+            td_ameritrade = amc.AmeritradeRest()
+            td_ameritrade.user_data_dir = 'somedirectory'
+            td_ameritrade.authenticate()
+        
+        The code will attempt to allow the manual entry of the 2-factor data and should identify the authorization screen to move forward with obtaining
+        the authentication token.
+
+        """
         chrome_options = Options()
         chrome_options.add_argument('--user-data-dir='+self.user_data_dir)
-        browser = webdriver.Chrome(options=chrome_options)
+        chrome_options.headless = False
+        driver = webdriver.Chrome(options=chrome_options)
+        driver.minimize_window()  
         try:
             # define the components of the url
             method = 'GET'
@@ -73,26 +100,39 @@ class AmeritradeRest:
             }
 
             # build url
-            built_url = requests.Request(method, self.oauth_url, params=payload).prepare().url
+            login_url = requests.Request(method, self.oauth_url, params=payload).prepare().url
 
             # go to URL
-            browser.get(built_url)
+            driver.get(login_url)
     
             #fill out form
-            browser.find_element_by_id('username0').send_keys(self.username)
-            browser.find_element_by_id('password1').send_keys(self.password)
+            driver.find_element_by_id('username0').send_keys(self.username)
+            driver.find_element_by_id('password1').send_keys(self.password)
             
             # click Login button
-            browser.find_element_by_id('accept').click()
+            driver.find_element_by_id('accept').click()
             
+            # If we don't see the authorization page, then 2-factor auth is turned on and this device is not trusted.
+            # If 2-factor authentication is turned on and this device has not been trusted then we have to wait for the user to 
+            # manually complete authorization 
+            
+            authorization_page = None
+            while authorization_page is None:
+                try:
+                    authorization_page = driver.find_element_by_id('stepup_authorization0')
+                except selexcept.NoSuchElementException as error:
+                    driver.switch_to.window(driver.current_window_handle)
+                    driver.maximize_window()  
+                    time.sleep(2)
+
             # click allow on authorization screen
-            browser.find_element_by_id('accept').click()
+            driver.find_element_by_id('accept').click()
 
             # give it a second
             time.sleep(1)
             
             # At this point you get an error back since there is no localhost server. But the URL contains the authentication code
-            new_url = urllib.parse.unquote(browser.current_url)
+            new_url = urllib.parse.unquote(driver.current_url)
 
             # grab the URL and parse it for the auth code
             code = new_url.split('code=')[1]
@@ -121,7 +161,7 @@ class AmeritradeRest:
         except selexcept.WebDriverException as error:
             print(f'Error: {error}')
         finally:
-            browser.close()
+            driver.close()
     
     ###########################################################################################################
     # Account Level Functions
