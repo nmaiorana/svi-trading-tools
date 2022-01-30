@@ -40,6 +40,8 @@ class AmeritradeRest:
         self.authorization = None
         self.account_data = None
         self.positions_data = None
+        
+        self.account_mask = '#---'
 
     ###########################################################################################################
     # Authentication Functions
@@ -162,12 +164,19 @@ class AmeritradeRest:
             print(f'Error: {error}')
         finally:
             driver.close()
+            
+    def get_access_token(self):
+        if self.authorization is None:
+            raise RuntimeError('Not Authenticated') from exc
+        else:
+            return self.authorization['access_token']
     
     ###########################################################################################################
     # Account Level Functions
     ###########################################################################################################
+
     def mask_account(self, account_id):
-        masked_account = '#---' + account_id[-4:]
+        masked_account = self.account_mask + account_id[len(self.account_mask):]
         self.unmasked_accounts[masked_account] = account_id
         return masked_account
 
@@ -259,10 +268,10 @@ class AmeritradeRest:
     ###########################################################################################################
     # Ticker Level Functions
     ###########################################################################################################
-    def get_price_histories(self, tickers, end_date=None, num_periods=1):
+    def get_price_histories(self, tickers, end_date=None, num_periods=1, silent=False):
         price_histories_df = pd.DataFrame()
         ticker_count = 0
-        for symbol in tqdm(tickers, desc='Tickers', unit='Price Histories'):
+        for symbol in tqdm(tickers, desc='Tickers', unit='Price Histories', disable=silent):
             ticker_price_history = self.get_daily_price_history(symbol, end_date, num_periods=num_periods)
             if ticker_price_history is not None:
                 price_histories_df = price_histories_df.append([ticker_price_history])
