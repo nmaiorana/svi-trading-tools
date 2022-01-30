@@ -167,7 +167,7 @@ class AmeritradeRest:
             
     def get_access_token(self):
         if self.authorization is None:
-            raise RuntimeError('Not Authenticated') from exc
+            raise RuntimeError('Not Authenticated') from None
         else:
             return self.authorization['access_token']
     
