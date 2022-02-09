@@ -86,6 +86,18 @@ class ClosePrices(FactorData):
         self.factor_name = 'close'
         self.factor_data = close_values
         return self
+
+class Volume(FactorData):
+    def __init__(self, price_histories_df, volume_col='Volume'):
+        self.volume_col = volume_col
+        self.compute(price_histories_df)
+        
+    def compute(self, price_histories_df):
+        volume_values = price_histories_df[self.volume_col]
+        volume_values = volume_values.fillna(volume_values.ffill())
+        self.factor_name = 'volume'
+        self.factor_data = volume_values
+        return self
         
 class FactorReturns(FactorData):
     def __init__(self, price_histories_df, days=1):
@@ -125,8 +137,8 @@ class OvernightSentiment(FactorData):
     
     def compute(self, price_histories_df, days=5):
         self.factor_name = f'overnight_sentiment_{days}_day'
-        close_prices = utils.get_close_values(price_histories_df)
-        open_prices = utils.get_open_values(price_histories_df)
+        close_prices = ClosePrices(price_histories_df).factor_data
+        open_prices = OpenPrices(price_histories_df).factor_data
         self.factor_data = ((open_prices.shift(-1) - close_prices)  / close_prices).rolling(window=days, min_periods=1).sum()
         return self
     
