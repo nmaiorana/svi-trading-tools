@@ -26,6 +26,9 @@ class FactorData:
         self.factor_data = factor_data_df
         self.factor_name = factor_name
         
+        self.open_col = 'open'
+        self.close_col = 'close'
+        
     def compute(self):
         pass
         
@@ -55,6 +58,13 @@ class FactorData:
         alpha_lens_series = self.factor_data.stack()
         alpha_lens_series.name= self.factor_name
         return alpha_lens_series
+    
+    def get_close_values(price_histories_df):
+        open_values = get_values_by_date(price_histories_df, self.open_col)
+        close_values = get_values_by_date(price_histories_df, self.close_col)
+        close_values = close_values.fillna(open_values.ffill())
+        close_values = close_values.fillna(open_values.bfill())
+        return close_values
         
 class FactorReturns(FactorData):
     def __init__(self, price_histories_df, days=1):
