@@ -3,6 +3,7 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import selenium.common.exceptions as selexcept
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 from datetime import datetime
 import pandas as pd
@@ -90,7 +91,7 @@ class AmeritradeRest:
         chrome_options = Options()
         chrome_options.add_argument('--user-data-dir='+self.user_data_dir)
         chrome_options.headless = False
-        driver = webdriver.Chrome(options=chrome_options)
+        driver = webdriver.Chrome(ChromeDriverManager(log_level=0).install(), options=chrome_options)
         driver.minimize_window()  
         try:
             # define the components of the url
@@ -176,9 +177,12 @@ class AmeritradeRest:
     ###########################################################################################################
 
     def mask_account(self, account_id):
-        masked_account = self.account_mask + account_id[len(self.account_mask):]
+        masked_account = self.account_mask + account_id[-4:]
         self.unmasked_accounts[masked_account] = account_id
         return masked_account
+
+    def unmask_account(self, masked_account):
+        return self.unmasked_accounts[masked_account]
 
     def get_accounts(self):
         self.account_data = None

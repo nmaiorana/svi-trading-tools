@@ -103,7 +103,7 @@ class FactorReturns(FactorData):
     def __init__(self, price_histories_df, days=1):
         self.compute(price_histories_df, days)
 
-    def compute(self, price_histories_df, days=1):
+    def compute(self, price_histories_df, days):
         self.factor_name = f'returns_{days}_day'
         self.factor_data = ClosePrices(price_histories_df).factor_data.pct_change(days)
         return self
@@ -112,7 +112,7 @@ class FactorMomentum(FactorData):
     def __init__(self, price_histories_df, days=252):
         self.compute(price_histories_df, days)
     
-    def compute(self, price_histories_df, days=252):
+    def compute(self, price_histories_df, days):
         self.factor_name = f'momentum_{days}_day'
         self.factor_data = FactorReturns(price_histories_df, days).factor_data
         return self
@@ -121,7 +121,7 @@ class FactorMeanReversion(FactorData):
     def __init__(self, price_histories_df, days=5):
         self.compute(price_histories_df, days)
         
-    def compute(self, price_histories_df, days=5):
+    def compute(self, price_histories_df, days):
         # Note, The idea is that we are looking for underperormers to revert back towards the mean of the sector.
         #       Since the ranking will sort from under perormers to over performers, we reverse the factor value by 
         #       multiplying by -1, so that the largest underperormers are ranked higher.
@@ -129,17 +129,24 @@ class FactorMeanReversion(FactorData):
         self.factor_data = -FactorReturns(price_histories_df, days).factor_data
         return self
     
-# Need to add trailing overnight sentiment
-# So this needs broken up overnight sentiment -> Trailing
-class OvernightSentiment(FactorData):
+class CloseToOpen(FactorData):
+    def __init__(self, price_histories_df):
+        self.compute(price_histories_df)
+    
+    def compute(self, price_histories_df):
+        self.factor_name = f'close_to_open'
+        close_prices = ClosePrices(price_histories_df).factor_data
+        open_prices = OpenPrices(price_histories_df).factor_data
+        self.factor_data = ((open_prices.shift(-1) - close_prices)  / close_prices)
+        return self
+    
+class TrailingOvernightReturns(FactorData):
     def __init__(self, price_histories_df, days=5):
         self.compute(price_histories_df, days)
     
-    def compute(self, price_histories_df, days=5):
-        self.factor_name = f'overnight_sentiment_{days}_day'
-        close_prices = ClosePrices(price_histories_df).factor_data
-        open_prices = OpenPrices(price_histories_df).factor_data
-        self.factor_data = ((open_prices.shift(-1) - close_prices)  / close_prices).rolling(window=days, min_periods=1).sum()
+    def compute(self, price_histories_df, days):
+        self.factor_name = f'trailing_overnight_returns_{days}_day'
+        self.factor_data = CloseToOpen(price_histories_df).factor_data.rolling(window=days, min_periods=1).sum()
         return self
     
 # Universal Quant Features
@@ -148,19 +155,18 @@ class AnnualizedVolatility(FactorData):
         self.annualization_factor = annualization_factor
         self.compute(price_histories_df, days)
     
-    def compute(self, price_histories_df, days=20):
+    def compute(self, price_histories_df, days):
         self.factor_name = f'annualzed_volatility_{days}_day'
         self.factor_data = (FactorReturns(price_histories_df, days).factor_data.rolling(days).std() * (self.annualization_factor ** .5)).dropna()
         return self
     
 class AverageDollarVolume(FactorData):
-    def __init__(self, price_histories_df, days=5):
+    def __init__(self, price_histories_df, days=20):
         self.compute(price_histories_df, days)
         
-    def compute(self, price_histories_df, days=20):
+    def compute(self, price_histories_df, days):
         self.factor_name = f'average_dollar_volume_{days}_day'
-        self.factor_data = (utils.get_values_by_date(price_histories_df, 'close') *
-                            utils.get_values_by_date(price_histories_df, 'volume')).fillna(0).rolling(days).mean()
+        self.factor_data = (ClosePrices(price_histories_df) * Volume(price_histories_df)).fillna(0).rolling(days).mean()
         return self
     
 class MarketDispersion(FactorData):
