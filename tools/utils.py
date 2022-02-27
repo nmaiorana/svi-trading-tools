@@ -282,14 +282,6 @@ def get_dow():
                         attrs={'id': 'constituents'}, 
                         index_col='Symbol')[0]
 
-def get_sector_helper(stocks_df, sector_column, tickers):
-    sector_data = stocks_df[sector_column][tickers]
-    sector_helper = {}
-    for sector in set(sector_data.values):
-        sector_tickers = sector_data[lambda x: x==sector].index.to_list()
-        sector_helper[sector] = sector_tickers
-    return sector_helper
-
 ########################
 # Finvis Stock Sentiment
 ########################

@@ -29,6 +29,9 @@ class FactorData:
     def compute(self):
         pass
         
+    def top(self, n=10):
+        return self.factor_data.iloc[-1].nlargest(n).index.tolist()
+        
     def demean(self, groupby=None):
         if groupby is None:
             return FactorData(self.factor_data.sub(self.factor_data.mean(axis=1), axis=0), self.factor_name)
@@ -55,7 +58,6 @@ class FactorData:
         alpha_lens_series = self.factor_data.stack()
         alpha_lens_series.name= self.factor_name
         return alpha_lens_series
-    
     
 class OpenPrices(FactorData):
     def __init__(self, price_histories_df, open_col='Open', close_col='Close'):
@@ -99,6 +101,15 @@ class Volume(FactorData):
         self.factor_data = volume_values
         return self
         
+class DailyDollarVolume(FactorData):
+    def __init__(self, price_histories_df):
+        self.compute(price_histories_df)
+
+    def compute(self, price_histories_df):
+        self.factor_name = f'daily_dollar_volume'
+        self.factor_data = ClosePrices(price_histories_df).factor_data * Volume(price_histories_df).factor_data
+        return self      
+    
 class FactorReturns(FactorData):
     def __init__(self, price_histories_df, days=1):
         self.compute(price_histories_df, days)
@@ -166,7 +177,7 @@ class AverageDollarVolume(FactorData):
         
     def compute(self, price_histories_df, days):
         self.factor_name = f'average_dollar_volume_{days}_day'
-        self.factor_data = (ClosePrices(price_histories_df) * Volume(price_histories_df)).fillna(0).rolling(days).mean()
+        self.factor_data = DailyDollarVolume(price_histories_df).factor_data.fillna(0).rolling(days).mean()
         return self
     
 class MarketDispersion(FactorData):
@@ -174,10 +185,10 @@ class MarketDispersion(FactorData):
         self.compute(price_histories_df, days)
         
     def compute(self, price_histories_df, days=20):
-        self.factor_name = f'market_dispersion{days}_day'
-        daily_disp = FactorReturns(price_histories_df, 1).factor_data
-        daily_disp[daily_disp.columns] = np.sqrt(np.nanmean(daily_disp.sub(daily_disp.mean(axis=1), axis=0)** 2, axis=1)).reshape(-1, 1)
-        self.factor_data = daily_disp.rolling(days).mean()
+        self.factor_name = f'market_dispersion_{days}_day'
+        daily_returns = FactorReturns(price_histories_df, 1).factor_data.dropna()
+        daily_returns[daily_returns.columns] = np.sqrt(np.nanmean(daily_returns.sub(daily_returns.mean(axis=1), axis=0)** 2, axis=1)).reshape(-1, 1)
+        self.factor_data = daily_returns.rolling(days).mean()
         return self
     
 class MarketVolatility(FactorData):
@@ -243,6 +254,17 @@ class FactorReturnQuantiles(FactorData):
 
 # Utils
 
+def get_sector_helper(stocks_df, sector_column, tickers):
+    sector_data = stocks_df[sector_column][tickers]
+    sector_helper = {}
+    for sector in set(sector_data.values):
+        sector_tickers = sector_data[lambda x: x==sector].index.to_list()
+        sector_helper[sector] = sector_tickers
+    return sector_helper
+
+def filter_price_histories(price_histories, mask):
+    return price_histories.iloc[:, price_histories.columns.get_level_values('Symbols').isin(mask)]
+
 def compute_ai_alpha_score(samples, classifier):
     factor_probas = classifier.predict_proba(samples)
     classification_count = factor_probas.shape[1]
@@ -254,19 +276,13 @@ def compute_ai_alpha_score(samples, classifier):
     
     return factor_probas.dot(prob_array)
 
-def add_alpha_score(factor_data, classifier, factors, ai_factor_name='AI_ALPHA'):
+def add_alpha_score(factor_data, classifier, ai_factor_name='AI_ALPHA'):
     alpha_score = compute_ai_alpha_score(factor_data, classifier)
     factor_data[ai_factor_name] = alpha_score
-    return factor_data[factors + [ai_factor_name]]
+    return factor_data
 
-def evaluate_ai_alpha(data, samples, classifier, factors, pricing):
-    # Calculate the Alpha Score    
-    ai_alpha_label = 'AI_ALPHA'
-    factors_with_alpha = add_alpha_score(samples.copy(), classifier, factors, ai_alpha_label)
-    
-    # Setup data for AlphaLens
-    print('Cleaning Data...\n')
-    clean_factor_data, unixt_factor_data = prepare_alpha_lense_factor_data(factors_with_alpha, pricing)
+def evaluate_ai_alpha(data, pricing):
+    clean_factor_data, unixt_factor_data = prepare_alpha_lense_factor_data(data.copy(), pricing)
     print('\n-----------------------\n')
     
     # Calculate Factor Returns and Sharpe Ratio
