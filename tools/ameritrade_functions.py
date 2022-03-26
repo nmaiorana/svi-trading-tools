@@ -278,7 +278,7 @@ class AmeritradeRest:
         for symbol in tqdm(tickers, desc='Tickers', unit='Price Histories', disable=silent):
             ticker_price_history = self.get_daily_price_history(symbol, end_date, num_periods=num_periods)
             if ticker_price_history is not None:
-                price_histories_df = price_histories_df.append([ticker_price_history])
+                price_histories_df = pd.concat([price_histories_df, ticker_price_history])
                 ticker_count += 1
                 if ticker_count % 30 == 0:
                     time.sleep(10)

@@ -1,3 +1,5 @@
+
+
 #!/usr/bin/env python
 # coding: utf-8
 
@@ -187,7 +189,9 @@ class MarketDispersion(FactorData):
     def compute(self, price_histories_df, days=20):
         self.factor_name = f'market_dispersion_{days}_day'
         daily_returns = FactorReturns(price_histories_df, 1).factor_data.dropna()
-        daily_returns[daily_returns.columns] = np.sqrt(np.nanmean(daily_returns.sub(daily_returns.mean(axis=1), axis=0)** 2, axis=1)).reshape(-1, 1)
+        _market_dispersion = np.sqrt(np.nanmean(daily_returns.sub(daily_returns.mean(axis=1), axis=0)** 2, axis=1)).reshape(-1, 1)
+        for column in daily_returns.columns:
+            daily_returns[column] = _market_dispersion
         self.factor_data = daily_returns.rolling(days).mean()
         return self
     
