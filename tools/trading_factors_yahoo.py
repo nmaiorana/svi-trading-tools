@@ -201,12 +201,14 @@ class MarketVolatility(FactorData):
         self.compute(price_histories_df, days)
         
     def compute(self, price_histories_df, days=20):
-        self.factor_name = f'market_volatility{days}_day'
-        daily_vol = FactorReturns(price_histories_df, 1).factor_data
-        market_returns = daily_vol.mean(axis=1)
+        self.factor_name = f'market_volatility_{days}_day'
+        daily_returns = FactorReturns(price_histories_df, 1).factor_data
+        market_returns = daily_returns.mean(axis=1)
         market_returns_mu = market_returns.mean(axis=0)
-        daily_vol[daily_vol.columns] = np.sqrt(self.annualization_factor * market_returns.sub(market_returns_mu, axis=0)** 2).values.reshape(-1, 1)
-        self.factor_data = daily_vol.rolling(days).mean()
+        _market_volatility = np.sqrt(self.annualization_factor * market_returns.sub(market_returns_mu, axis=0)** 2).values.reshape(-1, 1)
+        for column in daily_returns.columns:
+            daily_returns[column] = _market_volatility
+        self.factor_data = daily_returns.rolling(days).mean()
         return self
     
 # Date Parts
