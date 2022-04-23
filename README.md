@@ -1,17 +1,28 @@
 # Silent Viper Investments (SVI) - Trading Tools
 
 # Pourpose
-This repository is being created/morphed as I journey through my lessons in [Udacity's](https://www.udacity.com) AI for Trading Nano Degree Program. As I learn new concepts or techniqes I will build up a libray that someone can use to perform  high level portfolio/stock analysis. 
+This repository was created from my journey through my lessons in [Udacity's](https://www.udacity.com) AI for Trading Nano Degree Program. It is a culmination of the insights I gather to perform stock analyis using Alhpa and Beta factors.
 
-The project will consist of some python modules and then example notebooks on how to apply these functions. The source data for stock prices are retreived from [Ameritrade Developer API](https://developer.tdameritrade.com/). If you are just doing analyis on a list of tickers, then all you will need is to obtain a software key from Ameritrade Developer. If you want to analyze your own stock portfolios, and you have an Ameritrade account, then the library has an authentication method and funcitons to pull your data from Ameritrade.
+The project will consist of some python modules and then example notebooks on how to apply these functions. The currnet source data for stock prices are retreived from [Yahoo Finance](https://finance.yahoo.com/).
+
+I have also tied this project to setting buy/sell orders using TD Ameritrade.  To do this you will need is to obtain a software key from [Ameritrade Developer](https://developer.tdameritrade.com/). If you want to analyze your own stock portfolios, and you have an Ameritrade account, then the library has an authentication method and funcitons to pull your data from Ameritrade.
 
 # Flow
+
+```mermaid
+
+  graph TD;
+      A-->B;
+      A-->C;
+      B-->D;
+      C-->D;
+```
 If you follow this project, you will notice large swings in the tools provided. This is because along with some sound strategies for performing stock analysis, Udacity provides the underlying theory prior to a final solution, and since I'm building this as I go along, you will see things dissapear because they are replaced by some other higher level concept. 
 
 # Pipleline Limitations
-Throught the course Udacity promotes the use of [Quantopian's Zipline](https://github.com/quantopian/zipline) modules. When I started using this library, I had a hard time getting the latest stock prices and was only receiving the sample price histories. I struggled with making it work, even trying to create my own bundles from the Ameritrade data, but decide to abandon the effort an use the Ameritrade API to pull down price histories. 
+Throught the course Udacity promotes the use of [Quantopian's Zipline](https://github.com/quantopian/zipline) modules. When I started using this library, I had a hard time getting the latest stock prices and was only receiving the sample price histories. I struggled with making it work, even trying to create my own bundles from the Ameritrade data, but decide to abandon the effort an use the [Pandas Datareader](https://pandas-datareader.readthedocs.io/en/latest/). More specifically the [Yahoo Daily Reader](https://pandas-datareader.readthedocs.io/en/latest/readers/yahoo.html).
 
-This forced me to create my own Alpha factors tools set using Pandas. I think I did a pretty good job of creating a frame work for this, but down the road I will figure out the zipline stuff so that I can work with a larger number of stocks in my analysis. Right now I limit the stocks to a portfolio and some stocks of interest I have either heard about or they landed in Ameritrade's top 10 movers.
+This forced me to create my own Alpha factors toolsset using Pandas. I think I did a pretty good job of creating a frame work for this, but down the road I will figure out the zipline stuff so that I can work with a larger number of stocks in my analysis. Right now I limit the stocks to the S&P 500 list, which is obtained using the lastest from [Wikipedia's S&P 500 page](https://en.wikipedia.org/wiki/List_of_S%26P_500_companies).
 
 # General Usage (Under Construction)
 - Setup:
@@ -20,13 +31,11 @@ This forced me to create my own Alpha factors tools set using Pandas. I think I 
   - Get an Ameritrade account [TD Ameritrade](https://www.tdameritrade.com/)
   - Get an Ameritrade developers consumer key  [Ameritrade Developer API](https://developer.tdameritrade.com/)
   - Python 3.8
-- Stage 1: Build a stock univers - This notebook is used to determine which stocks you will analyze 
-  - Start with current portfolio stocks (Ameritrade API)
-  - Remove any stocks that should not be a part of the anslysis
-  - Add additional stocks you are interested in
-  - Add additional stocks using some creativity by doing web searches or some other means
-  - Gather 2 years of price histories (Ameritrade API)
-  - Store price histories and existing portfolio information
+
+- Stage 1: Build a stock universe
+  - Start with current portfolio stocks using "gather_stock_histories_yahoo" notebook to pull S&P 500 stock histories
+  - This notebook also uses the latest sentiment analysis from [Finviz](https://finviz.com/) to reduce the stocks that have poor sentiment
+
 - Stage 2: Generate Alpha
   - Generate Alpha factors
   - Generate standard Alphas
