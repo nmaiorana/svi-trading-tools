@@ -1,3 +1,4 @@
+import logging
 import matplotlib.pyplot as plt
 plt.rcParams['figure.figsize'] = (20, 8)
 from sklearn.tree import export_graphviz
@@ -360,7 +361,8 @@ def get_finvis_stock_sentiment(tickers):
 
 #  Reduce the stock universe by 1 std of the mean of sentiment for all stocks in the last 40 days
 def reduce_universe_by_sentiment(stock_universe):
-    print(f'Number of stocks in universe: {len(stock_universe)}')
+    logger = logging.getLogger('utils/reduce_universe_by_sentiment')
+    logger.debug(f'Number of stocks in universe: {len(stock_universe)}')
     parsed_and_scored_news = get_finvis_stock_sentiment(stock_universe).sort_values(by='date')
     # Group by date and ticker columns from scored_news and calculate the mean
     mean_scores = parsed_and_scored_news.groupby(['ticker','date']).mean().fillna(0)
@@ -375,7 +377,7 @@ def reduce_universe_by_sentiment(stock_universe):
     stdv_score = current_scores.std()
     cutoff = mean_score - stdv_score
 
-    print(f'Mean Sentiment: {mean_score} with a standared deviation of: {stdv_score} providing a cutoff of: {cutoff}')
+    logger.debug(f'Mean Sentiment: {mean_score} with a standared deviation of: {stdv_score} providing a cutoff of: {cutoff}')
     reduced_stock_universe = current_scores.where(current_scores > cutoff).dropna().index.to_list()
-    print(f'New number of stocks in universe: {len(reduced_stock_universe)}')
+    logger.debug(f'New number of stocks in universe: {len(reduced_stock_universe)}')
     return reduced_stock_universe

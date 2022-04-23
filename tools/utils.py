@@ -1,3 +1,4 @@
+import logging
 import matplotlib.pyplot as plt
 plt.rcParams['figure.figsize'] = (20, 8)
 from sklearn.tree import export_graphviz
@@ -230,46 +231,6 @@ import requests
 import pandas as pd
 import numpy as np
 
-# Originally used to pull S&P and DOW stock information. Converted to use Pandas read_html() instead.
-def get_wiki_table_stocks(wiki_url, table_id):
-    # Create a Response object
-    r = requests.get(wiki_url)
-
-    # Get HTML data
-    html_data = r.text
-
-    # Create a BeautifulSoup Object
-    paget_snp500ge_content = BeautifulSoup(html_data, 'html.parser')
-
-    # Find financipaget_snp500ge_contental table
-    #constituents
-    wikitable = paget_snp500ge_content.find('table', {'id': table_id})
-
-    # Find all column titles
-    wikicolumns = wikitable.findAll('tr')[0].findAll('th')
-
-    # Loop through column titles and store into Python array
-    df_columns = []
-    for column in wikicolumns:
-        # remove <br/> inside <th> text, such as `<th>Total<br/>production</th>`
-        text = column.get_text(strip=True, separator=" ")
-        # append the text into df_columns
-        df_columns.append(text)
-
-    # Loop through the data rows and store into Python array
-    df_data = []
-    for row in wikitable.tbody.findAll('tr')[1:]:
-        row_data = []
-        for td in row.findAll(['td', 'th']):
-            text = td.get_text(strip=True, separator=" ")
-            row_data.append(text)
-        df_data.append(np.array(row_data))    
-
-    # Print financial data in DataFrame format and set `Year` as index
-    dataframe = pd.DataFrame(data=df_data, columns=df_columns)
-    dataframe.set_index(['Symbol'], inplace=True)
-    return dataframe
-
 def get_snp500():
     return pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies', 
                         header=0, 
@@ -360,7 +321,8 @@ def get_finvis_stock_sentiment(tickers):
 
 #  Reduce the stock universe by 1 std of the mean of sentiment for all stocks in the last 40 days
 def reduce_universe_by_sentiment(stock_universe):
-    print(f'Number of stocks in universe: {len(stock_universe)}')
+    logger = logging.getLogger('utils/reduce_universe_by_sentiment')
+    logger.debug(f'Number of stocks in universe: {len(stock_universe)}')
     parsed_and_scored_news = get_finvis_stock_sentiment(stock_universe).sort_values(by='date')
     # Group by date and ticker columns from scored_news and calculate the mean
     mean_scores = parsed_and_scored_news.groupby(['ticker','date']).mean().fillna(0)
@@ -375,7 +337,7 @@ def reduce_universe_by_sentiment(stock_universe):
     stdv_score = current_scores.std()
     cutoff = mean_score - stdv_score
 
-    print(f'Mean Sentiment: {mean_score} with a standared deviation of: {stdv_score} providing a cutoff of: {cutoff}')
+    logger.debug(f'Mean Sentiment: {mean_score} with a standared deviation of: {stdv_score} providing a cutoff of: {cutoff}')
     reduced_stock_universe = current_scores.where(current_scores > cutoff).dropna().index.to_list()
-    print(f'New number of stocks in universe: {len(reduced_stock_universe)}')
+    logger.debug(f'New number of stocks in universe: {len(reduced_stock_universe)}')
     return reduced_stock_universe
