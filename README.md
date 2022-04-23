@@ -35,23 +35,27 @@ This forced me to create my own Alpha factors toolsset using Pandas. I think I d
 - Stage 1: Build a stock universe
   - Start with current portfolio stocks using "gather_stock_histories_yahoo" notebook to pull S&P 500 stock histories
   - This notebook also uses the latest sentiment analysis from [Finviz](https://finviz.com/) to reduce the stocks that have poor sentiment
+  
+  
+```new process being planned```
 
-- Stage 2: Generate Alpha
-  - Generate Alpha factors
-  - Generate standard Alphas
-  - Using ML, determine best Alphas (iterative)
-  - Using ML, generate Alpha vectors for each day for one year (iterative)
-  - Store Alphas (used in backtesting)
-  - Store models (used for production or actual analysis)
-- Stage 3: Generate Beta
-  - Using PCA, generate Beta factors
-  - Store daily Beta factors for one year (used for backtesting)
-  - Store Beta criteria (used for production or actual analysis)   
-- Stage 4: Backtesting
-  - Using the pricing history, alphas and betas perform a back test for last one year of data 
-  - Determine if models are profitable
-- Stage 5: Analyze the lastest data to determine new stock holdings
-  - Determine how often you want to adjust your portfolio 
+- Gather Alphas/Betas
+    - Gather Alpha Data
+    - Gather Beta Data
+    
+- Generate AI Model for AI Alpha Factor (as needed)
+    - AI Alpha prediction model
+    - Do this periodically to keep the model fresh
+    - Use KPIs to determine model's feasability (backtesting, PSI, ...)
+    
+- Generate optimizer using Alpha/Beta data (as needed)
+    - Use an optimizer to select the best stocks based on your needs
+    - Use KPIs to determine optimizer's feasability (backtesting)
+
+- Analyze the lastest data to determine new stock holdings
+  - Take the lastest Alpha/Beta data
+  - Generate AI Alpha
+  - Evaluate current data to find new stock holding distribution
   - Make money! 
   - Start over as necessary
 
