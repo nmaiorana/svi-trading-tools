@@ -14,8 +14,8 @@ I have also tied this project to setting buy/sell orders using TD Ameritrade.  T
   graph TD;
       Gather_Stock_Universe-->Generate_Alpha;
       Gather_Stock_Universe-->Generate_Beta;
-      Generate_Alpha-->Generate AI_Alpa_Factor;
-      Generate AI_Alpa_Factor-->Run_Optimizer;
+      Generate_Alpha-->Generate_AI_Alpa_Factor;
+      AI_Alpa_Factor-->Run_Optimizer;
       Generate_Beta-->Run_Optimizer;
       Run_Optimizer-->Backtest;
 ```
