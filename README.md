@@ -12,12 +12,12 @@ I have also tied this project to setting buy/sell orders using TD Ameritrade.  T
 ```mermaid
 
   graph TD;
-      Gather Stock Universe-->Generate Alpha;
-      Gather Stock Universe-->Generate Beta;
-      Generate Alpha-->Generate AI Alpa Factor;
-      Generate AI Alpa Factor-->Run Optimizer;
-      Generate Beta-->Run Optimizer;
-      Run Optimizer-->Backtest;
+      Gather_Stock_Universe-->Generate_Alpha;
+      Gather_Stock_Universe-->Generate_Beta;
+      Generate_Alpha-->Generate AI_Alpa_Factor;
+      Generate AI_Alpa_Factor-->Run_Optimizer;
+      Generate_Beta-->Run_Optimizer;
+      Run_Optimizer-->Backtest;
 ```
 If you follow this project, you will notice large swings in the tools provided. This is because along with some sound strategies for performing stock analysis, Udacity provides the underlying theory prior to a final solution, and since I'm building this as I go along, you will see things dissapear because they are replaced by some other higher level concept. 
 
