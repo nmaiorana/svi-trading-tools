@@ -254,6 +254,8 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 finwiz_url = 'https://finviz.com/quote.ashx?t='
 
 def get_finvis_stock_sentiment(tickers):
+    logger = logging.getLogger('utils/get_finvis_stock_sentiment')
+    logger.debug('Gathering Finvis stock sentiments')
     
     news_tables = {}
 

@@ -12,10 +12,25 @@ I have also tied this project to setting buy/sell orders using TD Ameritrade.  T
 ```mermaid
 
   graph TD;
-      A-->B;
-      A-->C;
-      B-->D;
-      C-->D;
+      Gather_Stock_Universe-->Get_Price_Histories;
+      Get_Price_Histories-->Generate_Alphas;
+      Get_Price_Histories-->Generate_Betas;
+      Generate_Alphas-->Generate_AI_Alpa_Factors;
+      Generate_AI_Alpa_Factors-->Run_Optimizer;
+      Generate_Betas-->Run_Optimizer;
+      Run_Optimizer-->Backtest;
+      Backtest-->Store_Model;
+      Backtest-->Store_Optimization_Parms;
+      Portfolio_Gather_Stock_Universe-->Portfolio_Reduce_On_Sentiment_Scores;
+      Portfolio_Reduce_On_Sentiment_Scores-->Portfolio_Get_Price_Histories;
+      Portfolio_Get_Price_Histories-->Portfolio_Generate_AI_Alpha_Factors_Current_Day;
+      Portfolio_Get_Price_Histories-->Portfolio_Generate_Beta_Factors_Current_Day;
+      Portfolio_Generate_AI_Alpha_Factors_Current_Day-->Portfolio_Run_Optimizer;
+      Portfolio_Generate_Beta_Factors_Current_Day-->Portfolio_Run_Optimizer;
+      Portfolio_Run_Optimizer-->Determine_New_Holdings;
+      Determine_New_Holdings-->Set_Sell_Orders;
+      Determine_New_Holdings-->Set_Buy_Orders;
+      
 ```
 If you follow this project, you will notice large swings in the tools provided. This is because along with some sound strategies for performing stock analysis, Udacity provides the underlying theory prior to a final solution, and since I'm building this as I go along, you will see things dissapear because they are replaced by some other higher level concept. 
 
@@ -35,23 +50,27 @@ This forced me to create my own Alpha factors toolsset using Pandas. I think I d
 - Stage 1: Build a stock universe
   - Start with current portfolio stocks using "gather_stock_histories_yahoo" notebook to pull S&P 500 stock histories
   - This notebook also uses the latest sentiment analysis from [Finviz](https://finviz.com/) to reduce the stocks that have poor sentiment
+  
+  
+```new process being planned```
 
-- Stage 2: Generate Alpha
-  - Generate Alpha factors
-  - Generate standard Alphas
-  - Using ML, determine best Alphas (iterative)
-  - Using ML, generate Alpha vectors for each day for one year (iterative)
-  - Store Alphas (used in backtesting)
-  - Store models (used for production or actual analysis)
-- Stage 3: Generate Beta
-  - Using PCA, generate Beta factors
-  - Store daily Beta factors for one year (used for backtesting)
-  - Store Beta criteria (used for production or actual analysis)   
-- Stage 4: Backtesting
-  - Using the pricing history, alphas and betas perform a back test for last one year of data 
-  - Determine if models are profitable
-- Stage 5: Analyze the lastest data to determine new stock holdings
-  - Determine how often you want to adjust your portfolio 
+- Gather Alphas/Betas
+    - Gather Alpha Data
+    - Gather Beta Data
+    
+- Generate AI Model for AI Alpha Factor (as needed)
+    - AI Alpha prediction model
+    - Do this periodically to keep the model fresh
+    - Use KPIs to determine model's feasability (backtesting, PSI, ...)
+    
+- Generate optimizer using Alpha/Beta data (as needed)
+    - Use an optimizer to select the best stocks based on your needs
+    - Use KPIs to determine optimizer's feasability (backtesting)
+
+- Analyze the lastest data to determine new stock holdings
+  - Take the lastest Alpha/Beta data
+  - Generate AI Alpha
+  - Evaluate current data to find new stock holding distribution
   - Make money! 
   - Start over as necessary
 

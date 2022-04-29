@@ -12,12 +12,25 @@ I have also tied this project to setting buy/sell orders using TD Ameritrade.  T
 ```mermaid
 
   graph TD;
-      Gather_Stock_Universe-->Generate_Alpha;
-      Gather_Stock_Universe-->Generate_Beta;
-      Generate_Alpha-->Generate_AI_Alpa_Factor;
-      Generate_AI_Alpa_Factor-->Run_Optimizer;
-      Generate_Beta-->Run_Optimizer;
+      Gather_Stock_Universe-->Get_Price_Histories;
+      Get_Price_Histories-->Generate_Alphas;
+      Get_Price_Histories-->Generate_Betas;
+      Generate_Alphas-->Generate_AI_Alpa_Factors;
+      Generate_AI_Alpa_Factors-->Run_Optimizer;
+      Generate_Betas-->Run_Optimizer;
       Run_Optimizer-->Backtest;
+      Backtest-->Store_Model;
+      Backtest-->Store_Optimization_Parms;
+      Portfolio_Gather_Stock_Universe-->Portfolio_Reduce_On_Sentiment_Scores;
+      Portfolio_Reduce_On_Sentiment_Scores-->Portfolio_Get_Price_Histories;
+      Portfolio_Get_Price_Histories-->Portfolio_Generate_AI_Alpha_Factors_Current_Day;
+      Portfolio_Get_Price_Histories-->Portfolio_Generate_Beta_Factors_Current_Day;
+      Portfolio_Generate_AI_Alpha_Factors_Current_Day-->Portfolio_Run_Optimizer;
+      Portfolio_Generate_Beta_Factors_Current_Day-->Portfolio_Run_Optimizer;
+      Portfolio_Run_Optimizer-->Determine_New_Holdings;
+      Determine_New_Holdings-->Set_Sell_Orders;
+      Determine_New_Holdings-->Set_Buy_Orders;
+      
 ```
 If you follow this project, you will notice large swings in the tools provided. This is because along with some sound strategies for performing stock analysis, Udacity provides the underlying theory prior to a final solution, and since I'm building this as I go along, you will see things dissapear because they are replaced by some other higher level concept. 
 
