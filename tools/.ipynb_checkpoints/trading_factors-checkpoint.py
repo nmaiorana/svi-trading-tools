@@ -218,11 +218,7 @@ def add_alpha_score(factor_data, classifier, factors, ai_factor_name='AI_ALPHA')
     factor_data[ai_factor_name] = alpha_score
     return factor_data[factors + [ai_factor_name]]
 
-def evaluate_ai_alpha(data, samples, classifier, factors, pricing):
-    # Calculate the Alpha Score    
-    ai_alpha_label = 'AI_ALPHA'
-    factors_with_alpha = add_alpha_score(samples.copy(), classifier, factors, ai_alpha_label)
-    
+def evaluate_alpha(data, samples, classifier, factors, pricing):
     # Setup data for AlphaLens
     print('Cleaning Data...\n')
     clean_factor_data, unixt_factor_data = prepare_alpha_lense_factor_data(factors_with_alpha, pricing)

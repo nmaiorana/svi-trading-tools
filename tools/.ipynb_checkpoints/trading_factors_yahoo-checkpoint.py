@@ -301,6 +301,7 @@ def evaluate_ai_alpha(data, pricing):
     plot_factor_returns(factor_returns)
     plot_factor_rank_autocorrelation(clean_factor_data)
     plot_basis_points_per_day_quantile(unixt_factor_data)
+    return factor_returns, clean_factor_data, unixt_factor_data
     
 def prepare_alpha_lense_factor_data(all_factors, pricing):
     clean_factor_data = {
@@ -314,9 +315,12 @@ def prepare_alpha_lense_factor_data(all_factors, pricing):
 
     return clean_factor_data, unixt_factor_data
 
+# Not sure if this is used any longer
+'''
 def build_factor_data(factor_data, pricing):
     return {factor_name: al.utils.get_clean_factor_and_forward_returns(factor=data, prices=pricing, periods=[1])
         for factor_name, data in factor_data.iteritems()}
+'''
 
 def plot_factor_returns(factor_returns):
     (1+factor_returns).cumprod().plot(title='Factor Returns')
