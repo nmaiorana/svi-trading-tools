@@ -20,8 +20,8 @@ unauthorized_reason = 'Unauthorized'
 
 date_format = '%Y-%m-%d'
 
-## Authentication Data
-# These items here are used to obtain an authorization token from TD Ameritrade. It involves navigating to web pages, so using a browser emulator # to navigate the page and set fields and submit pages.
+# # Authentication Data These items here are used to obtain an authorization token from TD Ameritrade. It involves
+# navigating to web pages, so using a browser emulator # to navigate the page and set fields and submit pages.
 
 
 class AmeritradeRest:
@@ -47,20 +47,16 @@ class AmeritradeRest:
     ###########################################################################################################
     # Authentication Functions
     ###########################################################################################################
-    """
-    Authentication Data
-    These items here are used to obtain an authorization token from TD Ameritrade. It involves navigating to web pages, so using a browser emulator # to navigate 
-    the page and set fields and submit pages.
-    """
+    """Authentication Data These items here are used to obtain an authorization token from TD Ameritrade. It involves 
+    navigating to web pages, so using a browser emulator # to navigate the page and set fields and submit pages. """
     def configure_ameritrade(self, env_user_name='ameritradeuser', env_password='ameritradepw', env_client_id='ameritradeclientid'):
         """
-        In order to keep developers from setting usernames and passwords in a file, the credentials will be stored in environment varialbes. 
-        The default values for the variable names are:
+        In order to keep developers from setting usernames and passwords in a file, the credentials will be stored in
+        environment varialbes. The default values for the variable names are:
         - ameritradeuser    : Username
         - ameritradepw      : Password
         - ameritradeclientid: Client ID provided by Ameritrade Developer
-        
-        - These evnironment variable names can be overridden when the AmeritradeRest class is instantiated.
+        - These environment variable names can be overridden when the AmeritradeRest class is instantiated.
         """
         self.username = os.getenv(env_user_name)
         self.password = os.getenv(env_password)
@@ -68,26 +64,31 @@ class AmeritradeRest:
         self.consumer_key = self.client_id + '@AMER.OAUTHAP'
     
     def authenticate(self):
-        
+
         """
-        Use the configured username, password and client id to obtain an authentication tocken from Ameritrade. This uses Ameritrade Developer's
-        serverless authentication (https://developer.tdameritrade.com/content/simple-auth-local-apps). 
-        
-        Depending on how you have your Ameritrade account setup (I use 2 factor authentication) you may need to manually establish some browser history by using 
-        the '--user-data-dir' Chrome option. By default it will put the Chrome browser history data (so you can set the trust this device option)
-        in the user's home directory under '\svi-trading\chrome_browser_history'. If you want to override this location, set the value prior to calling
-        the authenticate() method:
-            
+
+        Use the configured username, password and client id to obtain an authentication tocken from Ameritrade. This
+        uses Ameritrade Developer's serverless authentication
+        (https://developer.tdameritrade.com/content/simple-auth-local-apps).
+
+        Depending on how you have your Ameritrade account setup (I use 2-factor authentication) you may need to
+        manually establish some browser history by using the '--user-data-dir' Chrome option. By default, it will put
+        the Chrome browser history data (so you can set the trust this device option) in the user's home directory
+        under /svi-trading/chrome_browser_history.
+
+        If you want to override this location, set the value prior to
+        calling the authenticate() method:
+
             import ameritrade_functions as amc
-            
+
             td_ameritrade = amc.AmeritradeRest()
             td_ameritrade.user_data_dir = 'somedirectory'
             td_ameritrade.authenticate()
-        
+
         The code will attempt to allow the manual entry of the 2-factor data and should identify the authorization screen to move forward with obtaining
         the authentication token.
-
         """
+
         chrome_options = Options()
         chrome_options.add_argument('--user-data-dir='+self.user_data_dir)
         chrome_options.headless = False
