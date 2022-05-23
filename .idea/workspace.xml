@@ -5,18 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
-      <change afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tools/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tools/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/svi-trading-tools.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/svi-trading-tools.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gather_stock_histories_yahoo.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/gather_stock_histories_yahoo.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/generate_AI_alpha_factor.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/generate_AI_alpha_factor.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/generate_alphaNbeta_factors.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/generate_alphaNbeta_factors.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/.ipynb_checkpoints/trading_factors_yahoo_test-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/tools/.ipynb_checkpoints/trading_factors_yahoo_test-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/ameritrade_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/ameritrade_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/ameritrade_functions_test.ipynb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/trading_factors_yahoo.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/trading_factors_yahoo.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/trading_factors_yahoo_test.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/generate_backtest.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/generate_backtest.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/nonoverlapping_estimator.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/nonoverlapping_estimator.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -124,7 +118,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1653247818827</updated>
-      <workItem from="1653247821954" duration="10515000" />
+      <workItem from="1653247821954" duration="11718000" />
     </task>
     <task id="LOCAL-00001" summary="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <created>1653248026830</created>

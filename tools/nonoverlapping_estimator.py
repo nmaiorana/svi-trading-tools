@@ -1,5 +1,5 @@
 import abc
-import utils
+import tools.utils as utils
 import numpy as np
 
 import sklearn
@@ -9,6 +9,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import Bunch
 
 print(f'Sci-Kit version: {sklearn.__version__}')
+
 
 class NoOverlapVoterAbstract(VotingClassifier):
     @abc.abstractmethod
