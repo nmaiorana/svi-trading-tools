@@ -188,14 +188,14 @@ class TestFactorData(unittest.TestCase):
             alpha_factors.filter_price_histories(test_data_df, ['AAPL']).columns.get_level_values('Symbols').tolist())
         self.assertEqual(class_under_test.pop(), 'AAPL')
 
-    def test_prepare_alpha_lense_factor_data(self):
+    def test_prepare_alpha_lens_factor_data(self):
         alpha_factors_list = [
             alpha_factors.AverageDollarVolume(test_data_df, 5).for_al(),
             alpha_factors.FactorReturns(test_data_df).for_al()
         ]
         all_factors = pd.concat(alpha_factors_list, axis=1)
         pricing = test_data_df.Close
-        clean_factor_data, unixt_factor_data = alpha_factors.prepare_alpha_lense_factor_data(all_factors, pricing)
+        clean_factor_data, unixt_factor_data = alpha_factors.prepare_alpha_lens_factor_data(all_factors, pricing)
         self.assertEqual(494, len(list(clean_factor_data.values())[0]))
         self.assertEqual(494, len(list(unixt_factor_data.values())[0]))
 
@@ -212,3 +212,16 @@ class TestFactorData(unittest.TestCase):
         factor_to_eval = alpha_factors.AnnualizedVolatility(test_data_df, 10).rank().zscore()
         alpha_factors.eval_factor_and_add(factors_list, factor_to_eval, pricing, 100.0)
         self.assertEqual(len(factors_list), 0)
+
+    def test_get_factor_returns(self) -> None:
+        alpha_factors_list = [
+            alpha_factors.AverageDollarVolume(test_data_df, 5).for_al(),
+            alpha_factors.FactorReturns(test_data_df).for_al()
+        ]
+        all_factors = pd.concat(alpha_factors_list, axis=1)
+        pricing = test_data_df.Close
+        clean_factor_data, _ = alpha_factors.prepare_alpha_lens_factor_data(all_factors, pricing)
+        factor_returns_data = alpha_factors.get_factor_returns(clean_factor_data)
+        self.assertEqual(247, len(factor_returns_data))
+        self.assertAlmostEqual(factor_returns_data.iloc[0][0], 0.0092433, places=4)
+        self.assertAlmostEqual(factor_returns_data.iloc[-1][0], 0.0033237, places=4)

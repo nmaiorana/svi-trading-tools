@@ -278,23 +278,23 @@ def add_alpha_score(factor_data, classifier, ai_factor_name='AI_ALPHA'):
 
 
 def evaluate_alpha(data, pricing):
-    clean_factor_data, unixt_factor_data = prepare_alpha_lense_factor_data(data.copy(), pricing)
+    clean_factor_data, unixt_factor_data = prepare_alpha_lens_factor_data(data.copy(), pricing)
     print('\n-----------------------\n')
 
     # Calculate Factor Returns and Sharpe Ratio
-    factor_returns = get_factor_returns(clean_factor_data)
-    factors_sharpe_ratio = compute_sharpe_ratio(factor_returns)
+    factor_returns_data = get_factor_returns(clean_factor_data)
+    factors_sharpe_ratio = compute_sharpe_ratio(factor_returns_data)
 
     # Show Results
     print('             Sharpe Ratios')
     print(factors_sharpe_ratio.round(2))
-    plot_factor_returns(factor_returns)
+    plot_factor_returns(factor_returns_data)
     plot_factor_rank_autocorrelation(clean_factor_data)
     plot_basis_points_per_day_quantile(unixt_factor_data)
-    return factor_returns, clean_factor_data, unixt_factor_data
+    return factor_returns_data, clean_factor_data, unixt_factor_data
 
 
-def prepare_alpha_lense_factor_data(all_factors, pricing):
+def prepare_alpha_lens_factor_data(all_factors, pricing):
     clean_factor_data = {
         factor: al.utils.get_clean_factor_and_forward_returns(
             factor=factor_data, prices=pricing, periods=[1]) for factor, factor_data in all_factors.iteritems()}
@@ -311,8 +311,8 @@ def eval_factor_and_add(factors_list, factor, pricing, min_sharpe_ratio=0.5):
     logger = logging.getLogger('trading_factors/eval_factor_and_add')
     logger.info(f'FACTOR_EVAL|{factor.factor_name}|{min_sharpe_ratio}...')
     factor_data = factor.for_al()
-    clean_factor_data, unixt_factor_data = prepare_alpha_lense_factor_data(factor_data.to_frame().copy(),
-                                                                           pricing)
+    clean_factor_data, unixt_factor_data = prepare_alpha_lens_factor_data(factor_data.to_frame().copy(),
+                                                                          pricing)
     factor_returns = get_factor_returns(clean_factor_data)
     sharpe_ratio = compute_sharpe_ratio(factor_returns)['Sharpe Ratio'].values[0]
 
