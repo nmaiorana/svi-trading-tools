@@ -17,7 +17,7 @@ Path('./test_data').mkdir(parents=True, exist_ok=True)
 
 test_data_file = './test_data/test_data.csv'
 if os.path.exists(test_data_file):
-    test_data_df = pd.read_csv(test_data_file, header=[0, 1], index_col=[0], low_memory=False)
+    test_data_df = pd.read_csv(test_data_file, header=[0, 1], index_col=[0], parse_dates=True, low_memory=False)
 else:
     start = datetime(year=2019, month=1, day=1)
     end = datetime(year=2020, month=1, day=1)
@@ -37,6 +37,7 @@ else:
                                   attrs={'id': 'constituents'},
                                   index_col='Symbol')[0]
     snp_500_stocks.to_csv(test_snp_500_stocks_file)
+
 
 
 class TestFactorData(unittest.TestCase):
@@ -187,3 +188,27 @@ class TestFactorData(unittest.TestCase):
             alpha_factors.filter_price_histories(test_data_df, ['AAPL']).columns.get_level_values('Symbols').tolist())
         self.assertEqual(class_under_test.pop(), 'AAPL')
 
+    def test_prepare_alpha_lense_factor_data(self):
+        alpha_factors_list = [
+            alpha_factors.AverageDollarVolume(test_data_df, 5).for_al(),
+            alpha_factors.FactorReturns(test_data_df).for_al()
+        ]
+        all_factors = pd.concat(alpha_factors_list, axis=1)
+        pricing = test_data_df.Close
+        clean_factor_data, unixt_factor_data = alpha_factors.prepare_alpha_lense_factor_data(all_factors, pricing)
+        self.assertEqual(494, len(list(clean_factor_data.values())[0]))
+        self.assertEqual(494, len(list(unixt_factor_data.values())[0]))
+
+    def test_eval_factor_and_add(self) -> None:
+        factors_list = []
+        pricing = test_data_df.Close
+        factor_to_eval = alpha_factors.AnnualizedVolatility(test_data_df, 10).rank().zscore()
+        alpha_factors.eval_factor_and_add(factors_list, factor_to_eval, pricing, 0.0)
+        self.assertEqual(len(factors_list), 1)
+
+    def test_eval_factor_and_add_no_add(self) -> None:
+        factors_list = []
+        pricing = test_data_df.Close
+        factor_to_eval = alpha_factors.AnnualizedVolatility(test_data_df, 10).rank().zscore()
+        alpha_factors.eval_factor_and_add(factors_list, factor_to_eval, pricing, 100.0)
+        self.assertEqual(len(factors_list), 0)

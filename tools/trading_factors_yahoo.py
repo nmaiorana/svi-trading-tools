@@ -3,6 +3,7 @@
 # These functions were derived from an AI for Trading course provided by Udacity. The functions were originally part
 # of quizzes / exercises given during the course.
 
+import logging
 import alphalens as al
 import numpy as np
 import pandas as pd
@@ -37,8 +38,11 @@ class FactorData:
         return FactorData(self.factor_data.rank(axis=1), self.factor_name)
 
     def zscore(self):
-        return FactorData(pd.DataFrame(stats.zscore(self.factor_data, axis=1), index=self.factor_data.index,
-                                       columns=self.factor_data.columns), self.factor_name)
+        zscored_df = FactorData(
+            pd.DataFrame(stats.zscore(self.factor_data, axis=1, nan_policy='omit'), index=self.factor_data.index,
+                         columns=self.factor_data.columns), self.factor_name)
+        zscored_df.factor_data.fillna(0, inplace=True)
+        return zscored_df
 
     def smoothed(self, days=20):
         return FactorData(self.factor_data.rolling(window=days).mean(), self.factor_name + '_smoothed')
@@ -55,157 +59,132 @@ class OpenPrices(FactorData):
     def __init__(self, price_histories_df, open_col='Open', close_col='Close'):
         self.open_col = open_col
         self.close_col = close_col
-        self.compute(price_histories_df)
+        super().__init__(factor_data_df=self.compute(price_histories_df), factor_name='open')
 
     def compute(self, price_histories_df):
         open_values = price_histories_df[self.open_col]
         close_values = price_histories_df[self.close_col]
         open_values = open_values.fillna(close_values.ffill())
         open_values = open_values.fillna(close_values.bfill())
-        self.factor_name = 'open'
-        self.factor_data = open_values
-        return self
+        return open_values
 
 
 class ClosePrices(FactorData):
     def __init__(self, price_histories_df, open_col='Open', close_col='Close'):
         self.open_col = open_col
         self.close_col = close_col
-        self.compute(price_histories_df)
+        super().__init__(factor_data_df=self.compute(price_histories_df), factor_name='close')
 
     def compute(self, price_histories_df):
         open_values = price_histories_df[self.open_col]
         close_values = price_histories_df[self.close_col]
         close_values = close_values.fillna(open_values.ffill())
         close_values = close_values.fillna(open_values.bfill())
-        self.factor_name = 'close'
-        self.factor_data = close_values
-        return self
+        return close_values
 
 
 class Volume(FactorData):
     def __init__(self, price_histories_df, volume_col='Volume'):
         self.volume_col = volume_col
-        self.compute(price_histories_df)
+        super().__init__(factor_data_df=self.compute(price_histories_df), factor_name='volume')
 
     def compute(self, price_histories_df):
         volume_values = price_histories_df[self.volume_col]
         volume_values = volume_values.fillna(volume_values.ffill())
-        self.factor_name = 'volume'
-        self.factor_data = volume_values
-        return self
+        return volume_values
 
 
 class DailyDollarVolume(FactorData):
     def __init__(self, price_histories_df):
-        self.compute(price_histories_df)
+        super().__init__(self.compute(price_histories_df), 'daily_dollar_volume')
 
     def compute(self, price_histories_df):
-        self.factor_name = f'daily_dollar_volume'
-        self.factor_data = ClosePrices(price_histories_df).factor_data * Volume(price_histories_df).factor_data
-        return self
+        return ClosePrices(price_histories_df).factor_data * Volume(price_histories_df).factor_data
 
 
 class FactorReturns(FactorData):
     def __init__(self, price_histories_df, days=1):
-        self.compute(price_histories_df, days)
+        super().__init__(self.compute(price_histories_df, days), f'returns_{days}_day')
 
     def compute(self, price_histories_df, days):
-        self.factor_name = f'returns_{days}_day'
-        self.factor_data = ClosePrices(price_histories_df).factor_data.pct_change(days)
-        return self
+        return ClosePrices(price_histories_df).factor_data.pct_change(days)
 
 
 class FactorMomentum(FactorData):
     def __init__(self, price_histories_df, days=252):
-        self.compute(price_histories_df, days)
+        super().__init__(self.compute(price_histories_df, days), f'momentum_{days}_day')
 
     def compute(self, price_histories_df, days):
-        self.factor_name = f'momentum_{days}_day'
-        self.factor_data = FactorReturns(price_histories_df, days).factor_data
-        return self
+        return FactorReturns(price_histories_df, days).factor_data
 
 
 class FactorMeanReversion(FactorData):
     def __init__(self, price_histories_df, days=5):
-        self.compute(price_histories_df, days)
+        super().__init__(self.compute(price_histories_df, days), f'mean_reversion_{days}_day_logret')
 
     def compute(self, price_histories_df, days):
-        # Note, The idea is that we are looking for underperormers to revert back towards the mean of the sector.
-        #       Since the ranking will sort from under perormers to over performers, we reverse the factor value by 
-        #       multiplying by -1, so that the largest underperormers are ranked higher.
-        self.factor_name = f'mean_reversion_{days}_day_logret'
-        self.factor_data = -FactorReturns(price_histories_df, days).factor_data
-        return self
+        # Note, The idea is that we are looking for underperformed to revert towards the mean of the sector.
+        #       Since the ranking will sort from under performers to over performers, we reverse the factor value by
+        #       multiplying by -1, so that the largest underperformed are ranked higher.
+        return -FactorReturns(price_histories_df, days).factor_data
 
 
 class CloseToOpen(FactorData):
     def __init__(self, price_histories_df):
-        self.compute(price_histories_df)
+        super().__init__(self.compute(price_histories_df), f'close_to_open')
 
     def compute(self, price_histories_df):
-        self.factor_name = f'close_to_open'
         close_prices = ClosePrices(price_histories_df).factor_data
         open_prices = OpenPrices(price_histories_df).factor_data
-        self.factor_data = ((open_prices.shift(-1) - close_prices) / close_prices)
-        return self
+        return (open_prices.shift(-1) - close_prices) / close_prices
 
 
 class TrailingOvernightReturns(FactorData):
     def __init__(self, price_histories_df, days=5):
-        self.compute(price_histories_df, days)
+        super().__init__(self.compute(price_histories_df, days), f'trailing_overnight_returns_{days}_day')
 
     def compute(self, price_histories_df, days):
-        self.factor_name = f'trailing_overnight_returns_{days}_day'
-        self.factor_data = CloseToOpen(price_histories_df).factor_data.rolling(window=days, min_periods=1).sum()
-        return self
+        return CloseToOpen(price_histories_df).factor_data.rolling(window=days, min_periods=1).sum()
 
 
 # Universal Quant Features
 class AnnualizedVolatility(FactorData):
-    def __init__(self, price_histories_df, days=20, annualization_factor=252):
+    def __init__(self, price_histories_df, factor_data_df, days=20, annualization_factor=252):
         self.annualization_factor = annualization_factor
-        self.compute(price_histories_df, days)
+        super().__init__(self.compute(price_histories_df, days), f'annualzed_volatility_{days}_day')
 
     def compute(self, price_histories_df, days):
-        self.factor_name = f'annualzed_volatility_{days}_day'
-        self.factor_data = (FactorReturns(price_histories_df, days).factor_data.rolling(days).std() * (
-                    self.annualization_factor ** .5)).dropna()
-        return self
+        return (FactorReturns(price_histories_df, days).factor_data.rolling(days).std() * (
+                self.annualization_factor ** .5)).dropna()
 
 
 class AverageDollarVolume(FactorData):
     def __init__(self, price_histories_df, days=20):
-        self.compute(price_histories_df, days)
+        super().__init__(self.compute(price_histories_df, days), f'average_dollar_volume_{days}_day')
 
     def compute(self, price_histories_df, days):
-        self.factor_name = f'average_dollar_volume_{days}_day'
-        self.factor_data = DailyDollarVolume(price_histories_df).factor_data.fillna(0).rolling(days).mean()
-        return self
+        return DailyDollarVolume(price_histories_df).factor_data.fillna(0).rolling(days).mean()
 
 
 class MarketDispersion(FactorData):
     def __init__(self, price_histories_df, days=20):
-        self.compute(price_histories_df, days)
+        super().__init__(self.compute(price_histories_df, days), f'market_dispersion_{days}_day')
 
     def compute(self, price_histories_df, days=20):
-        self.factor_name = f'market_dispersion_{days}_day'
         daily_returns = FactorReturns(price_histories_df, 1).factor_data.dropna()
         _market_dispersion = np.sqrt(
             np.nanmean(daily_returns.sub(daily_returns.mean(axis=1), axis=0) ** 2, axis=1)).reshape(-1, 1)
         for column in daily_returns.columns:
             daily_returns[column] = _market_dispersion
-        self.factor_data = daily_returns.rolling(days).mean()
-        return self
+        return daily_returns.rolling(days).mean()
 
 
 class MarketVolatility(FactorData):
     def __init__(self, price_histories_df, days=20, annualization_factor=252):
         self.annualization_factor = annualization_factor
-        self.compute(price_histories_df, days)
+        super().__init__(self.compute(price_histories_df, days), f'market_volatility_{days}_day')
 
     def compute(self, price_histories_df, days=20):
-        self.factor_name = f'market_volatility_{days}_day'
         daily_returns = FactorReturns(price_histories_df, 1).factor_data
         market_returns = daily_returns.mean(axis=1)
         market_returns_mu = market_returns.mean(axis=0)
@@ -213,8 +192,7 @@ class MarketVolatility(FactorData):
             self.annualization_factor * market_returns.sub(market_returns_mu, axis=0) ** 2).values.reshape(-1, 1)
         for column in daily_returns.columns:
             daily_returns[column] = _market_volatility
-        self.factor_data = daily_returns.rolling(days).mean()
-        return self
+        return daily_returns.rolling(days).mean()
 
 
 # Date Parts
@@ -259,15 +237,12 @@ class FactorDateParts():
 
 # Factor Targets
 class FactorReturnQuantiles(FactorData):
-    def __init__(self, price_histories_df, quantiles=5, return_days=1):
-        self.return_days = return_days
-        self.compute(price_histories_df, quantiles)
+    def __init__(self, price_histories_df, quantiles=5, days=1):
+        super().__init__(self.compute(price_histories_df, days, quantiles), f'logret_{days}_day_{quantiles}_quantiles')
 
-    def compute(self, price_histories_df, quantiles=5):
-        self.factor_name = f'logret_{self.return_days}_day_{quantiles}_quantiles'
-        returns = FactorReturns(price_histories_df, self.return_days).factor_data
-        self.factor_data = returns.apply(lambda x: pd.qcut(x, quantiles, labels=False, duplicates='drop'), axis=1)
-        return self
+    def compute(self, price_histories_df, days, quantiles):
+        returns = FactorReturns(price_histories_df, days).factor_data
+        return returns.apply(lambda x: pd.qcut(x, quantiles, labels=False, duplicates='drop'), axis=1)
 
 
 # Utils
@@ -308,7 +283,7 @@ def evaluate_alpha(data, pricing):
 
     # Calculate Factor Returns and Sharpe Ratio
     factor_returns = get_factor_returns(clean_factor_data)
-    factors_sharpe_ratio = sharpe_ratio(factor_returns)
+    factors_sharpe_ratio = compute_sharpe_ratio(factor_returns)
 
     # Show Results
     print('             Sharpe Ratios')
@@ -332,12 +307,52 @@ def prepare_alpha_lense_factor_data(all_factors, pricing):
     return clean_factor_data, unixt_factor_data
 
 
-# Not sure if this is used any longer
-'''
-def build_factor_data(factor_data, pricing):
-    return {factor_name: al.utils.get_clean_factor_and_forward_returns(factor=data, prices=pricing, periods=[1])
-        for factor_name, data in factor_data.iteritems()}
-'''
+def eval_factor_and_add(factors_list, factor, pricing, min_sharpe_ratio=0.5):
+    logger = logging.getLogger('trading_factors/eval_factor_and_add')
+    logger.info(f'FACTOR_EVAL|{factor.factor_name}|{min_sharpe_ratio}...')
+    factor_data = factor.for_al()
+    clean_factor_data, unixt_factor_data = prepare_alpha_lense_factor_data(factor_data.to_frame().copy(),
+                                                                           pricing)
+    factor_returns = get_factor_returns(clean_factor_data)
+    sharpe_ratio = compute_sharpe_ratio(factor_returns)['Sharpe Ratio'].values[0]
+
+    if sharpe_ratio < min_sharpe_ratio:
+        logger.info(f'FACTOR_EVAL|{factor.factor_name}|{min_sharpe_ratio}|{sharpe_ratio}|REJECTED')
+        return
+    logger.info(f'FACTOR_EVAL|{factor.factor_name}|{min_sharpe_ratio}|{sharpe_ratio}|ACCEPTED')
+    factors_list.append(factor_data)
+
+
+def get_factor_returns(factor_data):
+    ls_factor_returns = pd.DataFrame()
+
+    for factor, factor_data in factor_data.items():
+        ls_factor_returns[factor] = al.performance.factor_returns(factor_data).iloc[:, 0]
+
+    return ls_factor_returns
+
+
+# Annualized Sharpe Ratios (daily = daily to annual, ...)
+def compute_sharpe_ratio(df, frequency="daily"):
+    if frequency == "daily":
+        annualization_factor = np.sqrt(252)
+    elif frequency == "monthly":
+        annualization_factor = np.sqrt(12)
+    else:
+        # TODO: no conversion
+        annualization_factor = 1
+
+    # TODO: calculate the sharpe ratio and store it in a dataframe.
+    # name the column 'Sharpe Ratio'.  
+    # round the numbers to 2 decimal places
+    df_sharpe = pd.DataFrame(data=annualization_factor * df.mean() / df.std(), columns=['Sharpe Ratio']).round(2)
+
+    return df_sharpe
+
+
+#########################################
+# Plots
+#########################################
 
 
 def plot_factor_returns(factor_returns):
@@ -368,37 +383,42 @@ def plot_basis_points_per_day_quantile(unixt_factor_data):
         legend=False)
 
 
-def get_factor_returns(factor_data):
-    ls_factor_returns = pd.DataFrame()
-
-    for factor, factor_data in factor_data.items():
-        ls_factor_returns[factor] = al.performance.factor_returns(factor_data).iloc[:, 0]
-
-    return ls_factor_returns
-
-
-# Annualized Sharpe Ratios (daily = daily to annual, ...)
-def sharpe_ratio(df, frequency="daily"):
-    if frequency == "daily":
-        annualization_factor = np.sqrt(252)
-    elif frequency == "monthly":
-        annualization_factor = np.sqrt(12)
-    else:
-        # TODO: no conversion
-        annualization_factor = 1
-
-    # TODO: calculate the sharpe ratio and store it in a dataframe.
-    # name the column 'Sharpe Ratio'.  
-    # round the numbers to 2 decimal places
-    df_sharpe = pd.DataFrame(data=annualization_factor * df.mean() / df.std(), columns=['Sharpe Ratio']).round(2)
-
-    return df_sharpe
+#########################################
+# Risk Factors (Beta)
+#########################################
 
 
 def fit_pca(returns, num_factor_exposures, svd_solver):
     pca = PCA(num_factor_exposures, svd_solver=svd_solver)
     pca.fit(returns)
     return pca
+
+
+def factor_betas(pca, factor_beta_indices, factor_beta_columns):
+    return pd.DataFrame(pca.components_.T, index=factor_beta_indices, columns=factor_beta_columns)
+
+
+def factor_returns(pca, returns, factor_return_indices, factor_return_columns):
+    return pd.DataFrame(pca.transform(returns), index=factor_return_indices, columns=factor_return_columns)
+
+
+def idiosyncratic_var_vector(returns, idiosyncratic_var_matrix):
+    return pd.DataFrame(data=np.diag(idiosyncratic_var_matrix.values), index=returns.columns)
+
+
+def factor_cov_matrix(factor_returns, ann_factor):
+    return np.diag(factor_returns.var(axis=0, ddof=1) * ann_factor)
+
+
+def portfolio_variance_using_factors(X, B, F, S):
+    var_portfolio = X.T.dot(B.dot(F).dot(B.T) + S).dot(X)
+    return np.sqrt(var_portfolio.sum())
+
+
+def idiosyncratic_var_matrix(returns, factor_returns, factor_betas, ann_factor):
+    common_returns_ = pd.DataFrame(np.dot(factor_returns, factor_betas.T), returns.index, returns.columns)
+    residuals_ = (returns - common_returns_)
+    return pd.DataFrame(np.diag(np.var(residuals_)) * ann_factor, returns.columns, returns.columns)
 
 
 class RiskModelPCA(object):
@@ -411,35 +431,14 @@ class RiskModelPCA(object):
 
         # Compute
         self.pca_ = fit_pca(returns, self.num_factor_exposures_, 'full')
-        self.factor_betas_ = self.factor_betas(self.pca_, returns.columns.values, self.factor_names_)
-        self.factor_returns_ = self.factor_returns(self.pca_, returns, returns.index, self.factor_names_)
-        self.factor_cov_matrix_ = self.factor_cov_matrix(self.factor_returns_, self.ann_factor_)
-        self.idiosyncratic_var_matrix_ = self.idiosyncratic_var_matrix(returns, self.factor_returns_,
-                                                                       self.factor_betas_, self.ann_factor_)
-        self.idiosyncratic_var_vector_ = self.idiosyncratic_var_vector(returns, self.idiosyncratic_var_matrix_)
-
-    def factor_betas(self, pca, factor_beta_indices, factor_beta_columns):
-        return pd.DataFrame(pca.components_.T, index=factor_beta_indices, columns=factor_beta_columns)
-
-    def factor_returns(self, pca, returns, factor_return_indices, factor_return_columns):
-        return pd.DataFrame(pca.transform(returns), index=factor_return_indices, columns=factor_return_columns)
-
-    def idiosyncratic_var_matrix(self, returns, factor_returns, factor_betas, ann_factor):
-        common_returns_ = pd.DataFrame(np.dot(factor_returns, factor_betas.T), returns.index, returns.columns)
-        residuals_ = (returns - common_returns_)
-        return pd.DataFrame(np.diag(np.var(residuals_)) * ann_factor, returns.columns, returns.columns)
-
-    def idiosyncratic_var_vector(self, returns, idiosyncratic_var_matrix):
-        return pd.DataFrame(data=np.diag(idiosyncratic_var_matrix.values), index=returns.columns)
-
-    def factor_cov_matrix(self, factor_returns, ann_factor):
-        return np.diag(factor_returns.var(axis=0, ddof=1) * ann_factor)
+        self.factor_betas_ = factor_betas(self.pca_, returns.columns.values, self.factor_names_)
+        self.factor_returns_ = factor_returns(self.pca_, returns, returns.index, self.factor_names_)
+        self.factor_cov_matrix_ = factor_cov_matrix(self.factor_returns_, self.ann_factor_)
+        self.idiosyncratic_var_matrix_ = idiosyncratic_var_matrix(returns, self.factor_returns_,
+                                                                  self.factor_betas_, self.ann_factor_)
+        self.idiosyncratic_var_vector_ = idiosyncratic_var_vector(returns, self.idiosyncratic_var_matrix_)
 
     def compute_portfolio_variance(self, weights):
         X = np.array(weights).reshape((-1, 1))
-        return self.portfolio_variance_using_factors(X, self.factor_betas_.values, self.factor_cov_matrix_,
-                                                     self.idiosyncratic_var_matrix_)
-
-    def portfolio_variance_using_factors(self, X, B, F, S):
-        var_portfolio = X.T.dot(B.dot(F).dot(B.T) + S).dot(X)
-        return np.sqrt(var_portfolio.sum())
+        return portfolio_variance_using_factors(X, self.factor_betas_.values, self.factor_cov_matrix_,
+                                                self.idiosyncratic_var_matrix_)
