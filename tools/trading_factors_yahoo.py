@@ -337,6 +337,7 @@ def compute_sharpe_ratio(df, frequency="daily"):
     if frequency == "daily":
         annualization_factor = np.sqrt(252)
     elif frequency == "monthly":
+
         annualization_factor = np.sqrt(12)
     else:
         # TODO: no conversion

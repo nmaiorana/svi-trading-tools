@@ -225,3 +225,15 @@ class TestFactorData(unittest.TestCase):
         self.assertEqual(247, len(factor_returns_data))
         self.assertAlmostEqual(factor_returns_data.iloc[0][0], 0.0092433, places=4)
         self.assertAlmostEqual(factor_returns_data.iloc[-1][0], 0.0033237, places=4)
+
+    def test_compute_sharpe_ratio(self) -> None:
+        pricing = test_data_df.Close
+        factor_data = alpha_factors.AverageDollarVolume(test_data_df, 5).for_al()
+        clean_factor_data, _ = alpha_factors.prepare_alpha_lens_factor_data(factor_data.to_frame().copy(), pricing)
+        factor_returns = alpha_factors.get_factor_returns(clean_factor_data)
+        sharpe_ratio = alpha_factors.compute_sharpe_ratio(factor_returns, frequency='daily')['Sharpe Ratio'].values[0]
+        self.assertEqual(2.1, sharpe_ratio)
+        sharpe_ratio = alpha_factors.compute_sharpe_ratio(factor_returns, frequency='monthly')['Sharpe Ratio'].values[0]
+        self.assertEqual(0.46, sharpe_ratio)
+        sharpe_ratio = alpha_factors.compute_sharpe_ratio(factor_returns, frequency='yearly')['Sharpe Ratio'].values[0]
+        self.assertEqual(0.13, sharpe_ratio)
