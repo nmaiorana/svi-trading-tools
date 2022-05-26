@@ -360,6 +360,7 @@ def plot_factor_returns(factor_returns):
     (1 + factor_returns).cumprod().plot(title='Factor Returns')
 
 
+
 def plot_factor_rank_autocorrelation(unixt_factor_data):
     ls_FRA = pd.DataFrame()
 

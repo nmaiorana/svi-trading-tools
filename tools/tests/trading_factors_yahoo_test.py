@@ -214,13 +214,9 @@ class TestFactorData(unittest.TestCase):
         self.assertEqual(len(factors_list), 0)
 
     def test_get_factor_returns(self) -> None:
-        alpha_factors_list = [
-            alpha_factors.AverageDollarVolume(test_data_df, 5).for_al(),
-            alpha_factors.FactorReturns(test_data_df).for_al()
-        ]
-        all_factors = pd.concat(alpha_factors_list, axis=1)
         pricing = test_data_df.Close
-        clean_factor_data, _ = alpha_factors.prepare_alpha_lens_factor_data(all_factors, pricing)
+        factor_data = alpha_factors.AverageDollarVolume(test_data_df, 5).for_al()
+        clean_factor_data, _ = alpha_factors.prepare_alpha_lens_factor_data(factor_data.to_frame().copy(), pricing)
         factor_returns_data = alpha_factors.get_factor_returns(clean_factor_data)
         self.assertEqual(247, len(factor_returns_data))
         self.assertAlmostEqual(factor_returns_data.iloc[0][0], 0.0092433, places=4)
@@ -237,3 +233,20 @@ class TestFactorData(unittest.TestCase):
         self.assertEqual(0.46, sharpe_ratio)
         sharpe_ratio = alpha_factors.compute_sharpe_ratio(factor_returns, frequency='yearly')['Sharpe Ratio'].values[0]
         self.assertEqual(0.13, sharpe_ratio)
+
+    def test_RiskModelPCA(self) -> None:
+        pricing = test_data_df.Close
+        factor_data = alpha_factors.AverageDollarVolume(test_data_df, 5).for_al()
+        clean_factor_data, _ = alpha_factors.prepare_alpha_lens_factor_data(factor_data.to_frame().copy(), pricing)
+        factor_returns = alpha_factors.get_factor_returns(clean_factor_data)
+        class_under_test = alpha_factors.RiskModelPCA(factor_returns, 1, 1)
+        self.assertEqual(-1.0, class_under_test.factor_betas_.iloc[0][0])
+        self.assertEqual(-1.0, class_under_test.factor_betas_.iloc[-1][0])
+        self.assertAlmostEqual(5.112652940153704e-05, class_under_test.factor_cov_matrix_[0][0], 6)
+        self.assertAlmostEqual(5.112652940153704e-05, class_under_test.factor_cov_matrix_[-1][0], 6)
+        self.assertAlmostEqual(7.867674112695941e-36, class_under_test.idiosyncratic_var_vector_[0][0], 20)
+        portfolio_variance = class_under_test.compute_portfolio_variance([.5])
+        self.assertAlmostEqual(0.00357514088538959, portfolio_variance, 4)
+        portfolio_variance = class_under_test.compute_portfolio_variance([1.0])
+        self.assertAlmostEqual(0.00715028177077918, portfolio_variance, 4)
+
