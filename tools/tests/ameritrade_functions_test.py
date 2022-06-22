@@ -76,10 +76,11 @@ class TestStockInformationFunctions(unittest.TestCase):
         
     def test_get_price_histories(self):
         price_histories = self.class_under_test.get_price_histories(['AAPL', 'GOOG'], '2022-01-03', silent=True)
-        self.assertEqual(len(price_histories), 506)
+        print(price_histories)
+        self.assertEqual(506, len(price_histories))
         self.assertEqual(price_histories.date.min().strftime('%Y-%m-%d'), '2021-01-04')
         self.assertEqual(price_histories.date.max().strftime('%Y-%m-%d'), '2022-01-03')
-        self.assertEqual(len(price_histories.ticker.unique()), 2)
+        self.assertEqual(2, len(price_histories.ticker.unique()))
         
     def test_get_fundamental(self):
         fundamentals = self.class_under_test.get_fundamental(['AAPL', 'GOOG'])
