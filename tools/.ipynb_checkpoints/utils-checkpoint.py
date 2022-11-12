@@ -9,7 +9,9 @@ from urllib.request import urlopen, Request
 from bs4 import BeautifulSoup
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import time
+
 from tqdm.notebook import tqdm
+
 import ssl
 
 plt.rcParams['figure.figsize'] = (20, 8)
@@ -35,6 +37,19 @@ def save_price_histories(dataframe, file_name):
 
 def read_price_histories(file_name):
     return pd.read_csv(file_name, parse_dates=['date'], index_col=False)
+
+
+def get_account_portfolio_data(portfolios_df, account):
+    return portfolios_df.query('account == "{}"'.format(account))
+
+
+def get_account_value(account_portfolio_df):
+    return account_portfolio_df['marketValue'].sum()
+
+
+def get_investments_by_type(account_portfolio_df, investment_type='EQUITY'):
+    return account_portfolio_df.query(f'assetType == "{investment_type}"')
+
 
 def get_investment_symbols(account_portfolio_df):
     return list(account_portfolio_df['symbol'].values)

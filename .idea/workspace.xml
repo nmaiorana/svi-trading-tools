@@ -5,16 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
-      <change afterPath="$PROJECT_DIR$/generate_ai_alpha.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/portfolio_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/tests/test_data/positions_data.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build_ai_alpha_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/build_ai_alpha_model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/.ipynb_checkpoints/config-checkpoint.ini" beforeDir="false" afterPath="$PROJECT_DIR$/config/.ipynb_checkpoints/config-checkpoint.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gather_sp500_price_histories.py" beforeDir="false" afterPath="$PROJECT_DIR$/gather_sp500_price_histories.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gather_stock_histories_yahoo.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/gather_stock_histories_yahoo.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generate_alpha_beta_factors.py" beforeDir="false" afterPath="$PROJECT_DIR$/generate_alpha_beta_factors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/portfolio_analysis_ira_20210323.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/portfolio_analysis_ira_20210323.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/experimentation.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/tools/experimentation.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/generate_ai_alpha.py" beforeDir="false" afterPath="$PROJECT_DIR$/generate_ai_alpha.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/portfolio_ira_adjust_holdings.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/portfolio_ira_adjust_holdings.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/ameritrade_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/ameritrade_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/portfolio_optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/portfolio_optimizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/tests/ameritrade_functions_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tests/ameritrade_functions_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/tests/trading_factors_yahoo_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tests/trading_factors_yahoo_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -51,32 +54,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/HP-Z440/Anaconda Projects/svi-trading-tools&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PythonContentEntriesConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "C:/Users/HP-Z440/Anaconda Projects/svi-trading-tools/tools/tests",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PythonContentEntriesConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools" />
+      <recent name="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools\tools\tests" />
       <recent name="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools\tools" />
+      <recent name="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools\tools\tests" />
       <recent name="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools\tools" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.generate_ai_alpha (1)">
+  <component name="RunManager" selected="Python tests.Python tests for ameritrade_functions_test.TestAccountFunctions">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -99,17 +103,17 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="gather_sp500_price_histories (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="utils_test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tools/tests" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/gather_sp500_price_histories.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tools/tests/utils_test.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -118,89 +122,64 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="generate_ai_alpha (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for ameritrade_functions_test.TestAccountFunctions" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tools/tests" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/generate_ai_alpha.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;ameritrade_functions_test.TestAccountFunctions&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="generate_ai_alpha" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for ameritrade_functions_test.TestAccountFunctions.test_get_account_portfolio_data" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tools/tests" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools\generate_ai_alpha.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;ameritrade_functions_test.TestAccountFunctions.test_get_account_portfolio_data&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="generate_ai_alpha_factor" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for ameritrade_functions_test.TestAccountFunctions.test_get_account_value" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tools/tests" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/generate_ai_alpha_factor.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;ameritrade_functions_test.TestAccountFunctions.test_get_account_value&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="generate_alpha_beta_factors" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for ameritrade_functions_test.TestAccountFunctions.test_get_holdings" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tools/tests" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/generate_alpha_beta_factors.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;ameritrade_functions_test.TestAccountFunctions.test_get_holdings&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
     <configuration name="Python tests in trading_factors_yahoo_test.py" type="tests" factoryName="Autodetect" nameIsGenerated="true">
@@ -220,11 +199,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.generate_ai_alpha (1)" />
-        <item itemvalue="Python.gather_sp500_price_histories (1)" />
-        <item itemvalue="Python.generate_alpha_beta_factors" />
-        <item itemvalue="Python.generate_ai_alpha" />
-        <item itemvalue="Python.generate_ai_alpha_factor" />
+        <item itemvalue="Python tests.Python tests for ameritrade_functions_test.TestAccountFunctions" />
+        <item itemvalue="Python tests.Python tests for ameritrade_functions_test.TestAccountFunctions.test_get_holdings" />
+        <item itemvalue="Python tests.Python tests for ameritrade_functions_test.TestAccountFunctions.test_get_account_portfolio_data" />
+        <item itemvalue="Python.utils_test" />
+        <item itemvalue="Python tests.Python tests for ameritrade_functions_test.TestAccountFunctions.test_get_account_value" />
       </list>
     </recent_temporary>
   </component>
@@ -243,7 +222,8 @@
       <workItem from="1660921026622" duration="3912000" />
       <workItem from="1661103359745" duration="11716000" />
       <workItem from="1664817815918" duration="15582000" />
-      <workItem from="1665760916496" duration="12546000" />
+      <workItem from="1665760916496" duration="19585000" />
+      <workItem from="1668198029624" duration="24471000" />
     </task>
     <task id="LOCAL-00001" summary="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <created>1653248026830</created>
@@ -285,6 +265,6 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/svi_trading_tools$.coverage" NAME=" Coverage Results" MODIFIED="1665873025677" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
+    <SUITE FILE_PATH="coverage/svi_trading_tools$.coverage" NAME=" Coverage Results" MODIFIED="1668292445658" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
   </component>
 </project>

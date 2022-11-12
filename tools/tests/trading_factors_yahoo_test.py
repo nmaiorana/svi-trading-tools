@@ -102,15 +102,15 @@ class TestFactorData(unittest.TestCase):
         class_under_test = alpha_factors.DailyDollarVolume(test_data_df)
         self.assertEqual(class_under_test.factor_name, 'daily_dollar_volume')
         self.assertEqual(class_under_test.factor_data.columns[0], 'AAPL')
-        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-01-02']['AAPL'], 5662831286.463928, places=2)
-        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-31']['AAPL'], 7272109769.787598, places=2)
+        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-01-02']['AAPL'], 5662831851.644897, places=2)
+        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-31']['AAPL'], 7272110538.873291, places=2)
 
     def test_average_dollar_volume(self):
         class_under_test = alpha_factors.AverageDollarVolume(test_data_df, 5)
         self.assertEqual(class_under_test.factor_name, 'average_dollar_volume_5_day')
         self.assertEqual(class_under_test.factor_data.columns[0], 'AAPL')
-        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-01-08']['AAPL'], 8095402562.039185, places=2)
-        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-31']['AAPL'], 7604826388.565674, places=2)
+        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-01-08']['AAPL'], 8095402900.082703, places=2)
+        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-31']['AAPL'], 7604825893.635864, places=2)
 
     def test_returns(self):
         class_under_test = alpha_factors.FactorReturns(test_data_df)

@@ -7,9 +7,7 @@ import tools.trading_factors_yahoo as alpha_factors
 import generate_alpha_beta_factors
 
 logging.config.fileConfig('./config/logging.ini')
-
 logger = logging.getLogger('GEN_AI_ALPHA')
-
 
 config = configparser.ConfigParser()
 config.read('./config/config.ini')

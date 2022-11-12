@@ -243,7 +243,7 @@ class AmeritradeRest:
                 return None
 
         # convert data to data dictionary
-        self.positions_data = content.json()
+        self.positions_data =  content.json()
         return self.positions_data
     
     def parse_portfolios_list(self):
@@ -251,62 +251,25 @@ class AmeritradeRest:
             self.get_positions()
             
         if self.positions_data is None:
-            print ("No positions data.")
+            print ("No positons data.")
             return None
         
         portfolio_list = []
         total_portfolio = {}
         for account in self.positions_data:
-            securities_account = account['securitiesAccount']
-            masked_account_id = self.mask_account(securities_account['accountId'])
-            for position in securities_account['positions']:
-                instrument_data = {'account': masked_account_id}
+            securitiesAccount = account['securitiesAccount']
+            masked_account_id = self.mask_account(securitiesAccount['accountId'])
+            for position in securitiesAccount['positions']:
+                instrument_data = {}
+                instrument_data['account'] = masked_account_id
                 instrument_data.update(position)
                 instrument_data.update(position['instrument'])
                 instrument_data.pop('instrument', None)
 
                 portfolio_list.append(instrument_data)
 
-        return pd.DataFrame.from_dict(portfolio_list).fillna(0).set_index(['account', 'symbol'])
-
-    def get_account_portfolio_data(self, masked_account, investment_type=None) -> pd.DataFrame:
-        full_portfolio = self.parse_portfolios_list()
-        if investment_type is None:
-            return full_portfolio.query(f'account == "{masked_account}"')
-        else:
-            return full_portfolio.query(f'account == "{masked_account}" and assetType == "{investment_type}"')
-
-    def get_market_values(self, masked_account, investment_type=None) -> pd.DataFrame:
-        if investment_type is None:
-            return self.get_account_portfolio_data(masked_account)['marketValue']
-        else:
-            return self.get_account_portfolio_data(masked_account, investment_type)['marketValue']
-
-    def get_account_value(self, masked_account, investment_type=None) -> float:
-        if investment_type is None:
-            return self.get_market_values(masked_account).sum()
-        else:
-            return self.get_market_values(masked_account, investment_type).sum()
-
-    def get_holdings(self, masked_account, investment_type=None, symbols=None) -> pd.DataFrame:
-        account_portfolio = self.get_account_portfolio_data(masked_account, investment_type)
-        if symbols is None:
-            symbols = account_portfolio.index.get_level_values('symbol').tolist()
-
-        symbols = set(symbols)
-        account_portfolio = account_portfolio[account_portfolio.index.get_level_values('symbol').isin(symbols)]
-        current_holdings = account_portfolio[['marketValue', 'longQuantity']]
-        non_portfolio_symbols = symbols - set(account_portfolio.index.get_level_values('symbol').values)
-        if len(non_portfolio_symbols) == 0:
-            return current_holdings
-
-        non_portfolio_values = pd.DataFrame.from_dict(
-            {(masked_account, symbol): [0, 0] for symbol in non_portfolio_symbols}, orient='index'
-        )
-        non_portfolio_values.index.name = 'symbol'
-        non_portfolio_values.columns = ['marketValue', 'longQuantity']
-        return current_holdings.append(non_portfolio_values).sort_index()
-
+        return pd.DataFrame.from_dict(portfolio_list).fillna(0)
+    
     ###########################################################################################################
     # Ticker Level Functions
     ###########################################################################################################
@@ -432,4 +395,4 @@ class AmeritradeRest:
         }
         content = requests.get(url=endpoint, params=payload)
         return pd.DataFrame.from_dict(content.json(), orient='index')
-
+        
