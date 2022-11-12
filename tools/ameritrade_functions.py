@@ -276,6 +276,10 @@ class AmeritradeRest:
         else:
             return full_portfolio.query(f'account == "{masked_account}" and assetType == "{investment_type}"')
 
+    def get_investment_symbols(self, masked_account, investment_type=None):
+        return self.get_account_portfolio_data(masked_account, investment_type)\
+            .index.get_level_values('symbol').tolist()
+
     def get_market_values(self, masked_account, investment_type=None) -> pd.DataFrame:
         if investment_type is None:
             return self.get_account_portfolio_data(masked_account)['marketValue']
@@ -307,9 +311,13 @@ class AmeritradeRest:
         non_portfolio_values.columns = ['marketValue', 'longQuantity']
         return current_holdings.append(non_portfolio_values).sort_index()
 
+    def get_portfolio_weights(self, masked_account, investment_type=None, symbols=None) -> pd.DataFrame:
+        holdings = self.get_holdings(masked_account, investment_type, symbols)['marketValue']
+        return (holdings / np.sum(holdings)).sort_index()
     ###########################################################################################################
     # Ticker Level Functions
     ###########################################################################################################
+
     def get_price_histories(self, tickers, end_date=None, num_periods=1, silent=False):
         price_histories_df = pd.DataFrame()
         ticker_count = 0
@@ -432,4 +440,5 @@ class AmeritradeRest:
         }
         content = requests.get(url=endpoint, params=payload)
         return pd.DataFrame.from_dict(content.json(), orient='index')
+
 

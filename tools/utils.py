@@ -21,36 +21,24 @@ ssl._create_default_https_context = ssl._create_unverified_context
 #####################
 
 
+# TODO: Move to ameritrade_functions
 def save_port_data(dataframe, file_name):
     dataframe.to_csv(file_name, index=False)
 
 
+# TODO: Move to ameritrade_functions
 def read_port_data(file_name):
     return pd.read_csv(file_name)
 
 
+# TODO: Still needed?
 def save_price_histories(dataframe, file_name):
     dataframe.to_csv(file_name, index=False)
 
 
+# TODO: Still needed?
 def read_price_histories(file_name):
     return pd.read_csv(file_name, parse_dates=['date'], index_col=False)
-
-def get_investment_symbols(account_portfolio_df):
-    return list(account_portfolio_df['symbol'].values)
-
-
-def get_holdings(account_portfolio_df, universe):
-    current_holdings = account_portfolio_df[['symbol', 'marketValue', 'longQuantity']].set_index('symbol').sort_index()
-    non_portfolio_symbols = universe - set(current_holdings.index.values)
-    non_portfolio_values = pd.DataFrame.from_dict({symbol: [0, 0] for symbol in non_portfolio_symbols}, orient='index')
-    non_portfolio_values.index.name = 'symbol'
-    non_portfolio_values.columns = ['marketValue', 'longQuantity']
-    return current_holdings.append(non_portfolio_values).sort_index()
-
-
-def get_portfolio_weights(holdings):
-    return (holdings / np.sum(holdings)).rename(columns={'marketValue': 'weight'}).sort_index()
 
 
 ########################
@@ -75,8 +63,10 @@ def get_open_values(price_histories_df):
 
 
 def get_values_by_date(price_histories_df, values):
-    return price_histories_df.reset_index().pivot(index='date', columns='ticker', values=values).tz_localize('UTC',
-                                                                                                             level='date')
+    return price_histories_df.reset_index().pivot\
+        (index='date', columns='ticker', values=values).tz_localize('UTC', level='date')
+
+
 def compute_log_returns(prices, lookahead=1):
     return np.log(prices / prices.shift(lookahead))[lookahead:].fillna(0)
 

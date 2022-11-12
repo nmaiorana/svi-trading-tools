@@ -209,3 +209,18 @@ class TestAccountFunctions(unittest.TestCase):
         self.assertListEqual([0.0, 0.0], holdings.loc[self.masked_account_1, 'AAPL'].to_list())
         self.assertListEqual([2410.99, 11.085], holdings.loc[self.masked_account_1, 'UNP'].to_list())
 
+    def test_get_investment_symbols(self):
+        symbols = self.class_under_test.get_investment_symbols(self.masked_account_1)
+        self.assertIn('USB', symbols)
+        symbols = self.class_under_test.get_investment_symbols(self.masked_account_1, 'EQUITY')
+        self.assertIn('USB', symbols)
+        symbols = self.class_under_test.get_investment_symbols(self.masked_account_1, 'CASH_EQUIVALENT')
+        self.assertIn('MMDA1', symbols)
+
+    def test_get_portfolio_weights(self):
+        weights = self.class_under_test.get_portfolio_weights(self.masked_account_1)
+        self.assertAlmostEqual(0.34, weights[self.masked_account_1, 'USB'], 2)
+        weights = self.class_under_test.get_portfolio_weights(self.masked_account_1, 'EQUITY')
+        self.assertAlmostEqual(0.40, weights[self.masked_account_1, 'USB'], 2)
+        weights = self.class_under_test.get_portfolio_weights(self.masked_account_1, 'CASH_EQUIVALENT')
+        self.assertAlmostEqual(1.0, weights[self.masked_account_1, 'MMDA1'], 2)
