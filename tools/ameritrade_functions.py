@@ -135,14 +135,15 @@ class AmeritradeRest:
             # give it a second
             time.sleep(1)
             
-            # At this point you get an error back since there is no localhost server. But the URL contains the authentication code
+            # At this point you get an error back since there is no localhost server. But the URL contains the
+            # authentication code
             new_url = urllib.parse.unquote(driver.current_url)
 
             # grab the URL and parse it for the auth code
             code = new_url.split('code=')[1]
 
             # Use the auth code to get an auth token
-            #define the headers
+            # define the headers
             headers = {'Content-Type':'application/x-www-form-urlencoded'}
 
             # define payload
@@ -280,7 +281,7 @@ class AmeritradeRest:
         return self.get_account_portfolio_data(masked_account, investment_type)\
             .index.get_level_values('symbol').tolist()
 
-    def get_market_values(self, masked_account, investment_type=None) -> pd.DataFrame:
+    def get_market_values(self, masked_account, investment_type=None) -> pd.Series:
         if investment_type is None:
             return self.get_account_portfolio_data(masked_account)['marketValue']
         else:
@@ -292,7 +293,7 @@ class AmeritradeRest:
         else:
             return self.get_market_values(masked_account, investment_type).sum()
 
-    def get_holdings(self, masked_account, investment_type=None, symbols=None) -> pd.DataFrame:
+    def get_holdings(self, masked_account, investment_type=None, symbols=None) -> pd.Series:
         account_portfolio = self.get_account_portfolio_data(masked_account, investment_type)
         if symbols is None:
             symbols = account_portfolio.index.get_level_values('symbol').tolist()
@@ -311,7 +312,7 @@ class AmeritradeRest:
         non_portfolio_values.columns = ['marketValue', 'longQuantity']
         return current_holdings.append(non_portfolio_values).sort_index()
 
-    def get_portfolio_weights(self, masked_account, investment_type=None, symbols=None) -> pd.DataFrame:
+    def get_portfolio_weights(self, masked_account, investment_type=None, symbols=None) -> pd.Series:
         holdings = self.get_holdings(masked_account, investment_type, symbols)['marketValue']
         return (holdings / np.sum(holdings)).sort_index()
     ###########################################################################################################
@@ -395,9 +396,9 @@ class AmeritradeRest:
         return pd.DataFrame.from_dict(fundamental_list).fillna(0)
     
     def place_order(self, account, symbol, assetType='EQUITY', quantity=0, instruction='SELL', session='NORMAL', duration='DAY', orderType='MARKET'):
-        # "session": "'NORMAL' or 'AM' or 'PM' or 'SEAMLESS'",
-        # "duration": "'DAY' or 'GOOD_TILL_CANCEL' or 'FILL_OR_KILL'",
-        # "orderType": "'MARKET' or 'LIMIT' or 'STOP' or 'STOP_LIMIT' or 'TRAILING_STOP' or 'MARKET_ON_CLOSE' or 'EXERCISE' or 'TRAILING_STOP_LIMIT' or 'NET_DEBIT' or 'NET_CREDIT' or 'NET_ZERO'",
+        # "session": "'NORMAL' or 'AM' or 'PM' or 'SEAMLESS'", "duration": "'DAY' or 'GOOD_TILL_CANCEL' or
+        # 'FILL_OR_KILL'", "orderType": "'MARKET' or 'LIMIT' or 'STOP' or 'STOP_LIMIT' or 'TRAILING_STOP' or
+        # 'MARKET_ON_CLOSE' or 'EXERCISE' or 'TRAILING_STOP_LIMIT' or 'NET_DEBIT' or 'NET_CREDIT' or 'NET_ZERO'",
         endpoint = f'https://api.tdameritrade.com/v1/accounts/{account}/savedorders'
         headers = {
                     'Authorization': 'Bearer {}'.format(self.authorization['access_token']),
