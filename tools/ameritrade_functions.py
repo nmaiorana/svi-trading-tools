@@ -186,6 +186,10 @@ class AmeritradeRest:
     def unmask_account(self, masked_account):
         return self.unmasked_accounts[masked_account]
 
+    def refresh_data(self):
+        self.get_accounts()
+        self.get_positions()
+
     def get_accounts(self):
         self.account_data = None
         # define endpoint
@@ -426,9 +430,9 @@ class AmeritradeRest:
     def place_bulk_sell_orders(self, account, stocks_df, session='NORMAL', duration='DAY', orderType='MARKET'):
         results = {}
         for row in stocks_df.itertuples():
-            print(f'Placing SELL order on {self.mask_account(account)} for {row.longQuantity} shares of {row.symbol}...')
-            result = self.place_order(account, row.symbol, row.assetType, row.longQuantity, 'SELL', session=session, duration=duration, orderType=orderType)
-            results[row.symbol] = result
+            print(f'Placing SELL order on {self.mask_account(account)} for {row.longQuantity} shares of {row[0][1]}...')
+            result = self.place_order(account, row[0][1], row.assetType, row.longQuantity, 'SELL', session=session, duration=duration, orderType=orderType)
+            results[row[0][1]] = result
             
         return results
 
@@ -437,9 +441,11 @@ class AmeritradeRest:
 
         payload = {
                     'apikey': self.client_id,
+
                     'symbol': ",".join(tickers)
         }
         content = requests.get(url=endpoint, params=payload)
         return pd.DataFrame.from_dict(content.json(), orient='index')
+
 
 

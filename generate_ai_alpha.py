@@ -6,14 +6,14 @@ import pickle
 import tools.trading_factors_yahoo as alpha_factors
 import generate_alpha_beta_factors
 
-logging.config.fileConfig('./config/logging.ini')
-logger = logging.getLogger('GEN_AI_ALPHA')
 
 config = configparser.ConfigParser()
 config.read('./config/config.ini')
 default_config = config['AIAlpha']
 
 generate_alpha_beta_factors.generate_alpha_beta_factors()
+logging.config.fileConfig('./config/logging.ini')
+logger = logging.getLogger('GEN_AI_ALPHA')
 alpha_factors_file_name = default_config['DataDirectory'] + '/' + default_config['AlphaFactorsFileName']
 
 logger.info(f'ALPHA_FACTORS_FILE|{alpha_factors_file_name}')

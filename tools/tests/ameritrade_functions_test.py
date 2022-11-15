@@ -72,7 +72,6 @@ class TestStockInformationFunctions(unittest.TestCase):
         
     def test_get_price_histories(self):
         price_histories = self.class_under_test.get_price_histories(['AAPL', 'GOOG'], '2022-01-03', silent=True)
-        print(price_histories)
         self.assertEqual(506, len(price_histories))
         self.assertEqual(price_histories.date.min().strftime('%Y-%m-%d'), '2021-01-04')
         self.assertEqual(price_histories.date.max().strftime('%Y-%m-%d'), '2022-01-03')
@@ -137,6 +136,13 @@ class TestAuthenticated(unittest.TestCase):
         self.assertIn('marketValue', portfolio_list.columns)
         self.assertIn('longQuantity', portfolio_list.columns)
         self.assertIn('type', portfolio_list.columns)
+
+    def test_refresh_data(self):
+        self.class_under_test.account_data = None
+        self.class_under_test.positions_data = None
+        self.class_under_test.refresh_data()
+        self.assertIsNotNone(self.class_under_test.account_data)
+        self.assertIsNotNone(self.class_under_test.positions_data)
 
 
 class TestAccountFunctions(unittest.TestCase):
