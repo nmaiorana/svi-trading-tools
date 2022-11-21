@@ -9,10 +9,6 @@ TEST_PW = 'TEST_PW'
 TEST_CLIENT_ID = 'TEST_CLIENT_ID'
 TEST_CONFIG_PATH = 'test_config/td_config.ini'
 
-custom_username_env = 'maiotradeuser'
-custom_pw_env = 'maiotradepw'
-custom_client_id_env = 'maiotradeclientid'
-
 # # Unit Tests
 
 # ## Test Configuration
@@ -25,17 +21,25 @@ class TestConfiguration(unittest.TestCase):
     def setUpClass(cls):
         config = configparser.ConfigParser()
         config.read(TEST_CONFIG_PATH)
-        cls.test_config = config['TD_CONFIG']
+        test_config = config[amc.CONFIG_SECTION]
+        cls.test_config = test_config
         os.environ[cls.test_config[amc.ENV_USER_VARIABLE]] = TEST_USER
         os.environ[cls.test_config[amc.ENV_PW_VARIABLE]] = TEST_PW
         os.environ[cls.test_config[amc.ENV_CLIENT_ID_VARIABLE]] = TEST_CLIENT_ID
 
-    def test_config_default(self):
+    def test_config_object(self):
         class_under_test = amc.AmeritradeRest(config=self.test_config)
         self.assertEqual(TEST_USER, class_under_test.username)
         self.assertEqual(TEST_PW, class_under_test.password)
         self.assertEqual(TEST_CLIENT_ID, class_under_test.client_id)
-        self.assertEqual(TEST_CLIENT_ID+'@AMER.OAUTHAP', class_under_test.get_consumer_key())
+        self.assertEqual(TEST_CLIENT_ID+amc.AMER_OAUTH_APP, class_under_test.get_consumer_key())
+
+    def test_config_file(self):
+        class_under_test = amc.AmeritradeRest(config_file=TEST_CONFIG_PATH)
+        self.assertEqual(TEST_USER, class_under_test.username)
+        self.assertEqual(TEST_PW, class_under_test.password)
+        self.assertEqual(TEST_CLIENT_ID, class_under_test.client_id)
+        self.assertEqual(TEST_CLIENT_ID+amc.AMER_OAUTH_APP, class_under_test.get_consumer_key())
 
     def test_get_consumer_key(self):
         class_under_test = amc.AmeritradeRest(config=self.test_config)
@@ -128,7 +132,7 @@ class TestAuthenticated(unittest.TestCase):
         
         # Unauthenticated
         with self.assertRaises(RuntimeError) as cm:
-            amc.AmeritradeRest(custom_username_env, custom_pw_env, custom_client_id_env).get_access_token()
+            amc.AmeritradeRest().get_access_token()
 
     def test_get_accounts(self):
         self.class_under_test.get_accounts()

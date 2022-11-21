@@ -16,6 +16,7 @@ import json
 from pathlib import Path
 
 DEFAULT_CONFIG_LOCATION = '~/td_config.ini'
+CONFIG_SECTION = 'TD_CONFIG'
 ENV_CLIENT_ID_VARIABLE = 'env_client_id_variable'
 ENV_PW_VARIABLE = 'env_pw_variable'
 ENV_USER_VARIABLE = 'env_user_variable'
@@ -32,15 +33,13 @@ DATE_FORMAT = '%Y-%m-%d'
 
 class AmeritradeRest:
     
-    def __init__(self,
-                 env_user_name='ameritradeuser', env_password='ameritradepw', env_client_id='ameritradeclientid',
-                 config=None):
+    def __init__(self, config=None, config_file=DEFAULT_CONFIG_LOCATION):
         # TODO: Add ability to pass optional config path name
 
         self.username = None
         self.password = None
         self.client_id = None
-        self.configure_ameritrade(env_user_name, env_password, env_client_id, config)
+        self.configure_ameritrade(config, config_file)
         # This is used to cache credentials in Chromedriver. You will have to manually log in the first time.
         self.user_data_dir = str(Path.home()) + r'\svi-trading\chrome_browser_history'
 
@@ -61,9 +60,7 @@ class AmeritradeRest:
     ###########################################################################################################
     """Authentication Data These items here are used to obtain an authorization token from TD Ameritrade. It involves 
     navigating to web pages, so using a browser emulator # to navigate the page and set fields and submit pages. """
-    def configure_ameritrade(self,
-                             env_user_name='ameritradeuser', env_password='ameritradepw', env_client_id='ameritradeclientid',
-                             config=None):
+    def configure_ameritrade(self, config=None, config_file=DEFAULT_CONFIG_LOCATION):
         """
         In order to keep developers from setting usernames and passwords in a file, the credentials will be stored in
         environment varialbes. The default values for the variable names are:
@@ -76,18 +73,13 @@ class AmeritradeRest:
         """
         if config is None:
             config = configparser.ConfigParser()
-            config.read(os.path.expanduser(DEFAULT_CONFIG_LOCATION))
-            config = config['TD_CONFIG']
+            config.read(os.path.expanduser(config_file))
+            config = config[CONFIG_SECTION]
 
         if config is not None:
-            print(config[ENV_USER_VARIABLE])
             self.username = os.getenv(config[ENV_USER_VARIABLE])
             self.password = os.getenv(config[ENV_PW_VARIABLE])
             self.client_id = os.getenv(config[ENV_CLIENT_ID_VARIABLE])
-        else:
-            self.username = os.getenv(env_user_name)
-            self.password = os.getenv(env_password)
-            self.client_id = os.getenv(env_client_id)
 
     def get_consumer_key(self):
         if self.client_id is None:
