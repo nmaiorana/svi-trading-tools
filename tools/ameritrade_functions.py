@@ -10,15 +10,21 @@ import pandas as pd
 import numpy as np
 from tqdm.notebook import tqdm
 import os
-
+import configparser
 import json 
 
 from pathlib import Path
 
-ok_reason = ''
-unauthorized_reason = 'Unauthorized'
-
-date_format = '%Y-%m-%d'
+DEFAULT_CONFIG_LOCATION = '~/td_config.ini'
+ENV_CLIENT_ID_VARIABLE = 'env_client_id_variable'
+ENV_PW_VARIABLE = 'env_pw_variable'
+ENV_USER_VARIABLE = 'env_user_variable'
+AMER_OAUTH_APP = '@AMER.OAUTHAP'
+REFRESH_AUTH_TIME = 'refresh_auth_time'
+PRIMARY_AUTH_TIME = 'primary_auth_time'
+OK_REASON = ''
+NOT_AUTHORIZED_REASON = 'Unauthorized'
+DATE_FORMAT = '%Y-%m-%d'
 
 # # Authentication Data These items here are used to obtain an authorization token from TD Ameritrade. It involves
 # navigating to web pages, so using a browser emulator # to navigate the page and set fields and submit pages.
@@ -26,9 +32,15 @@ date_format = '%Y-%m-%d'
 
 class AmeritradeRest:
     
-    def __init__(self, env_user_name='ameritradeuser', env_password='ameritradepw', env_client_id='ameritradeclientid'):
-        
-        self.configure_ameritrade(env_user_name, env_password, env_client_id)
+    def __init__(self,
+                 env_user_name='ameritradeuser', env_password='ameritradepw', env_client_id='ameritradeclientid',
+                 config=None):
+        # TODO: Add ability to pass optional config path name
+
+        self.username = None
+        self.password = None
+        self.client_id = None
+        self.configure_ameritrade(env_user_name, env_password, env_client_id, config)
         # This is used to cache credentials in Chromedriver. You will have to manually log in the first time.
         self.user_data_dir = str(Path.home()) + r'\svi-trading\chrome_browser_history'
 
@@ -49,7 +61,9 @@ class AmeritradeRest:
     ###########################################################################################################
     """Authentication Data These items here are used to obtain an authorization token from TD Ameritrade. It involves 
     navigating to web pages, so using a browser emulator # to navigate the page and set fields and submit pages. """
-    def configure_ameritrade(self, env_user_name='ameritradeuser', env_password='ameritradepw', env_client_id='ameritradeclientid'):
+    def configure_ameritrade(self,
+                             env_user_name='ameritradeuser', env_password='ameritradepw', env_client_id='ameritradeclientid',
+                             config=None):
         """
         In order to keep developers from setting usernames and passwords in a file, the credentials will be stored in
         environment varialbes. The default values for the variable names are:
@@ -57,11 +71,29 @@ class AmeritradeRest:
         - ameritradepw      : Password
         - ameritradeclientid: Client ID provided by Ameritrade Developer
         - These environment variable names can be overridden when the AmeritradeRest class is instantiated.
+
+        TODO: Add ability to pass config file path and get data from there for the env names
         """
-        self.username = os.getenv(env_user_name)
-        self.password = os.getenv(env_password)
-        self.client_id = os.getenv(env_client_id)
-        self.consumer_key = self.client_id + '@AMER.OAUTHAP'
+        if config is None:
+            config = configparser.ConfigParser()
+            config.read(os.path.expanduser(DEFAULT_CONFIG_LOCATION))
+            config = config['TD_CONFIG']
+
+        if config is not None:
+            print(config[ENV_USER_VARIABLE])
+            self.username = os.getenv(config[ENV_USER_VARIABLE])
+            self.password = os.getenv(config[ENV_PW_VARIABLE])
+            self.client_id = os.getenv(config[ENV_CLIENT_ID_VARIABLE])
+        else:
+            self.username = os.getenv(env_user_name)
+            self.password = os.getenv(env_password)
+            self.client_id = os.getenv(env_client_id)
+
+    def get_consumer_key(self):
+        if self.client_id is None:
+            return None
+
+        return self.client_id + AMER_OAUTH_APP
     
     def authenticate(self):
 
@@ -98,9 +130,9 @@ class AmeritradeRest:
             # define the components of the url
             method = 'GET'
             payload = {
-                        'response_type':'code',
-                        'redirect_uri':self.callback_url,
-                        'client_id':self.consumer_key
+                        'response_type': 'code',
+                        'redirect_uri': self.callback_url,
+                        'client_id': self.get_consumer_key()
             }
 
             # build url
@@ -109,7 +141,7 @@ class AmeritradeRest:
             # go to URL
             driver.get(login_url)
     
-            #fill out form
+            # fill out form
             driver.find_element_by_id('username0').send_keys(self.username)
             driver.find_element_by_id('password1').send_keys(self.password)
             
@@ -117,8 +149,8 @@ class AmeritradeRest:
             driver.find_element_by_id('accept').click()
             
             # If we don't see the authorization page, then 2-factor auth is turned on and this device is not trusted.
-            # If 2-factor authentication is turned on and this device has not been trusted then we have to wait for the user to 
-            # manually complete authorization 
+            # If 2-factor authentication is turned on and this device has not been trusted then we have to wait for 
+            # the user to manually complete authorization 
             
             authorization_page = None
             while authorization_page is None:
@@ -156,10 +188,13 @@ class AmeritradeRest:
             }
 
             # post the data to get a token
-            authreply = requests.post(self.oath_token_url, headers=headers, data=payload)
+            auth_reply = requests.post(self.oath_token_url, headers=headers, data=payload)
 
             # convert json to dict
-            self.authorization = authreply.json()
+            self.authorization = auth_reply.json()
+            authorization_time = datetime.now()
+            self.authorization[PRIMARY_AUTH_TIME] = authorization_time
+            self.authorization[REFRESH_AUTH_TIME] = authorization_time
             return self.authorization
         except selexcept.NoSuchElementException as error:
             print(f'Error: {error}')
@@ -167,13 +202,27 @@ class AmeritradeRest:
             print(f'Error: {error}')
         finally:
             driver.close()
-            
-    def get_access_token(self):
+
+    def get_authorization(self):
         if self.authorization is None:
+            # if no env get from file
+            # if refresh has expired, get new
+            pass
+
+        return self.authorization
+
+    def get_access_token(self):
+        if self.get_authorization() is None:
             raise RuntimeError('Not Authenticated') from None
         else:
-            return self.authorization['access_token']
-    
+            return self.get_authorization()['access_token']
+
+    def get_primary_auth_time(self):
+        return self.get_authorization()[PRIMARY_AUTH_TIME]
+
+    def get_refresh_auth_time(self):
+        return self.get_authorization()[REFRESH_AUTH_TIME]
+
     ###########################################################################################################
     # Account Level Functions
     ###########################################################################################################
@@ -198,8 +247,8 @@ class AmeritradeRest:
 
         # make a request
         content = requests.get(url=endpoint, headers=headers)
-        if content.reason != ok_reason:
-            if content.reason == unauthorized_reason:
+        if content.reason != OK_REASON:
+            if content.reason == NOT_AUTHORIZED_REASON:
                 print(f'Error: {content.reason}')
                 return None
 
@@ -242,8 +291,8 @@ class AmeritradeRest:
 
         # make a request
         content = requests.get(url=endpoint, headers=headers, params=payload)
-        if content.reason != ok_reason:
-            if content.reason == unauthorized_reason:
+        if content.reason != OK_REASON:
+            if content.reason == NOT_AUTHORIZED_REASON:
                 print('Error: {}'.format(content.reason))
                 return None
 
@@ -339,7 +388,7 @@ class AmeritradeRest:
     
     def get_daily_price_history(self, symbol, end_date=None, num_periods=1):
         if end_date is None:
-            end_date = datetime.today().strftime(date_format)
+            end_date = datetime.today().strftime(DATE_FORMAT)
         # define endpoint
         endpoint = f'https://api.tdameritrade.com/v1/marketdata/{symbol}/pricehistory'
 
@@ -348,14 +397,14 @@ class AmeritradeRest:
                     'periodType': 'year',
                     'period': str(num_periods),
                     'frequencyType': 'daily',
-                    'endDate': str(int(datetime.strptime(end_date, date_format).timestamp()) * 1000),
-                    'needExtendedHoursData':'true'
+                    'endDate': str(int(datetime.strptime(end_date, DATE_FORMAT).timestamp()) * 1000),
+                    'needExtendedHoursData': 'true'
         }
 
         # make a request
         content = requests.get(url=endpoint, params=payload)
-        if content.reason != ok_reason:
-            if content.reason == unauthorized_reason:
+        if content.reason != OK_REASON:
+            if content.reason == NOT_AUTHORIZED_REASON:
                 print(f'Error: {content.reason}')
                 return None
 
@@ -446,6 +495,3 @@ class AmeritradeRest:
         }
         content = requests.get(url=endpoint, params=payload)
         return pd.DataFrame.from_dict(content.json(), orient='index')
-
-
-

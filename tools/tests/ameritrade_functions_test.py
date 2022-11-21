@@ -2,10 +2,16 @@ import unittest
 import tools.ameritrade_functions as amc
 import os
 import json
+import configparser
+
+TEST_USER = 'TEST_USER'
+TEST_PW = 'TEST_PW'
+TEST_CLIENT_ID = 'TEST_CLIENT_ID'
+TEST_CONFIG_PATH = 'test_config/td_config.ini'
 
 custom_username_env = 'maiotradeuser'
 custom_pw_env = 'maiotradepw'
-custom_clientid_env = 'maiotradeclientid'
+custom_client_id_env = 'maiotradeclientid'
 
 # # Unit Tests
 
@@ -13,38 +19,45 @@ custom_clientid_env = 'maiotradeclientid'
 # 
 # Configure the Ameritrade client to use the username, password and client id stored in environment variables.
 
-os.environ['ameritradeuser'] = 'test_user'
-os.environ['ameritradepw'] = 'test_pw'
-os.environ['ameritradeclientid'] = 'client_id'
-
 
 class TestConfiguration(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        config = configparser.ConfigParser()
+        config.read(TEST_CONFIG_PATH)
+        cls.test_config = config['TD_CONFIG']
+        os.environ[cls.test_config[amc.ENV_USER_VARIABLE]] = TEST_USER
+        os.environ[cls.test_config[amc.ENV_PW_VARIABLE]] = TEST_PW
+        os.environ[cls.test_config[amc.ENV_CLIENT_ID_VARIABLE]] = TEST_CLIENT_ID
+
     def test_config_default(self):
-        class_under_test = amc.AmeritradeRest()
-        self.assertEqual(class_under_test.username, 'test_user')
-        self.assertEqual(class_under_test.password, 'test_pw')
-        self.assertEqual(class_under_test.client_id, 'client_id')  
-        self.assertEqual(class_under_test.consumer_key, 'client_id'+'@AMER.OAUTHAP')
-    
-    def test_config_params(self):
-        class_under_test = amc.AmeritradeRest('ameritradeuser', 'ameritradepw', 'ameritradeclientid')
-        self.assertEqual(class_under_test.username, 'test_user')
-        self.assertEqual(class_under_test.password, 'test_pw')
-        self.assertEqual(class_under_test.client_id, 'client_id')
-        self.assertEqual(class_under_test.consumer_key, 'client_id'+'@AMER.OAUTHAP')
+        class_under_test = amc.AmeritradeRest(config=self.test_config)
+        self.assertEqual(TEST_USER, class_under_test.username)
+        self.assertEqual(TEST_PW, class_under_test.password)
+        self.assertEqual(TEST_CLIENT_ID, class_under_test.client_id)
+        self.assertEqual(TEST_CLIENT_ID+'@AMER.OAUTHAP', class_under_test.get_consumer_key())
+
+    def test_get_consumer_key(self):
+        class_under_test = amc.AmeritradeRest(config=self.test_config)
+        orig_client_id = class_under_test.client_id
+        class_under_test.client_id = None
+        self.assertIsNone(class_under_test.get_consumer_key())
+        class_under_test.client_id = orig_client_id
+        self.assertIsNotNone(class_under_test.get_consumer_key())
+        self.assertEqual(TEST_CLIENT_ID + amc.AMER_OAUTH_APP, class_under_test.get_consumer_key())
 
 # ## Account Level Functions
 
 
 class TestAccountLevelFunctions(unittest.TestCase):
     def test_mask_account(self):
-        class_under_test = amc.AmeritradeRest(custom_username_env, custom_pw_env, custom_clientid_env)
+        class_under_test = amc.AmeritradeRest()
         self.assertEqual(class_under_test.mask_account('123456789'), '#---6789')
         class_under_test.account_mask = "*****"
         self.assertEqual(class_under_test.mask_account('12345678'), '*****5678')
         
     def test_unmasked_accounts(self):
-        class_under_test = amc.AmeritradeRest(custom_username_env, custom_pw_env, custom_clientid_env)
+        class_under_test = amc.AmeritradeRest()
         masked_account = class_under_test.mask_account('12345678')
         self.assertEqual(class_under_test.unmask_account(masked_account), '12345678')        
 
@@ -61,10 +74,11 @@ class TestAccountLevelFunctions(unittest.TestCase):
 class TestStockInformationFunctions(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.class_under_test = amc.AmeritradeRest(custom_username_env, custom_pw_env, custom_clientid_env)
+        cls.class_under_test = amc.AmeritradeRest()
         
     def test_get_daily_price_history(self):
         price_histories = self.class_under_test.get_daily_price_history('AAPL', '2022-01-03')
+        print(price_histories)
         self.assertEqual(len(price_histories), 253)
         self.assertEqual(price_histories.date.min().strftime('%Y-%m-%d'), '2021-01-04')
         self.assertEqual(price_histories.date.max().strftime('%Y-%m-%d'), '2022-01-03')
@@ -98,18 +112,23 @@ class TestStockInformationFunctions(unittest.TestCase):
 class TestAuthenticated(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.class_under_test = amc.AmeritradeRest(custom_username_env, custom_pw_env, custom_clientid_env)
+        cls.class_under_test = amc.AmeritradeRest()
         cls.class_under_test.authenticate()
+
+    def test_get_authorization(self):
+        self.assertIsNotNone(self.class_under_test.get_authorization())
         
     def test_authentication(self):
         self.assertGreater(len(self.class_under_test.authorization), 0)
+        self.assertIsNotNone(self.class_under_test.get_primary_auth_time())
+        self.assertIsNotNone(self.class_under_test.get_refresh_auth_time())
         
     def test_get_access_token(self):
         self.assertIsNotNone(self.class_under_test.get_access_token())
         
         # Unauthenticated
         with self.assertRaises(RuntimeError) as cm:
-            amc.AmeritradeRest(custom_username_env, custom_pw_env, custom_clientid_env).get_access_token()
+            amc.AmeritradeRest(custom_username_env, custom_pw_env, custom_client_id_env).get_access_token()
 
     def test_get_accounts(self):
         self.class_under_test.get_accounts()
@@ -152,7 +171,7 @@ class TestAccountFunctions(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.class_under_test = amc.AmeritradeRest(custom_username_env, custom_pw_env, custom_clientid_env)
+        cls.class_under_test = amc.AmeritradeRest()
         # Get test account data
         with open('test_data/account_data.json', 'r') as openfile:
             # Reading from json file
