@@ -4,18 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
-      <change afterPath="$PROJECT_DIR$/installation/svi-base-308.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/installation/svi-base-311.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/svi-trading-tools.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/svi-trading-tools.iml" afterDir="false" />
+    <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Updated install options for python 3.08">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/installation/svi-base.yml" beforeDir="false" afterPath="$PROJECT_DIR$/installation/svi-base-310.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/portfolio_ind_adjust_holdings.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/portfolio_ind_adjust_holdings.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/tools.egg-info/PKG-INFO" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tools.egg-info/PKG-INFO" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/tools.egg-info/SOURCES.txt" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tools.egg-info/SOURCES.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/tools.egg-info/dependency_links.txt" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tools.egg-info/dependency_links.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/tools.egg-info/top_level.txt" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tools.egg-info/top_level.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,7 +34,7 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="CurrentFile" />
+    <option name="selectedTabId" value="ProjectErrors" />
   </component>
   <component name="ProjectId" id="29X7wvrv5xClvyBEuCQnHhTnLRQ" />
   <component name="ProjectViewState">
@@ -79,7 +69,7 @@
       <recent name="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools\tools" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.trading_factors_yahoo_test">
+  <component name="RunManager" selected="Python.ameritrade_functions_test">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -106,9 +96,6 @@
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="C:\Users\nmaiorana\anaconda3\envs\ai_for_trading_38\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tools/tests" />
       <option name="IS_MODULE_SDK" value="false" />
@@ -205,8 +192,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.trading_factors_yahoo_test" />
         <item itemvalue="Python.ameritrade_functions_test" />
+        <item itemvalue="Python.trading_factors_yahoo_test" />
         <item itemvalue="Python tests.Python tests in ameritrade_functions_test.py" />
         <item itemvalue="Python tests.Python tests for ameritrade_functions_test.TestConfiguration" />
         <item itemvalue="Python tests.Python tests for ameritrade_functions_test.TestConfiguration.test_config" />
@@ -232,6 +219,7 @@
       <workItem from="1668198029624" duration="53298000" />
       <workItem from="1669127509822" duration="2835000" />
       <workItem from="1669133491338" duration="1295000" />
+      <workItem from="1669135537506" duration="691000" />
     </task>
     <task id="LOCAL-00001" summary="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <created>1653248026830</created>
@@ -240,7 +228,14 @@
       <option name="project" value="LOCAL" />
       <updated>1653248026830</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Updated install options for python 3.08">
+      <created>1669135819964</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1669135819964</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -259,7 +254,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests" />
+    <MESSAGE value="Updated install options for python 3.08" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated install options for python 3.08" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
