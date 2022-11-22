@@ -82,7 +82,6 @@ class TestStockInformationFunctions(unittest.TestCase):
         
     def test_get_daily_price_history(self):
         price_histories = self.class_under_test.get_daily_price_history('AAPL', '2022-01-03')
-        print(price_histories)
         self.assertEqual(len(price_histories), 253)
         self.assertEqual(price_histories.date.min().strftime('%Y-%m-%d'), '2021-01-04')
         self.assertEqual(price_histories.date.max().strftime('%Y-%m-%d'), '2022-01-03')
@@ -187,7 +186,7 @@ class TestAccountFunctions(unittest.TestCase):
 
     def test_parse_accounts(self):
         accounts_list = self.class_under_test.parse_accounts()
-        self.assertEquals(accounts_list.shape, (3, 8))
+        self.assertEqual(accounts_list.shape, (3, 8))
         self.assertIn('currentBalances_cashBalance', accounts_list.columns)
         self.assertIn('currentBalances_equity', accounts_list.columns)
         self.assertIn(self.masked_account_1, accounts_list.index)
