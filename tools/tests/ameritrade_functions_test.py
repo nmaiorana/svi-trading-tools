@@ -140,7 +140,7 @@ class TestAuthenticated(unittest.TestCase):
 
     def test_parse_accounts(self):
         accounts_list = self.class_under_test.parse_accounts()
-        self.assertEquals(accounts_list.shape, (3, 8))
+        self.assertEqual(accounts_list.shape, (3, 8))
         self.assertIn('currentBalances_cashBalance', accounts_list.columns)
         self.assertIn('currentBalances_equity', accounts_list.columns)
 

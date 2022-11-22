@@ -116,8 +116,8 @@ class AmeritradeRest:
         chrome_options = Options()
         chrome_options.add_argument('--user-data-dir='+self.user_data_dir)
         chrome_options.headless = False
-        driver = webdriver.Chrome(ChromeDriverManager(log_level=0).install(), options=chrome_options)
-        driver.minimize_window()  
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+        driver.minimize_window()
         try:
             # define the components of the url
             method = 'GET'
