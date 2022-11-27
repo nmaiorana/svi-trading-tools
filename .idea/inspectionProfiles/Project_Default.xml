@@ -7,12 +7,25 @@
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <value>
-          <list size="5">
+          <list size="18">
             <item index="0" class="java.lang.String" itemvalue="trading-factors-yahoo" />
             <item index="1" class="java.lang.String" itemvalue="alphalens" />
             <item index="2" class="java.lang.String" itemvalue="scikit_learn" />
             <item index="3" class="java.lang.String" itemvalue="python_dateutil" />
             <item index="4" class="java.lang.String" itemvalue="pandas_datareader" />
+            <item index="5" class="java.lang.String" itemvalue="scipy" />
+            <item index="6" class="java.lang.String" itemvalue="cvxpy" />
+            <item index="7" class="java.lang.String" itemvalue="nltk" />
+            <item index="8" class="java.lang.String" itemvalue="setuptools" />
+            <item index="9" class="java.lang.String" itemvalue="numpy" />
+            <item index="10" class="java.lang.String" itemvalue="requests" />
+            <item index="11" class="java.lang.String" itemvalue="pandas" />
+            <item index="12" class="java.lang.String" itemvalue="tqdm" />
+            <item index="13" class="java.lang.String" itemvalue="selenium" />
+            <item index="14" class="java.lang.String" itemvalue="matplotlib" />
+            <item index="15" class="java.lang.String" itemvalue="alphalens_reloaded" />
+            <item index="16" class="java.lang.String" itemvalue="graphviz" />
+            <item index="17" class="java.lang.String" itemvalue="webdriver_manager" />
           </list>
         </value>
       </option>

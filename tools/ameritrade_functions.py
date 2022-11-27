@@ -1,7 +1,9 @@
 import urllib
 import requests
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 import selenium.common.exceptions as selexcept
 from webdriver_manager.chrome import ChromeDriverManager
 import time
@@ -116,8 +118,8 @@ class AmeritradeRest:
         chrome_options = Options()
         chrome_options.add_argument('--user-data-dir='+self.user_data_dir)
         chrome_options.headless = False
-        driver = webdriver.Chrome(ChromeDriverManager(log_level=0).install(), options=chrome_options)
-        driver.minimize_window()  
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        driver.minimize_window()
         try:
             # define the components of the url
             method = 'GET'
@@ -134,11 +136,11 @@ class AmeritradeRest:
             driver.get(login_url)
     
             # fill out form
-            driver.find_element_by_id('username0').send_keys(self.username)
-            driver.find_element_by_id('password1').send_keys(self.password)
+            driver.find_element(By.ID, 'username0').send_keys(self.username)
+            driver.find_element(By.ID, 'password1').send_keys(self.password)
             
             # click Login button
-            driver.find_element_by_id('accept').click()
+            driver.find_element(By.ID, 'accept').click()
             
             # If we don't see the authorization page, then 2-factor auth is turned on and this device is not trusted.
             # If 2-factor authentication is turned on and this device has not been trusted then we have to wait for 
@@ -147,14 +149,14 @@ class AmeritradeRest:
             authorization_page = None
             while authorization_page is None:
                 try:
-                    authorization_page = driver.find_element_by_id('stepup_authorization0')
+                    authorization_page = driver.find_element(By.ID, 'stepup_authorization0')
                 except selexcept.NoSuchElementException as error:
                     driver.switch_to.window(driver.current_window_handle)
                     driver.maximize_window()  
                     time.sleep(2)
 
             # click allow on authorization screen
-            driver.find_element_by_id('accept').click()
+            driver.find_element(By.ID, 'accept').click()
 
             # give it a second
             time.sleep(1)
