@@ -38,11 +38,11 @@ class FactorData:
         return FactorData(self.factor_data.rank(axis=1), self.factor_name)
 
     def zscore(self):
-        zscored_df = FactorData(
+        z_scored_df = FactorData(
             pd.DataFrame(stats.zscore(self.factor_data, axis=1, nan_policy='omit'), index=self.factor_data.index,
                          columns=self.factor_data.columns), self.factor_name)
-        zscored_df.factor_data.fillna(0, inplace=True)
-        return zscored_df
+        z_scored_df.factor_data.fillna(0, inplace=True)
+        return z_scored_df
 
     def smoothed(self, days=20):
         return FactorData(self.factor_data.rolling(window=days).mean(), self.factor_name + '_smoothed')
@@ -62,8 +62,8 @@ class OpenPrices(FactorData):
         super().__init__(factor_data_df=self.compute(price_histories_df), factor_name='open')
 
     def compute(self, price_histories_df):
-        open_values = price_histories_df[self.open_col]
         close_values = price_histories_df[self.close_col]
+        open_values = price_histories_df[self.open_col].copy()
         open_values = open_values.fillna(close_values.ffill())
         open_values = open_values.fillna(close_values.bfill())
         return open_values
@@ -77,7 +77,7 @@ class ClosePrices(FactorData):
 
     def compute(self, price_histories_df):
         open_values = price_histories_df[self.open_col]
-        close_values = price_histories_df[self.close_col]
+        close_values = price_histories_df[self.close_col].copy()
         close_values = close_values.fillna(open_values.ffill())
         close_values = close_values.fillna(open_values.bfill())
         return close_values
@@ -89,7 +89,7 @@ class Volume(FactorData):
         super().__init__(factor_data_df=self.compute(price_histories_df), factor_name='volume')
 
     def compute(self, price_histories_df):
-        volume_values = price_histories_df[self.volume_col]
+        volume_values = price_histories_df[self.volume_col].copy()
         volume_values = volume_values.fillna(volume_values.ffill())
         return volume_values
 
@@ -241,7 +241,7 @@ class FactorReturnQuantiles(FactorData):
         super().__init__(self.compute(price_histories_df, days, quantiles), f'logret_{days}_day_{quantiles}_quantiles')
 
     def compute(self, price_histories_df, days, quantiles):
-        returns = FactorReturns(price_histories_df, days).factor_data
+        returns = FactorReturns(price_histories_df, days).factor_data.fillna(0.0)
         return returns.apply(lambda x: pd.qcut(x, quantiles, labels=False, duplicates='drop'), axis=1)
 
 

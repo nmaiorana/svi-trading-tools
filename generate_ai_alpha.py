@@ -13,7 +13,7 @@ default_config = config['AIAlpha']
 
 generate_alpha_beta_factors.generate_alpha_beta_factors()
 logging.config.fileConfig('./config/logging.ini')
-logger = logging.getLogger('GEN_AI_ALPHA')
+logger = logging.getLogger('GenerateAIAlphaFactor')
 alpha_factors_file_name = default_config['DataDirectory'] + '/' + default_config['AlphaFactorsFileName']
 
 logger.info(f'ALPHA_FACTORS_FILE|{alpha_factors_file_name}')
