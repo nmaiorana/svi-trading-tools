@@ -15,7 +15,6 @@ dependencies:
   - alphalens-reloaded
   - beautifulsoup4
   - cvxpy
-  - graphviz
   - jupyter
   - jupyter_contrib_nbextensions
   - jupyterlab
@@ -32,6 +31,7 @@ dependencies:
   - selenium
   - setuptools
   - pip:
+    - graphviz
     - python_dateutil
     - webdriver_manager
     - tqdm
