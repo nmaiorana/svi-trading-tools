@@ -12,7 +12,6 @@ channels:
   - districtdatalabs
 dependencies:
   - alphalens
-  - alphalens-reloaded
   - beautifulsoup4
   - cvxpy
   - jupyter

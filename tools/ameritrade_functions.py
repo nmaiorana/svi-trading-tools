@@ -7,7 +7,7 @@ from selenium.webdriver.chrome.service import Service
 import selenium.common.exceptions as selexcept
 from webdriver_manager.chrome import ChromeDriverManager
 import time
-from datetime import datetime
+import datetime
 import pandas as pd
 import numpy as np
 from tqdm.notebook import tqdm
@@ -17,12 +17,16 @@ import json
 
 from pathlib import Path
 
+AUTHORIZATION_LOC = 'authorization_loc'
+
 DEFAULT_CONFIG_LOCATION = '~/td_config.ini'
 CONFIG_SECTION = 'TD_CONFIG'
 ENV_CLIENT_ID_VARIABLE = 'env_client_id_variable'
 ENV_PW_VARIABLE = 'env_pw_variable'
 ENV_USER_VARIABLE = 'env_user_variable'
 AMER_OAUTH_APP = '@AMER.OAUTHAP'
+REFRESH_TOKEN_EXPIRES_IN = 'refresh_token_expires_in'
+EXPIRES_IN = 'expires_in'
 REFRESH_AUTH_TIME = 'refresh_auth_time'
 PRIMARY_AUTH_TIME = 'primary_auth_time'
 OK_REASON = ''
@@ -38,23 +42,22 @@ class AmeritradeRest:
     def __init__(self, config=None, config_file=DEFAULT_CONFIG_LOCATION):
         # TODO: Add ability to pass optional config path name
 
+        self.authorization_file_location = None
         self.username = None
         self.password = None
         self.client_id = None
+        self.authorization = None
+        self.account_data = None
+        self.positions_data = None
         self.configure_ameritrade(config, config_file)
-        # This is used to cache credentials in Chromedriver. You will have to manually log in the first time.
-        self.user_data_dir = str(Path.home()) + r'\svi-trading\chrome_browser_history'
 
+        # This is used to cache credentials in Chromedriver. You will have to manually log in the first time.
+        self.user_data_dir = os.path.expanduser(r'~\svi-trading\chrome_browser_history')
         self.callback_url = r'http://localhost'
         self.oauth_url = r'https://auth.tdameritrade.com/auth'
         self.oath_token_url = r'https://api.tdameritrade.com/v1/oauth2/token'
         
         self.unmasked_accounts = {}
-
-        self.authorization = None
-        self.account_data = None
-        self.positions_data = None
-        
         self.account_mask = '#---'
 
     ###########################################################################################################
@@ -82,6 +85,20 @@ class AmeritradeRest:
             self.username = os.getenv(config[ENV_USER_VARIABLE])
             self.password = os.getenv(config[ENV_PW_VARIABLE])
             self.client_id = os.getenv(config[ENV_CLIENT_ID_VARIABLE])
+            self.authorization_file_location = config[AUTHORIZATION_LOC]
+
+    def get_authorization_file_location(self):
+        return self.authorization_file_location
+
+    def load_authorization(self):
+        with open(os.path.expanduser(self.get_authorization_file_location()), 'r') as openfile:
+            # Reading from json file
+            self.authorization = json.load(openfile)
+        return self.authorization
+
+    def save_authorization(self):
+        with open(os.path.expanduser(self.get_authorization_file_location()), "w") as outfile:
+            outfile.write(json.dumps(self.authorization, indent=4))
 
     def get_consumer_key(self):
         if self.client_id is None:
@@ -186,9 +203,10 @@ class AmeritradeRest:
 
             # convert json to dict
             self.authorization = auth_reply.json()
-            authorization_time = datetime.now()
+            authorization_time = datetime.datetime.now().isoformat()
             self.authorization[PRIMARY_AUTH_TIME] = authorization_time
             self.authorization[REFRESH_AUTH_TIME] = authorization_time
+            self.save_authorization()
             return self.authorization
         except selexcept.NoSuchElementException as error:
             print(f'Error: {error}')
@@ -211,11 +229,25 @@ class AmeritradeRest:
         else:
             return self.get_authorization()['access_token']
 
-    def get_primary_auth_time(self):
-        return self.get_authorization()[PRIMARY_AUTH_TIME]
+    def get_primary_auth_time(self) -> datetime.datetime:
+        return datetime.datetime.fromisoformat(self.get_authorization()[PRIMARY_AUTH_TIME])
 
-    def get_refresh_auth_time(self):
-        return self.get_authorization()[REFRESH_AUTH_TIME]
+    def get_refresh_auth_time(self) -> datetime.datetime:
+        return datetime.datetime.fromisoformat(self.get_authorization()[REFRESH_AUTH_TIME])
+
+    def get_access_token_expiry_time(self):
+        return self.get_authorization()[EXPIRES_IN]
+
+    def get_refresh_token_expiry_time(self):
+        return self.get_authorization()[REFRESH_TOKEN_EXPIRES_IN]
+
+    def is_access_token_expired(self):
+        expiry_time = self.get_primary_auth_time() + datetime.timedelta(seconds=self.get_access_token_expiry_time())
+        return expiry_time < datetime.datetime.now()
+
+    def is_refresh_token_expired(self):
+        expiry_time = self.get_refresh_auth_time() + datetime.timedelta(seconds=self.get_refresh_token_expiry_time())
+        return expiry_time < datetime.datetime.now()
 
     ###########################################################################################################
     # Account Level Functions
@@ -391,7 +423,7 @@ class AmeritradeRest:
                     'periodType': 'year',
                     'period': str(num_periods),
                     'frequencyType': 'daily',
-                    'endDate': str(int(datetime.strptime(end_date, DATE_FORMAT).timestamp()) * 1000),
+                    'endDate': str(int(datetime.datetime.strptime(end_date, DATE_FORMAT).timestamp()) * 1000),
                     'needExtendedHoursData': 'true'
         }
 
@@ -489,3 +521,5 @@ class AmeritradeRest:
         }
         content = requests.get(url=endpoint, params=payload)
         return pd.DataFrame.from_dict(content.json(), orient='index')
+
+
