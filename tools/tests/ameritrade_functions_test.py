@@ -3,6 +3,7 @@ import tools.ameritrade_functions as amc
 import os
 import json
 import configparser
+from datetime import datetime, timedelta
 from pathlib import Path
 
 TEST_USER = 'TEST_USER'
@@ -27,16 +28,6 @@ class TestConfiguration(unittest.TestCase):
         os.environ[cls.test_config[amc.ENV_USER_VARIABLE]] = TEST_USER
         os.environ[cls.test_config[amc.ENV_PW_VARIABLE]] = TEST_PW
         os.environ[cls.test_config[amc.ENV_CLIENT_ID_VARIABLE]] = TEST_CLIENT_ID
-        cls.test_authorization = {
-            "access_token": "TEST_AUTH_TOKEN",
-            "refresh_token": "TEST_REFESH_TOKEN",
-            "scope": "PlaceTrades AccountAccess MoveMoney",
-            "expires_in": 1800,
-            "refresh_token_expires_in": 7776000,
-            "token_type": "Bearer",
-            "primary_auth_time": "2022-11-28T19:41:24.360603",
-            "refresh_auth_time": "2022-11-28T19:41:24.360603"
-        }
 
     def test_config_object(self):
         class_under_test = amc.AmeritradeRest(config=self.test_config)
@@ -61,6 +52,28 @@ class TestConfiguration(unittest.TestCase):
         self.assertIsNotNone(class_under_test.get_consumer_key())
         self.assertEqual(TEST_CLIENT_ID + amc.AMER_OAUTH_APP, class_under_test.get_consumer_key())
 
+
+class TestAuthorizationTokens(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        config = configparser.ConfigParser()
+        config.read(TEST_CONFIG_PATH)
+        test_config = config[amc.CONFIG_SECTION]
+        cls.test_config = test_config
+        os.environ[cls.test_config[amc.ENV_USER_VARIABLE]] = TEST_USER
+        os.environ[cls.test_config[amc.ENV_PW_VARIABLE]] = TEST_PW
+        os.environ[cls.test_config[amc.ENV_CLIENT_ID_VARIABLE]] = TEST_CLIENT_ID
+        cls.test_authorization = {
+            "access_token": "TEST_AUTH_TOKEN",
+            "refresh_token": "TEST_REFESH_TOKEN",
+            "scope": "PlaceTrades AccountAccess MoveMoney",
+            "expires_in": 1800,
+            "refresh_token_expires_in": 7776000,
+            "token_type": "Bearer",
+            "primary_auth_time": datetime.now().isoformat(),
+            "refresh_auth_time": datetime.now().isoformat()
+        }
+
     def test_save_authorization(self):
         class_under_test = amc.AmeritradeRest(config=self.test_config)
         self.assertIsNotNone(class_under_test.get_authorization_file_location())
@@ -79,6 +92,63 @@ class TestConfiguration(unittest.TestCase):
         self.assertIsNotNone(class_under_test.authorization)
         os.remove(class_under_test.get_authorization_file_location())
 
+    def test_is_access_token_expired(self):
+        class_under_test = amc.AmeritradeRest(config=self.test_config)
+        class_under_test.authorization = {
+            "access_token": "TEST_AUTH_TOKEN",
+            "refresh_token": "TEST_REFRESH_TOKEN",
+            "scope": "PlaceTrades AccountAccess MoveMoney",
+            "expires_in": 1800,
+            "refresh_token_expires_in": 7776000,
+            "token_type": "Bearer",
+            "primary_auth_time": (datetime.now() - timedelta(seconds=1801)).isoformat(),
+            "refresh_auth_time": (datetime.now() - timedelta(seconds=7776001)).isoformat()
+        }
+        self.assertTrue(class_under_test.is_access_token_expired())
+
+    def test_is_access_token_not_expired(self):
+        class_under_test = amc.AmeritradeRest(config=self.test_config)
+        class_under_test.authorization = {
+            "access_token": "TEST_AUTH_TOKEN",
+            "refresh_token": "TEST_REFRESH_TOKEN",
+            "scope": "PlaceTrades AccountAccess MoveMoney",
+            "expires_in": 1800,
+            "refresh_token_expires_in": 7776000,
+            "token_type": "Bearer",
+            "primary_auth_time": (datetime.now() - timedelta(seconds=1800)).isoformat(),
+            "refresh_auth_time": (datetime.now() - timedelta(seconds=7776000)).isoformat()
+        }
+        self.assertFalse(class_under_test.is_access_token_expired())
+
+    def test_is_refresh_token_expired(self):
+        class_under_test = amc.AmeritradeRest(config=self.test_config)
+        class_under_test.authorization = {
+            "access_token": "TEST_AUTH_TOKEN",
+            "refresh_token": "TEST_REFRESH_TOKEN",
+            "scope": "PlaceTrades AccountAccess MoveMoney",
+            "expires_in": 1800,
+            "refresh_token_expires_in": 7776000,
+            "token_type": "Bearer",
+            "primary_auth_time": (datetime.now() - timedelta(seconds=1801)).isoformat(),
+            "refresh_auth_time": (datetime.now() - timedelta(seconds=7776001)).isoformat()
+        }
+        self.assertTrue(class_under_test.is_refresh_token_expired())
+
+    def test_is_refresh_token_not_expired(self):
+        class_under_test = amc.AmeritradeRest(config=self.test_config)
+        class_under_test.authorization = {
+            "access_token": "TEST_AUTH_TOKEN",
+            "refresh_token": "TEST_REFRESH_TOKEN",
+            "scope": "PlaceTrades AccountAccess MoveMoney",
+            "expires_in": 1800,
+            "refresh_token_expires_in": 7776000,
+            "token_type": "Bearer",
+            "primary_auth_time": (datetime.now() - timedelta(seconds=1800)).isoformat(),
+            "refresh_auth_time": (datetime.now() - timedelta(seconds=7776000)).isoformat()
+        }
+        self.assertFalse(class_under_test.is_refresh_token_expired())
+
+
 # ## Account Level Functions
 
 
@@ -94,116 +164,6 @@ class TestAccountLevelFunctions(unittest.TestCase):
         masked_account = class_under_test.mask_account('12345678')
         self.assertEqual(class_under_test.unmask_account(masked_account), '12345678')        
 
-
-# # Integration Tests
-# 
-# Requires you to have a developer account with Ameritrade (https://developer.tdameritrade.com).
-# 
-# These settings are configured via environment variables.
-
-# ## Stock Information Functions
-
-
-class TestStockInformationFunctions(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.class_under_test = amc.AmeritradeRest()
-        
-    def test_get_daily_price_history(self):
-        price_histories = self.class_under_test.get_daily_price_history('AAPL', '2022-01-03')
-        self.assertEqual(len(price_histories), 253)
-        self.assertEqual(price_histories.date.min().strftime('%Y-%m-%d'), '2021-01-04')
-        self.assertEqual(price_histories.date.max().strftime('%Y-%m-%d'), '2022-01-03')
-        self.assertEqual(price_histories.ticker.unique()[0], 'AAPL')
-        
-    def test_get_price_histories(self):
-        price_histories = self.class_under_test.get_price_histories(['AAPL', 'GOOG'], '2022-01-03', silent=True)
-        self.assertEqual(506, len(price_histories))
-        self.assertEqual(price_histories.date.min().strftime('%Y-%m-%d'), '2021-01-04')
-        self.assertEqual(price_histories.date.max().strftime('%Y-%m-%d'), '2022-01-03')
-        self.assertEqual(2, len(price_histories.ticker.unique()))
-        
-    def test_get_fundamental(self):
-        fundamentals = self.class_under_test.get_fundamental(['AAPL', 'GOOG'])
-        self.assertEqual(len(fundamentals), 2)
-        self.assertEqual(len(fundamentals.symbol.unique()), 2)
-        self.assertEqual(fundamentals[fundamentals.symbol == 'AAPL'].cusip.values[0], '037833100')
-        self.assertEqual(fundamentals[fundamentals.symbol == 'GOOG'].cusip.values[0], '02079K107')
-        
-    def test_get_quotes(self):
-        quotes = self.class_under_test.get_quotes(['AAPL', 'GOOG'])
-        self.assertEqual(len(quotes), 2)
-        self.assertEqual(len(quotes.symbol.unique()), 2)
-        self.assertEqual(quotes[quotes.symbol == 'AAPL'].cusip.values[0], '037833100')
-        self.assertEqual(quotes[quotes.symbol == 'GOOG'].cusip.values[0], '02079K107')
-
-
-# ## Test Authenticated Functions
-
-
-class TestAuthenticated(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.class_under_test = amc.AmeritradeRest()
-        cls.class_under_test.authenticate()
-
-    def test_get_authorization(self):
-        self.assertIsNotNone(self.class_under_test.get_authorization())
-        
-    def test_authentication(self):
-        self.assertGreater(len(self.class_under_test.authorization), 0)
-        self.assertIsNotNone(self.class_under_test.get_primary_auth_time())
-        self.assertIsNotNone(self.class_under_test.get_refresh_auth_time())
-        expires_in = self.class_under_test.get_authorization()[amc.EXPIRES_IN]
-        refresh_expires_in = self.class_under_test.get_authorization()[amc.REFRESH_TOKEN_EXPIRES_IN]
-        self.assertEqual(expires_in, self.class_under_test.get_access_token_expiry_time())
-        self.assertEqual(refresh_expires_in, self.class_under_test.get_refresh_token_expiry_time())
-        
-    def test_get_access_token(self):
-        self.assertIsNotNone(self.class_under_test.get_access_token())
-        
-        # Unauthenticated
-        with self.assertRaises(RuntimeError) as cm:
-            amc.AmeritradeRest().get_access_token()
-
-    def test_is_access_token_expired(self):
-        self.assertFalse(self.class_under_test.is_access_token_expired())
-
-    def test_is_refresh_token_expired(self):
-        self.assertFalse(self.class_under_test.is_refresh_token_expired())
-
-    def test_get_accounts(self):
-        self.class_under_test.get_accounts()
-        self.assertIsNotNone(self.class_under_test.account_data)
-        self.assertGreater(len(self.class_under_test.account_data), 0)
-
-    def test_parse_accounts(self):
-        accounts_list = self.class_under_test.parse_accounts()
-        self.assertEquals(accounts_list.shape, (3, 8))
-        self.assertIn('currentBalances_cashBalance', accounts_list.columns)
-        self.assertIn('currentBalances_equity', accounts_list.columns)
-
-    def test_get_positions(self):
-        self.class_under_test.get_positions()
-        self.assertIsNotNone(self.class_under_test.positions_data)
-        self.assertGreater(len(self.class_under_test.positions_data), 0)
-
-    def test_parse_portfolios_list(self):
-        portfolio_list = self.class_under_test.parse_portfolios_list()
-        self.assertGreater(len(portfolio_list), 0)
-        self.assertEqual(portfolio_list.columns.shape, (15,))
-        self.assertIn('assetType', portfolio_list.columns)
-        self.assertIn('cusip', portfolio_list.columns)
-        self.assertIn('marketValue', portfolio_list.columns)
-        self.assertIn('longQuantity', portfolio_list.columns)
-        self.assertIn('type', portfolio_list.columns)
-
-    def test_refresh_data(self):
-        self.class_under_test.account_data = None
-        self.class_under_test.positions_data = None
-        self.class_under_test.refresh_data()
-        self.assertIsNotNone(self.class_under_test.account_data)
-        self.assertIsNotNone(self.class_under_test.positions_data)
 
 
 class TestAccountFunctions(unittest.TestCase):
@@ -291,3 +251,106 @@ class TestAccountFunctions(unittest.TestCase):
         self.assertAlmostEqual(0.40, weights[self.masked_account_1, 'USB'], 2)
         weights = self.class_under_test.get_portfolio_weights(self.masked_account_1, 'CASH_EQUIVALENT')
         self.assertAlmostEqual(1.0, weights[self.masked_account_1, 'MMDA1'], 2)
+
+
+# # Integration Tests
+#
+# Requires you to have a developer account with Ameritrade (https://developer.tdameritrade.com).
+#
+# These settings are configured via environment variables.
+
+# ## Stock Information Functions
+
+class TestStockInformationFunctions(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.class_under_test = amc.AmeritradeRest()
+
+    def test_get_daily_price_history(self):
+        price_histories = self.class_under_test.get_daily_price_history('AAPL', '2022-01-03')
+        self.assertEqual(len(price_histories), 253)
+        self.assertEqual(price_histories.date.min().strftime('%Y-%m-%d'), '2021-01-04')
+        self.assertEqual(price_histories.date.max().strftime('%Y-%m-%d'), '2022-01-03')
+        self.assertEqual(price_histories.ticker.unique()[0], 'AAPL')
+
+    def test_get_price_histories(self):
+        price_histories = self.class_under_test.get_price_histories(['AAPL', 'GOOG'], '2022-01-03', silent=True)
+        self.assertEqual(506, len(price_histories))
+        self.assertEqual(price_histories.date.min().strftime('%Y-%m-%d'), '2021-01-04')
+        self.assertEqual(price_histories.date.max().strftime('%Y-%m-%d'), '2022-01-03')
+        self.assertEqual(2, len(price_histories.ticker.unique()))
+
+    def test_get_fundamental(self):
+        fundamentals = self.class_under_test.get_fundamental(['AAPL', 'GOOG'])
+        self.assertEqual(len(fundamentals), 2)
+        self.assertEqual(len(fundamentals.symbol.unique()), 2)
+        self.assertEqual(fundamentals[fundamentals.symbol == 'AAPL'].cusip.values[0], '037833100')
+        self.assertEqual(fundamentals[fundamentals.symbol == 'GOOG'].cusip.values[0], '02079K107')
+
+    def test_get_quotes(self):
+        quotes = self.class_under_test.get_quotes(['AAPL', 'GOOG'])
+        self.assertEqual(len(quotes), 2)
+        self.assertEqual(len(quotes.symbol.unique()), 2)
+        self.assertEqual(quotes[quotes.symbol == 'AAPL'].cusip.values[0], '037833100')
+        self.assertEqual(quotes[quotes.symbol == 'GOOG'].cusip.values[0], '02079K107')
+
+
+# ## Test Authenticated Functions
+
+class TestAuthenticated(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.class_under_test = amc.AmeritradeRest()
+        cls.class_under_test.authenticate()
+
+    def test_get_authorization(self):
+        self.assertIsNotNone(self.class_under_test.get_authorization())
+
+    def test_authentication(self):
+        self.assertGreater(len(self.class_under_test.authorization), 0)
+        self.assertIsNotNone(self.class_under_test.get_primary_auth_time())
+        self.assertIsNotNone(self.class_under_test.get_refresh_auth_time())
+        expires_in = self.class_under_test.get_authorization()[amc.EXPIRES_IN]
+        refresh_expires_in = self.class_under_test.get_authorization()[amc.REFRESH_TOKEN_EXPIRES_IN]
+        self.assertEqual(expires_in, self.class_under_test.get_access_token_expiry_time())
+        self.assertEqual(refresh_expires_in, self.class_under_test.get_refresh_token_expiry_time())
+
+    def test_get_access_token(self):
+        self.assertIsNotNone(self.class_under_test.get_access_token())
+
+        # Unauthenticated
+        with self.assertRaises(RuntimeError) as cm:
+            amc.AmeritradeRest().get_access_token()
+
+    def test_get_accounts(self):
+        self.class_under_test.get_accounts()
+        self.assertIsNotNone(self.class_under_test.account_data)
+        self.assertGreater(len(self.class_under_test.account_data), 0)
+
+    def test_parse_accounts(self):
+        accounts_list = self.class_under_test.parse_accounts()
+        self.assertEquals(accounts_list.shape, (3, 8))
+        self.assertIn('currentBalances_cashBalance', accounts_list.columns)
+        self.assertIn('currentBalances_equity', accounts_list.columns)
+
+    def test_get_positions(self):
+        self.class_under_test.get_positions()
+        self.assertIsNotNone(self.class_under_test.positions_data)
+        self.assertGreater(len(self.class_under_test.positions_data), 0)
+
+    def test_parse_portfolios_list(self):
+        portfolio_list = self.class_under_test.parse_portfolios_list()
+        self.assertGreater(len(portfolio_list), 0)
+        self.assertEqual(portfolio_list.columns.shape, (15,))
+        self.assertIn('assetType', portfolio_list.columns)
+        self.assertIn('cusip', portfolio_list.columns)
+        self.assertIn('marketValue', portfolio_list.columns)
+        self.assertIn('longQuantity', portfolio_list.columns)
+        self.assertIn('type', portfolio_list.columns)
+
+    def test_refresh_data(self):
+        self.class_under_test.account_data = None
+        self.class_under_test.positions_data = None
+        self.class_under_test.refresh_data()
+        self.assertIsNotNone(self.class_under_test.account_data)
+        self.assertIsNotNone(self.class_under_test.positions_data)

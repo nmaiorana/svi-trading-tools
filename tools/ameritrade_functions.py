@@ -1,4 +1,4 @@
-import urllib
+from urllib.parse import unquote
 import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -7,15 +7,13 @@ from selenium.webdriver.chrome.service import Service
 import selenium.common.exceptions as selexcept
 from webdriver_manager.chrome import ChromeDriverManager
 import time
-import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 from tqdm.notebook import tqdm
 import os
 import configparser
-import json 
-
-from pathlib import Path
+import json
 
 AUTHORIZATION_LOC = 'authorization_loc'
 
@@ -40,7 +38,6 @@ DATE_FORMAT = '%Y-%m-%d'
 class AmeritradeRest:
     
     def __init__(self, config=None, config_file=DEFAULT_CONFIG_LOCATION):
-        # TODO: Add ability to pass optional config path name
 
         self.authorization_file_location = None
         self.username = None
@@ -68,13 +65,11 @@ class AmeritradeRest:
     def configure_ameritrade(self, config=None, config_file=DEFAULT_CONFIG_LOCATION):
         """
         In order to keep developers from setting usernames and passwords in a file, the credentials will be stored in
-        environment varialbes. The default values for the variable names are:
+        environment variables. The default values for the variable names are:
         - ameritradeuser    : Username
         - ameritradepw      : Password
         - ameritradeclientid: Client ID provided by Ameritrade Developer
-        - These environment variable names can be overridden when the AmeritradeRest class is instantiated.
-
-        TODO: Add ability to pass config file path and get data from there for the env names
+        - The environment variable names can be overridden in the configuration file.
         """
         if config is None:
             config = configparser.ConfigParser()
@@ -92,7 +87,7 @@ class AmeritradeRest:
 
     def load_authorization(self):
         with open(os.path.expanduser(self.get_authorization_file_location()), 'r') as openfile:
-            # Reading from json file
+
             self.authorization = json.load(openfile)
         return self.authorization
 
@@ -128,8 +123,9 @@ class AmeritradeRest:
             td_ameritrade.user_data_dir = 'somedirectory'
             td_ameritrade.authenticate()
 
-        The code will attempt to allow the manual entry of the 2-factor data and should identify the authorization screen to move forward with obtaining
-        the authentication token.
+        The code will attempt to allow the manual entry of the 2-factor data and should identify the authorization
+        screen to move forward with obtaining the authentication token.
+
         """
 
         chrome_options = Options()
@@ -180,7 +176,7 @@ class AmeritradeRest:
             
             # At this point you get an error back since there is no localhost server. But the URL contains the
             # authentication code
-            new_url = urllib.parse.unquote(driver.current_url)
+            new_url = unquote(driver.current_url)
 
             # grab the URL and parse it for the auth code
             code = new_url.split('code=')[1]
@@ -203,7 +199,7 @@ class AmeritradeRest:
 
             # convert json to dict
             self.authorization = auth_reply.json()
-            authorization_time = datetime.datetime.now().isoformat()
+            authorization_time = datetime.now().isoformat()
             self.authorization[PRIMARY_AUTH_TIME] = authorization_time
             self.authorization[REFRESH_AUTH_TIME] = authorization_time
             self.save_authorization()
@@ -229,11 +225,11 @@ class AmeritradeRest:
         else:
             return self.get_authorization()['access_token']
 
-    def get_primary_auth_time(self) -> datetime.datetime:
-        return datetime.datetime.fromisoformat(self.get_authorization()[PRIMARY_AUTH_TIME])
+    def get_primary_auth_time(self) -> datetime:
+        return datetime.fromisoformat(self.get_authorization()[PRIMARY_AUTH_TIME])
 
-    def get_refresh_auth_time(self) -> datetime.datetime:
-        return datetime.datetime.fromisoformat(self.get_authorization()[REFRESH_AUTH_TIME])
+    def get_refresh_auth_time(self) -> datetime:
+        return datetime.fromisoformat(self.get_authorization()[REFRESH_AUTH_TIME])
 
     def get_access_token_expiry_time(self):
         return self.get_authorization()[EXPIRES_IN]
@@ -242,12 +238,12 @@ class AmeritradeRest:
         return self.get_authorization()[REFRESH_TOKEN_EXPIRES_IN]
 
     def is_access_token_expired(self):
-        expiry_time = self.get_primary_auth_time() + datetime.timedelta(seconds=self.get_access_token_expiry_time())
-        return expiry_time < datetime.datetime.now()
+        expiry_time = self.get_primary_auth_time() + timedelta(seconds=self.get_access_token_expiry_time())
+        return expiry_time < datetime.now()
 
     def is_refresh_token_expired(self):
-        expiry_time = self.get_refresh_auth_time() + datetime.timedelta(seconds=self.get_refresh_token_expiry_time())
-        return expiry_time < datetime.datetime.now()
+        expiry_time = self.get_refresh_auth_time() + timedelta(seconds=self.get_refresh_token_expiry_time())
+        return expiry_time < datetime.now()
 
     ###########################################################################################################
     # Account Level Functions
@@ -344,10 +340,9 @@ class AmeritradeRest:
                 instrument_data.update(position)
                 instrument_data.update(position['instrument'])
                 instrument_data.pop('instrument', None)
-
                 portfolio_list.append(instrument_data)
 
-        return pd.DataFrame.from_dict(portfolio_list).fillna(0).set_index(['account', 'symbol'])
+        return pd.DataFrame.from_records(portfolio_list).fillna(0).set_index(['account', 'symbol'])
 
     def get_account_portfolio_data(self, masked_account, investment_type=None) -> pd.DataFrame:
         full_portfolio = self.parse_portfolios_list()
@@ -389,7 +384,7 @@ class AmeritradeRest:
         )
         non_portfolio_values.index.name = 'symbol'
         non_portfolio_values.columns = ['marketValue', 'longQuantity']
-        return current_holdings.append(non_portfolio_values).sort_index()
+        return pd.concat([current_holdings, non_portfolio_values]).sort_index()
 
     def get_portfolio_weights(self, masked_account, investment_type=None, symbols=None) -> pd.Series:
         holdings = self.get_holdings(masked_account, investment_type, symbols)['marketValue']
@@ -423,7 +418,7 @@ class AmeritradeRest:
                     'periodType': 'year',
                     'period': str(num_periods),
                     'frequencyType': 'daily',
-                    'endDate': str(int(datetime.datetime.strptime(end_date, DATE_FORMAT).timestamp()) * 1000),
+                    'endDate': str(int(datetime.strptime(end_date, DATE_FORMAT).timestamp()) * 1000),
                     'needExtendedHoursData': 'true'
         }
 
@@ -452,7 +447,7 @@ class AmeritradeRest:
         price_history_df.drop(['datetime'], inplace=True, axis=1)
         return price_history_df
 
-    def get_fundamental(self, tickers):
+    def get_fundamental(self, tickers) -> pd.DataFrame:
         endpoint = f'https://api.tdameritrade.com/v1/instruments'
 
         payload = {
@@ -472,9 +467,9 @@ class AmeritradeRest:
 
             fundamental_list.append(ticker_fundamentals)
 
-        return pd.DataFrame.from_dict(fundamental_list).fillna(0)
+        return pd.DataFrame.from_records(fundamental_list).fillna(0)
     
-    def place_order(self, account, symbol, assetType='EQUITY', quantity=0, instruction='SELL', session='NORMAL', duration='DAY', orderType='MARKET'):
+    def place_order(self, account, symbol, asset_type='EQUITY', quantity=0, instruction='SELL', session='NORMAL', duration='DAY', orderType='MARKET'):
         # "session": "'NORMAL' or 'AM' or 'PM' or 'SEAMLESS'", "duration": "'DAY' or 'GOOD_TILL_CANCEL' or
         # 'FILL_OR_KILL'", "orderType": "'MARKET' or 'LIMIT' or 'STOP' or 'STOP_LIMIT' or 'TRAILING_STOP' or
         # 'MARKET_ON_CLOSE' or 'EXERCISE' or 'TRAILING_STOP_LIMIT' or 'NET_DEBIT' or 'NET_CREDIT' or 'NET_ZERO'",
@@ -491,7 +486,9 @@ class AmeritradeRest:
                     'orderType': orderType,
                     'orderStrategyType': 'SINGLE',
                     'orderLegCollection': [
-                        {'instruction': instruction, 'quantity': quantity, 'instrument': {'symbol': symbol, 'assetType': assetType}}
+                        {'instruction': instruction,
+                         'quantity': quantity,
+                         'instrument': {'symbol': symbol, 'assetType': asset_type}}
                     ]
                 }
         
