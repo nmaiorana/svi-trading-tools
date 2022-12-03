@@ -14,6 +14,7 @@ from tqdm.notebook import tqdm
 import os
 import configparser
 import json
+from pathlib import Path
 
 AUTHORIZATION_LOC = 'authorization_loc'
 
@@ -86,10 +87,12 @@ class AmeritradeRest:
         return self.authorization_file_location
 
     def load_authorization(self):
-        with open(os.path.expanduser(self.get_authorization_file_location()), 'r') as openfile:
+        file_to_load = Path(self.get_authorization_file_location())
+        if not file_to_load.is_file():
+            return
 
+        with open(os.path.expanduser(self.get_authorization_file_location()), 'r') as openfile:
             self.authorization = json.load(openfile)
-        return self.authorization
 
     def save_authorization(self):
         with open(os.path.expanduser(self.get_authorization_file_location()), "w") as outfile:
@@ -213,6 +216,10 @@ class AmeritradeRest:
 
     def get_authorization(self):
         if self.authorization is None:
+            self.load_authorization()
+
+        if self.authorization is None:
+            self.authenticate()
             # if no env get from file
             # if refresh has expired, get new
             pass

@@ -24,9 +24,9 @@ for alpha_factor in all_factors.columns:
     logger.info(f'ALPHA_FACTOR|{alpha_factor}')
 
 
-pre_backtest_model_file_name = default_config['DataDirectory'] + '/' + default_config['ModelFileName']
-logger.info(f'Reading AI Alpha Model: {pre_backtest_model_file_name}')
-clf_nov = pickle.load(open(pre_backtest_model_file_name, 'rb'))
+model_file_name = default_config['DataDirectory'] + '/' + default_config['ModelFileName']
+logger.info(f'Reading AI Alpha Model: {model_file_name}')
+clf_nov = pickle.load(open(model_file_name, 'rb'))
 
 factors_with_alpha = alpha_factors.add_alpha_score(all_factors, clf_nov, default_config['AIAlphaName'])
 ai_alpha = factors_with_alpha[default_config['AIAlphaName']].copy()

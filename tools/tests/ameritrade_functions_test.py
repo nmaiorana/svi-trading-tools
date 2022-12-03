@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import MagicMock
 import tools.ameritrade_functions as amc
 import os
 import json
@@ -11,6 +12,31 @@ TEST_PW = 'TEST_PW'
 TEST_CLIENT_ID = 'TEST_CLIENT_ID'
 TEST_CONFIG_PATH = 'test_config/td_config.ini'
 
+TEST_AUTHORIZATION = {
+    "access_token": "TEST_AUTH_TOKEN",
+    "refresh_token": "TEST_REFRESH_TOKEN",
+    "scope": "PlaceTrades AccountAccess MoveMoney",
+    "expires_in": 1800,
+    "refresh_token_expires_in": 7776000,
+    "token_type": "Bearer",
+    "primary_auth_time": datetime.now().isoformat(),
+    "refresh_auth_time": datetime.now().isoformat()
+}
+
+
+def get_test_config():
+    config = configparser.ConfigParser()
+    config.read(TEST_CONFIG_PATH)
+    return config[amc.CONFIG_SECTION]
+
+
+def set_env_test_config():
+    test_config = get_test_config()
+    os.environ[test_config[amc.ENV_USER_VARIABLE]] = TEST_USER
+    os.environ[test_config[amc.ENV_PW_VARIABLE]] = TEST_PW
+    os.environ[test_config[amc.ENV_CLIENT_ID_VARIABLE]] = TEST_CLIENT_ID
+
+
 # # Unit Tests
 
 # ## Test Configuration
@@ -19,15 +45,11 @@ TEST_CONFIG_PATH = 'test_config/td_config.ini'
 
 
 class TestConfiguration(unittest.TestCase):
+    test_config = get_test_config()
+
     @classmethod
     def setUpClass(cls):
-        config = configparser.ConfigParser()
-        config.read(TEST_CONFIG_PATH)
-        test_config = config[amc.CONFIG_SECTION]
-        cls.test_config = test_config
-        os.environ[cls.test_config[amc.ENV_USER_VARIABLE]] = TEST_USER
-        os.environ[cls.test_config[amc.ENV_PW_VARIABLE]] = TEST_PW
-        os.environ[cls.test_config[amc.ENV_CLIENT_ID_VARIABLE]] = TEST_CLIENT_ID
+        set_env_test_config()
 
     def test_config_object(self):
         class_under_test = amc.AmeritradeRest(config=self.test_config)
@@ -54,18 +76,17 @@ class TestConfiguration(unittest.TestCase):
 
 
 class TestAuthorizationTokens(unittest.TestCase):
+    test_config = get_test_config()
+    test_authorization = None
+
     @classmethod
-    def setUpClass(cls):
-        config = configparser.ConfigParser()
-        config.read(TEST_CONFIG_PATH)
-        test_config = config[amc.CONFIG_SECTION]
-        cls.test_config = test_config
-        os.environ[cls.test_config[amc.ENV_USER_VARIABLE]] = TEST_USER
-        os.environ[cls.test_config[amc.ENV_PW_VARIABLE]] = TEST_PW
-        os.environ[cls.test_config[amc.ENV_CLIENT_ID_VARIABLE]] = TEST_CLIENT_ID
-        cls.test_authorization = {
+    def setUpClass(cls) -> None:
+        set_env_test_config()
+
+    def setUp(self) -> None:
+        self.test_authorization = {
             "access_token": "TEST_AUTH_TOKEN",
-            "refresh_token": "TEST_REFESH_TOKEN",
+            "refresh_token": "TEST_REFRESH_TOKEN",
             "scope": "PlaceTrades AccountAccess MoveMoney",
             "expires_in": 1800,
             "refresh_token_expires_in": 7776000,
@@ -74,80 +95,96 @@ class TestAuthorizationTokens(unittest.TestCase):
             "refresh_auth_time": datetime.now().isoformat()
         }
 
+        self.class_under_test = amc.AmeritradeRest(config=self.test_config)
+        self.class_under_test.authorization = self.test_authorization
+        mock_authenticate = MagicMock(name='authenticate')
+        self.class_under_test.authenticate = mock_authenticate
+
+    def tearDown(self) -> None:
+        self.remove_authorization_file()
+
+    def remove_authorization_file(self):
+        saved_file = Path(self.class_under_test.get_authorization_file_location())
+        if saved_file.is_file():
+            os.remove(self.class_under_test.get_authorization_file_location())
+
+    def store_authorization(self):
+        self.remove_authorization_file()
+        self.class_under_test.authorization = self.test_authorization
+        self.class_under_test.save_authorization()
+
+    def test_get_authorization_file_location(self):
+        self.assertIsNotNone(self.class_under_test.get_authorization_file_location())
+
     def test_save_authorization(self):
-        class_under_test = amc.AmeritradeRest(config=self.test_config)
-        self.assertIsNotNone(class_under_test.get_authorization_file_location())
-        class_under_test.authorization = self.test_authorization
-        class_under_test.save_authorization()
-        saved_file = Path(class_under_test.get_authorization_file_location())
+        self.remove_authorization_file()
+        self.class_under_test.authorization = self.test_authorization
+        self.class_under_test.save_authorization()
+        saved_file = Path(self.class_under_test.get_authorization_file_location())
         self.assertTrue(saved_file.is_file())
-        os.remove(class_under_test.get_authorization_file_location())
 
     def test_load_authorization(self):
-        class_under_test = amc.AmeritradeRest(config=self.test_config)
-        self.assertIsNotNone(class_under_test.get_authorization_file_location())
-        class_under_test.authorization = self.test_authorization
-        class_under_test.save_authorization()
-        self.assertIsNotNone(class_under_test.load_authorization())
-        self.assertIsNotNone(class_under_test.authorization)
-        os.remove(class_under_test.get_authorization_file_location())
+        self.store_authorization()
+        self.class_under_test.load_authorization()
+        self.assertIsNotNone(self.class_under_test.authorization)
 
     def test_is_access_token_expired(self):
-        class_under_test = amc.AmeritradeRest(config=self.test_config)
-        class_under_test.authorization = {
-            "access_token": "TEST_AUTH_TOKEN",
-            "refresh_token": "TEST_REFRESH_TOKEN",
-            "scope": "PlaceTrades AccountAccess MoveMoney",
-            "expires_in": 1800,
-            "refresh_token_expires_in": 7776000,
-            "token_type": "Bearer",
-            "primary_auth_time": (datetime.now() - timedelta(seconds=1801)).isoformat(),
-            "refresh_auth_time": (datetime.now() - timedelta(seconds=7776001)).isoformat()
-        }
-        self.assertTrue(class_under_test.is_access_token_expired())
+        seconds_to_expire = self.test_authorization['expires_in']
+        self.class_under_test.get_authorization()['primary_auth_time'] = \
+            (datetime.now() - timedelta(seconds=(seconds_to_expire + 1))).isoformat()
+        self.assertTrue(self.class_under_test.is_access_token_expired())
 
     def test_is_access_token_not_expired(self):
-        class_under_test = amc.AmeritradeRest(config=self.test_config)
-        class_under_test.authorization = {
-            "access_token": "TEST_AUTH_TOKEN",
-            "refresh_token": "TEST_REFRESH_TOKEN",
-            "scope": "PlaceTrades AccountAccess MoveMoney",
-            "expires_in": 1800,
-            "refresh_token_expires_in": 7776000,
-            "token_type": "Bearer",
-            "primary_auth_time": (datetime.now() - timedelta(seconds=1800)).isoformat(),
-            "refresh_auth_time": (datetime.now() - timedelta(seconds=7776000)).isoformat()
-        }
-        self.assertFalse(class_under_test.is_access_token_expired())
+        seconds_to_expire = self.test_authorization['expires_in']
+        self.class_under_test.get_authorization()['primary_auth_time'] = \
+            (datetime.now() - timedelta(seconds=seconds_to_expire)).isoformat()
+        self.assertFalse(self.class_under_test.is_access_token_expired())
 
     def test_is_refresh_token_expired(self):
-        class_under_test = amc.AmeritradeRest(config=self.test_config)
-        class_under_test.authorization = {
-            "access_token": "TEST_AUTH_TOKEN",
-            "refresh_token": "TEST_REFRESH_TOKEN",
-            "scope": "PlaceTrades AccountAccess MoveMoney",
-            "expires_in": 1800,
-            "refresh_token_expires_in": 7776000,
-            "token_type": "Bearer",
-            "primary_auth_time": (datetime.now() - timedelta(seconds=1801)).isoformat(),
-            "refresh_auth_time": (datetime.now() - timedelta(seconds=7776001)).isoformat()
-        }
-        self.assertTrue(class_under_test.is_refresh_token_expired())
+        seconds_to_expire = self.test_authorization['refresh_token_expires_in']
+        self.class_under_test.get_authorization()['refresh_auth_time'] = \
+            (datetime.now() - timedelta(seconds=(seconds_to_expire + 1))).isoformat()
+        self.assertTrue(self.class_under_test.is_refresh_token_expired())
 
     def test_is_refresh_token_not_expired(self):
-        class_under_test = amc.AmeritradeRest(config=self.test_config)
-        class_under_test.authorization = {
-            "access_token": "TEST_AUTH_TOKEN",
-            "refresh_token": "TEST_REFRESH_TOKEN",
-            "scope": "PlaceTrades AccountAccess MoveMoney",
-            "expires_in": 1800,
-            "refresh_token_expires_in": 7776000,
-            "token_type": "Bearer",
-            "primary_auth_time": (datetime.now() - timedelta(seconds=1800)).isoformat(),
-            "refresh_auth_time": (datetime.now() - timedelta(seconds=7776000)).isoformat()
-        }
-        self.assertFalse(class_under_test.is_refresh_token_expired())
+        seconds_to_expire = self.test_authorization['refresh_token_expires_in']
+        self.class_under_test.get_authorization()['refresh_auth_time'] = \
+            (datetime.now() - timedelta(seconds=seconds_to_expire)).isoformat()
+        self.assertFalse(self.class_under_test.is_refresh_token_expired())
 
+    def test_get_expiry_time(self):
+        expires_in = self.test_authorization['expires_in']
+        refresh_token_expires_in = self.test_authorization['refresh_token_expires_in']
+        self.assertEqual(expires_in, self.class_under_test.get_access_token_expiry_time())
+        self.assertEqual(refresh_token_expires_in, self.class_under_test.get_refresh_token_expiry_time())
+
+    def test_get_authorization_via_authenticate(self):
+        # Testing:
+        # - No Authorization, No Authorization File, call authenticate
+
+        self.remove_authorization_file()
+        self.class_under_test.authorization = None
+        self.class_under_test.get_authorization()
+        self.class_under_test.authenticate.assert_called()
+
+    def test_get_authorization_via_file(self):
+        # Testing:
+        # - No Authorization, Load from File
+        # - Authorization token expired, call to refresh token
+        # - Authorization token expired, refresh token expired, call authenticate
+
+        # with No authorization and no stored authorization file, expect the authenticate method to be called.
+
+        self.store_authorization()
+        self.class_under_test.authorization = None
+        self.assertIsNotNone(self.class_under_test.get_authorization())
+
+    def test_get_access_token(self):
+        # Unauthenticated
+        self.remove_authorization_file()
+        self.class_under_test.authorization = None
+        with self.assertRaises(RuntimeError) as cm:
+            self.class_under_test.get_access_token()
 
 # ## Account Level Functions
 
@@ -163,7 +200,6 @@ class TestAccountLevelFunctions(unittest.TestCase):
         class_under_test = amc.AmeritradeRest()
         masked_account = class_under_test.mask_account('12345678')
         self.assertEqual(class_under_test.unmask_account(masked_account), '12345678')        
-
 
 
 class TestAccountFunctions(unittest.TestCase):
@@ -310,10 +346,8 @@ class TestAuthenticated(unittest.TestCase):
         self.assertGreater(len(self.class_under_test.authorization), 0)
         self.assertIsNotNone(self.class_under_test.get_primary_auth_time())
         self.assertIsNotNone(self.class_under_test.get_refresh_auth_time())
-        expires_in = self.class_under_test.get_authorization()[amc.EXPIRES_IN]
-        refresh_expires_in = self.class_under_test.get_authorization()[amc.REFRESH_TOKEN_EXPIRES_IN]
-        self.assertEqual(expires_in, self.class_under_test.get_access_token_expiry_time())
-        self.assertEqual(refresh_expires_in, self.class_under_test.get_refresh_token_expiry_time())
+        self.assertIsInstance(self.class_under_test.get_access_token_expiry_time(), int)
+        self.assertIsInstance(self.class_under_test.get_refresh_token_expiry_time(), int)
 
     def test_get_access_token(self):
         self.assertIsNotNone(self.class_under_test.get_access_token())
