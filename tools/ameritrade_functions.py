@@ -16,6 +16,7 @@ import configparser
 import json
 from pathlib import Path
 
+
 AUTHORIZATION_LOC = 'authorization_loc'
 
 DEFAULT_CONFIG_LOCATION = '~/td_config.ini'
@@ -24,12 +25,15 @@ ENV_CLIENT_ID_VARIABLE = 'env_client_id_variable'
 ENV_PW_VARIABLE = 'env_pw_variable'
 ENV_USER_VARIABLE = 'env_user_variable'
 AMER_OAUTH_APP = '@AMER.OAUTHAP'
+REFRESH_TOKEN = 'refresh_token'
+ACCESS_TOKEN = 'access_token'
 REFRESH_TOKEN_EXPIRES_IN = 'refresh_token_expires_in'
 EXPIRES_IN = 'expires_in'
 REFRESH_AUTH_TIME = 'refresh_auth_time'
 PRIMARY_AUTH_TIME = 'primary_auth_time'
 OK_REASON = ''
 NOT_AUTHORIZED_REASON = 'Unauthorized'
+BAD_GATEWAY = 502
 DATE_FORMAT = '%Y-%m-%d'
 
 # # Authentication Data These items here are used to obtain an authorization token from TD Ameritrade. It involves
@@ -87,14 +91,18 @@ class AmeritradeRest:
         return self.authorization_file_location
 
     def load_authorization(self):
-        file_to_load = Path(self.get_authorization_file_location())
+        file_to_load = Path(os.path.expanduser(self.get_authorization_file_location()))
         if not file_to_load.is_file():
             return
 
         with open(os.path.expanduser(self.get_authorization_file_location()), 'r') as openfile:
             self.authorization = json.load(openfile)
 
-    def save_authorization(self):
+    def save_authorization(self, update_refresh=True):
+        authorization_time = datetime.now().isoformat()
+        self.authorization[PRIMARY_AUTH_TIME] = authorization_time
+        if update_refresh:
+            self.authorization[REFRESH_AUTH_TIME] = authorization_time
         with open(os.path.expanduser(self.get_authorization_file_location()), "w") as outfile:
             outfile.write(json.dumps(self.authorization, indent=4))
 
@@ -202,9 +210,6 @@ class AmeritradeRest:
 
             # convert json to dict
             self.authorization = auth_reply.json()
-            authorization_time = datetime.now().isoformat()
-            self.authorization[PRIMARY_AUTH_TIME] = authorization_time
-            self.authorization[REFRESH_AUTH_TIME] = authorization_time
             self.save_authorization()
             return self.authorization
         except selexcept.NoSuchElementException as error:
@@ -214,15 +219,51 @@ class AmeritradeRest:
         finally:
             driver.close()
 
+    def refresh_access_token(self):
+        endpoint = 'https://api.tdameritrade.com/v1/oauth2/token'
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        payload = {
+            'grant_type': 'refresh_token',
+            'refresh_token': self.authorization[REFRESH_TOKEN],
+            'client_id': self.get_consumer_key()
+        }
+
+        # make a request
+        content = requests.post(url=endpoint, headers=headers, data=payload)
+        if content.reason != OK_REASON:
+            if content.reason == NOT_AUTHORIZED_REASON:
+                print(f'Error: {content.reason}')
+                return None
+            elif content.status_code == BAD_GATEWAY:
+                print(f'Error: {content.reason}')
+                return None
+
+        # convert data to data dictionary
+        refreshed_token = content.json()
+        if refreshed_token.get('fault', None) is not None:
+            print(f'Error: {refreshed_token["fault"]}')
+            return None
+
+        self.authorization.update(refreshed_token)
+        self.save_authorization(update_refresh=False)
+
     def get_authorization(self):
         if self.authorization is None:
             self.load_authorization()
 
         if self.authorization is None:
             self.authenticate()
-            # if no env get from file
-            # if refresh has expired, get new
-            pass
+
+        if not self.is_access_token_expired():
+            return self.authorization
+
+        if self.is_refresh_token_expired():
+            self.authenticate()
+            return self.authorization
+
+        self.refresh_access_token()
 
         return self.authorization
 
@@ -230,25 +271,47 @@ class AmeritradeRest:
         if self.get_authorization() is None:
             raise RuntimeError('Not Authenticated') from None
         else:
-            return self.get_authorization()['access_token']
+            return self.get_authorization()[ACCESS_TOKEN]
+
+    def get_refresh_token(self):
+        if self.get_authorization() is None:
+            raise RuntimeError('Not Authenticated') from None
+        else:
+            return self.get_authorization()[REFRESH_TOKEN]
 
     def get_primary_auth_time(self) -> datetime:
-        return datetime.fromisoformat(self.get_authorization()[PRIMARY_AUTH_TIME])
+        if self.authorization is None:
+            return None
+        else:
+            return datetime.fromisoformat(self.authorization[PRIMARY_AUTH_TIME])
 
     def get_refresh_auth_time(self) -> datetime:
-        return datetime.fromisoformat(self.get_authorization()[REFRESH_AUTH_TIME])
+        if self.authorization is None:
+            return None
+        else:
+            return datetime.fromisoformat(self.authorization[REFRESH_AUTH_TIME])
 
     def get_access_token_expiry_time(self):
-        return self.get_authorization()[EXPIRES_IN]
+        if self.authorization is None:
+            return 0
+        else:
+            return self.authorization[EXPIRES_IN]
 
     def get_refresh_token_expiry_time(self):
-        return self.get_authorization()[REFRESH_TOKEN_EXPIRES_IN]
+        if self.authorization is None:
+            return 0
+        else:
+            return self.authorization[REFRESH_TOKEN_EXPIRES_IN]
 
     def is_access_token_expired(self):
+        if self.get_primary_auth_time() is None:
+            return True
         expiry_time = self.get_primary_auth_time() + timedelta(seconds=self.get_access_token_expiry_time())
         return expiry_time < datetime.now()
 
     def is_refresh_token_expired(self):
+        if self.get_refresh_auth_time() is None:
+            return True
         expiry_time = self.get_refresh_auth_time() + timedelta(seconds=self.get_refresh_token_expiry_time())
         return expiry_time < datetime.now()
 
@@ -315,7 +378,7 @@ class AmeritradeRest:
     def get_positions(self):
         # define endpoint
         endpoint = 'https://api.tdameritrade.com/v1/accounts'
-        headers = {'Authorization': 'Bearer {}'.format(self.authorization['access_token'])}
+        headers = {'Authorization': f'Bearer {self.get_access_token()}'}
         payload = {'fields': 'positions'}
 
         # make a request
@@ -520,7 +583,6 @@ class AmeritradeRest:
 
         payload = {
                     'apikey': self.client_id,
-
                     'symbol': ",".join(tickers)
         }
         content = requests.get(url=endpoint, params=payload)

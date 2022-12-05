@@ -129,32 +129,32 @@ class TestAuthorizationTokens(unittest.TestCase):
         self.assertIsNotNone(self.class_under_test.authorization)
 
     def test_is_access_token_expired(self):
-        seconds_to_expire = self.test_authorization['expires_in']
-        self.class_under_test.get_authorization()['primary_auth_time'] = \
-            (datetime.now() - timedelta(seconds=(seconds_to_expire + 1))).isoformat()
+        seconds_to_expire = self.test_authorization[amc.EXPIRES_IN]
+        self.class_under_test.authorization[amc.PRIMARY_AUTH_TIME] = \
+            (datetime.now() - timedelta(seconds=(seconds_to_expire + 100))).isoformat()
         self.assertTrue(self.class_under_test.is_access_token_expired())
 
     def test_is_access_token_not_expired(self):
-        seconds_to_expire = self.test_authorization['expires_in']
-        self.class_under_test.get_authorization()['primary_auth_time'] = \
-            (datetime.now() - timedelta(seconds=seconds_to_expire)).isoformat()
+        seconds_to_expire = self.test_authorization[amc.EXPIRES_IN]
+        self.class_under_test.authorization[amc.PRIMARY_AUTH_TIME] = \
+            (datetime.now()).isoformat()
         self.assertFalse(self.class_under_test.is_access_token_expired())
 
     def test_is_refresh_token_expired(self):
-        seconds_to_expire = self.test_authorization['refresh_token_expires_in']
-        self.class_under_test.get_authorization()['refresh_auth_time'] = \
-            (datetime.now() - timedelta(seconds=(seconds_to_expire + 1))).isoformat()
+        seconds_to_expire = self.test_authorization[amc.REFRESH_TOKEN_EXPIRES_IN]
+        self.class_under_test.authorization[amc.REFRESH_AUTH_TIME] = \
+            (datetime.now() - timedelta(seconds=(seconds_to_expire + 100))).isoformat()
         self.assertTrue(self.class_under_test.is_refresh_token_expired())
 
     def test_is_refresh_token_not_expired(self):
-        seconds_to_expire = self.test_authorization['refresh_token_expires_in']
-        self.class_under_test.get_authorization()['refresh_auth_time'] = \
-            (datetime.now() - timedelta(seconds=seconds_to_expire)).isoformat()
+        seconds_to_expire = self.test_authorization[amc.REFRESH_TOKEN_EXPIRES_IN]
+        self.class_under_test.authorization[amc.REFRESH_AUTH_TIME] = \
+            (datetime.now()).isoformat()
         self.assertFalse(self.class_under_test.is_refresh_token_expired())
 
     def test_get_expiry_time(self):
-        expires_in = self.test_authorization['expires_in']
-        refresh_token_expires_in = self.test_authorization['refresh_token_expires_in']
+        expires_in = self.test_authorization[amc.EXPIRES_IN]
+        refresh_token_expires_in = self.test_authorization[amc.REFRESH_TOKEN_EXPIRES_IN]
         self.assertEqual(expires_in, self.class_under_test.get_access_token_expiry_time())
         self.assertEqual(refresh_token_expires_in, self.class_under_test.get_refresh_token_expiry_time())
 
@@ -170,14 +170,31 @@ class TestAuthorizationTokens(unittest.TestCase):
     def test_get_authorization_via_file(self):
         # Testing:
         # - No Authorization, Load from File
-        # - Authorization token expired, call to refresh token
-        # - Authorization token expired, refresh token expired, call authenticate
 
         # with No authorization and no stored authorization file, expect the authenticate method to be called.
 
         self.store_authorization()
         self.class_under_test.authorization = None
         self.assertIsNotNone(self.class_under_test.get_authorization())
+
+    def test_get_authorization_via_refresh(self):
+        # Testing:
+        # - Authorization token expired, call to refresh token
+        # - Authorization token expired, refresh token expired, call authenticate
+
+        # with No authorization and no stored authorization file, expect the authenticate method to be called.
+
+        seconds_to_expire = self.test_authorization[amc.EXPIRES_IN]
+        self.class_under_test.authorization[amc.PRIMARY_AUTH_TIME] = \
+            (datetime.now() - timedelta(seconds=seconds_to_expire + 1)).isoformat()
+        seconds_to_expire = self.test_authorization[amc.REFRESH_TOKEN_EXPIRES_IN]
+        self.class_under_test.authorization[amc.REFRESH_AUTH_TIME] = \
+            (datetime.now()).isoformat()
+
+        mock_refresh_token = MagicMock(name='refresh_token')
+        self.class_under_test.refresh_access_token = mock_refresh_token
+        self.class_under_test.get_authorization()
+        self.class_under_test.refresh_access_token.assert_called()
 
     def test_get_access_token(self):
         # Unauthenticated
@@ -337,12 +354,13 @@ class TestAuthenticated(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.class_under_test = amc.AmeritradeRest()
-        cls.class_under_test.authenticate()
+        cls.class_under_test.load_authorization()
 
     def test_get_authorization(self):
         self.assertIsNotNone(self.class_under_test.get_authorization())
 
     def test_authentication(self):
+        self.class_under_test.authenticate()
         self.assertGreater(len(self.class_under_test.authorization), 0)
         self.assertIsNotNone(self.class_under_test.get_primary_auth_time())
         self.assertIsNotNone(self.class_under_test.get_refresh_auth_time())
@@ -352,9 +370,17 @@ class TestAuthenticated(unittest.TestCase):
     def test_get_access_token(self):
         self.assertIsNotNone(self.class_under_test.get_access_token())
 
-        # Unauthenticated
-        with self.assertRaises(RuntimeError) as cm:
-            amc.AmeritradeRest().get_access_token()
+    def test_refresh_access_token(self):
+        current_auth_time = self.class_under_test.get_primary_auth_time()
+        current_refresh_time = self.class_under_test.get_refresh_auth_time()
+        current_access_token = self.class_under_test.get_access_token()
+        self.class_under_test.refresh_access_token()
+        new_auth_time = self.class_under_test.get_primary_auth_time()
+        new_access_token = self.class_under_test.get_access_token()
+        new_refresh_time = self.class_under_test.get_refresh_auth_time()
+        self.assertLess(current_auth_time, new_auth_time)
+        self.assertEqual(current_refresh_time, new_refresh_time)
+        self.assertNotEqual(current_access_token, new_access_token)
 
     def test_get_accounts(self):
         self.class_under_test.get_accounts()
