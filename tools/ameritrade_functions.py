@@ -40,6 +40,39 @@ DATE_FORMAT = '%Y-%m-%d'
 # navigating to web pages, so using a browser emulator # to navigate the page and set fields and submit pages.
 
 
+def create_market_sell_order(account, symbol, asset_type, quantity, instruction, session, duration, order_type, price):
+    return create_market_order(account, symbol, asset_type, quantity, 'SELL', session, duration)
+
+
+def create_market_order(account, symbol, asset_type, quantity, instruction, session, duration):
+    order = {
+        'account': account,
+        'symbol': symbol,
+        'asset_type': asset_type,
+        'quantity': quantity,
+        'instruction': instruction,
+        'session': session,
+        'duration': duration,
+        'order_type': 'MARKET'
+    }
+    return order
+
+
+def create_limit_order(account, symbol, asset_type, quantity, instruction, session, duration, price):
+    order = {
+        'account': account,
+        'symbol': symbol,
+        'asset_type': asset_type,
+        'quantity': quantity,
+        'instruction': instruction,
+        'session': session,
+        'duration': duration,
+        'order_type': 'LIMIT',
+        'price': price
+    }
+    return order
+
+
 class AmeritradeRest:
     
     def __init__(self, config=None, config_file=DEFAULT_CONFIG_LOCATION):
@@ -86,6 +119,9 @@ class AmeritradeRest:
             self.password = os.getenv(config[ENV_PW_VARIABLE])
             self.client_id = os.getenv(config[ENV_CLIENT_ID_VARIABLE])
             self.authorization_file_location = config[AUTHORIZATION_LOC]
+
+        if self.authorization_file_location is not None:
+            self.load_authorization()
 
     def get_authorization_file_location(self):
         return self.authorization_file_location
@@ -194,11 +230,9 @@ class AmeritradeRest:
 
             # Use the auth code to get an auth token
             # define the headers
-            headers = {'Content-Type':'application/x-www-form-urlencoded'}
-
-            # define payload
+            headers = {'Content-Type': 'application/x-www-form-urlencoded'}
             payload = {
-                'grant_type':'authorization_code',
+                'grant_type': 'authorization_code',
                 'access_type': 'offline',
                 'code': code,
                 'client_id': self.client_id,
@@ -208,7 +242,6 @@ class AmeritradeRest:
             # post the data to get a token
             auth_reply = requests.post(self.oath_token_url, headers=headers, data=payload)
 
-            # convert json to dict
             self.authorization = auth_reply.json()
             self.save_authorization()
             return self.authorization
@@ -221,16 +254,12 @@ class AmeritradeRest:
 
     def refresh_access_token(self):
         endpoint = 'https://api.tdameritrade.com/v1/oauth2/token'
-        headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         payload = {
             'grant_type': 'refresh_token',
             'refresh_token': self.authorization[REFRESH_TOKEN],
             'client_id': self.get_consumer_key()
         }
-
-        # make a request
         content = requests.post(url=endpoint, headers=headers, data=payload)
         if content.reason != OK_REASON:
             if content.reason == NOT_AUTHORIZED_REASON:
@@ -239,13 +268,10 @@ class AmeritradeRest:
             elif content.status_code == BAD_GATEWAY:
                 print(f'Error: {content.reason}')
                 return None
-
-        # convert data to data dictionary
         refreshed_token = content.json()
         if refreshed_token.get('fault', None) is not None:
             print(f'Error: {refreshed_token["fault"]}')
             return None
-
         self.authorization.update(refreshed_token)
         self.save_authorization(update_refresh=False)
 
@@ -267,6 +293,13 @@ class AmeritradeRest:
 
         return self.authorization
 
+    def get_authorization_headers(self, content_type='application/x-www-form-urlencoded') -> dict:
+        self.get_authorization()
+        return {
+            'Authorization': f'Bearer {self.authorization[ACCESS_TOKEN]}',
+            'Content-Type': content_type
+        }
+
     def get_access_token(self):
         if self.get_authorization() is None:
             raise RuntimeError('Not Authenticated') from None
@@ -280,16 +313,16 @@ class AmeritradeRest:
             return self.get_authorization()[REFRESH_TOKEN]
 
     def get_primary_auth_time(self) -> datetime:
-        if self.authorization is None:
-            return None
-        else:
+        if self.authorization is not None:
             return datetime.fromisoformat(self.authorization[PRIMARY_AUTH_TIME])
 
+        return None
+
     def get_refresh_auth_time(self) -> datetime:
-        if self.authorization is None:
-            return None
-        else:
+        if self.authorization is not None:
             return datetime.fromisoformat(self.authorization[REFRESH_AUTH_TIME])
+
+        return None
 
     def get_access_token_expiry_time(self):
         if self.authorization is None:
@@ -333,11 +366,8 @@ class AmeritradeRest:
 
     def get_accounts(self):
         self.account_data = None
-        # define endpoint
         endpoint = 'https://api.tdameritrade.com/v1/accounts'
-        headers = {'Authorization': f'Bearer {self.get_access_token()}'}
-
-        # make a request
+        headers = self.get_authorization_headers()
         content = requests.get(url=endpoint, headers=headers)
         if content.reason != OK_REASON:
             if content.reason == NOT_AUTHORIZED_REASON:
@@ -376,12 +406,9 @@ class AmeritradeRest:
         return accounts_df
 
     def get_positions(self):
-        # define endpoint
         endpoint = 'https://api.tdameritrade.com/v1/accounts'
-        headers = {'Authorization': f'Bearer {self.get_access_token()}'}
+        headers = self.get_authorization_headers()
         payload = {'fields': 'positions'}
-
-        # make a request
         content = requests.get(url=endpoint, headers=headers, params=payload)
         if content.reason != OK_REASON:
             if content.reason == NOT_AUTHORIZED_REASON:
@@ -480,9 +507,8 @@ class AmeritradeRest:
     def get_daily_price_history(self, symbol, end_date=None, num_periods=1):
         if end_date is None:
             end_date = datetime.today().strftime(DATE_FORMAT)
-        # define endpoint
         endpoint = f'https://api.tdameritrade.com/v1/marketdata/{symbol}/pricehistory'
-
+        headers = self.get_authorization_headers()
         payload = {
                     'apikey': self.client_id,
                     'periodType': 'year',
@@ -493,7 +519,7 @@ class AmeritradeRest:
         }
 
         # make a request
-        content = requests.get(url=endpoint, params=payload)
+        content = requests.get(url=endpoint, headers=headers, params=payload)
         if content.reason != OK_REASON:
             if content.reason == NOT_AUTHORIZED_REASON:
                 print(f'Error: {content.reason}')
@@ -519,13 +545,13 @@ class AmeritradeRest:
 
     def get_fundamental(self, tickers) -> pd.DataFrame:
         endpoint = f'https://api.tdameritrade.com/v1/instruments'
-
+        headers = self.get_authorization_headers()
         payload = {
                     'apikey': self.client_id,
                     'symbol': ",".join(tickers),
                     'projection': 'fundamental'
         }
-        content = requests.get(url=endpoint, params=payload)
+        content = requests.get(url=endpoint, headers=headers, params=payload)
         
         fundamental_data = content.json()
         fundamental_list = []
@@ -538,22 +564,50 @@ class AmeritradeRest:
             fundamental_list.append(ticker_fundamentals)
 
         return pd.DataFrame.from_records(fundamental_list).fillna(0)
-    
-    def place_order(self, account, symbol, asset_type='EQUITY', quantity=0, instruction='SELL', session='NORMAL', duration='DAY', orderType='MARKET'):
+
+    def place_order(self, order: dict, saved=True):
+        if saved:
+            endpoint = f'https://api.tdameritrade.com/v1/accounts/{order["account"]}/savedorders'
+        else:
+            endpoint = f'https://api.tdameritrade.com/v1/accounts/{order["account"]}/orders'
+
+        headers = self.get_authorization_headers(content_type='application/json')
+        payload = {
+                    'complexOrderStrategyType': 'NONE',
+                    'session': order['session'],
+                    'duration': order['duration'],
+                    'orderType': order['order_type'],
+                    'orderStrategyType': 'SINGLE',
+                    'orderLegCollection': [
+                        {
+                            'instruction': order['instruction'],
+                            'quantity': order['quantity'],
+                            'instrument': {'symbol': order['symbol'], 'assetType': order['asset_type']}
+                        }
+                    ]
+                }
+
+        if payload['orderType'] == 'LIMIT':
+            payload['price'] = order['price']
+
+        content = requests.post(url=endpoint, headers=headers, json=payload)
+        if content.status_code != requests.codes.ok:
+            print('Error: {}'.format(content.reason))
+            return None
+        print(f'Placed {order["order_type"]} {order["instruction"]} order on {self.mask_account(order["account"])} for {order["quantity"]} shares of {order["symbol"]}')
+        return content.status_code
+
+    def place_order_old(self, account, symbol, asset_type='EQUITY', quantity=0, instruction='SELL', session='NORMAL', duration='DAY', order_type='MARKET'):
         # "session": "'NORMAL' or 'AM' or 'PM' or 'SEAMLESS'", "duration": "'DAY' or 'GOOD_TILL_CANCEL' or
         # 'FILL_OR_KILL'", "orderType": "'MARKET' or 'LIMIT' or 'STOP' or 'STOP_LIMIT' or 'TRAILING_STOP' or
         # 'MARKET_ON_CLOSE' or 'EXERCISE' or 'TRAILING_STOP_LIMIT' or 'NET_DEBIT' or 'NET_CREDIT' or 'NET_ZERO'",
         endpoint = f'https://api.tdameritrade.com/v1/accounts/{account}/savedorders'
-        headers = {
-                    'Authorization': 'Bearer {}'.format(self.authorization['access_token']),
-                    'Content-type':'application/json'
-                  }
-
+        headers = self.get_authorization_headers(content_type='application/json')
         payload = {
                     'complexOrderStrategyType': 'NONE',
                     'session': session,
                     'duration': duration,
-                    'orderType': orderType,
+                    'orderType': order_type,
                     'orderStrategyType': 'SINGLE',
                     'orderLegCollection': [
                         {'instruction': instruction,
@@ -569,23 +623,42 @@ class AmeritradeRest:
         print(f'Placed {instruction} order on {self.mask_account(account)} for {quantity} shares of {symbol}')
         return content
     
-    def place_bulk_sell_orders(self, account, stocks_df, session='NORMAL', duration='DAY', orderType='MARKET'):
+    def place_bulk_sell_orders(self, account, stocks_df, session='NORMAL', duration='DAY', order_type='MARKET'):
         results = {}
         for row in stocks_df.itertuples():
             print(f'Placing SELL order on {self.mask_account(account)} for {row.longQuantity} shares of {row[0][1]}...')
-            result = self.place_order(account, row[0][1], row.assetType, row.longQuantity, 'SELL', session=session, duration=duration, orderType=orderType)
+            result = self.place_order_old(account, row[0][1], row.assetType, row.longQuantity, 'SELL', session=session, duration=duration, order_type=order_type)
             results[row[0][1]] = result
             
         return results
 
     def get_quotes(self, tickers):
         endpoint = f'https://api.tdameritrade.com/v1/marketdata/quotes'
-
+        headers = self.get_authorization_headers()
         payload = {
                     'apikey': self.client_id,
                     'symbol': ",".join(tickers)
         }
-        content = requests.get(url=endpoint, params=payload)
+        content = requests.get(url=endpoint, headers=headers, params=payload)
         return pd.DataFrame.from_dict(content.json(), orient='index')
 
+    def get_saved_orders(self, account):
+        endpoint = f'https://api.tdameritrade.com/v1/accounts/{account}/savedorders'
+        headers = self.get_authorization_headers()
+        content = requests.get(url=endpoint, headers=headers)
+        if content.status_code != requests.codes.ok:
+            print('Error: {}'.format(content.reason))
+            return None
+        saved_orders_json = content.json()
+        if len(saved_orders_json) == 0:
+            return None
+        return pd.DataFrame.from_records(content.json(), index='savedOrderId')
 
+    def remove_saved_order(self, account, order_id):
+        endpoint = f'https://api.tdameritrade.com/v1/accounts/{account}/savedorders/{order_id}'
+        headers = self.get_authorization_headers()
+        content = requests.delete(url=endpoint, headers=headers)
+        if content.status_code != requests.codes.ok:
+            print('Error: {}'.format(content.reason))
+            return None
+        return content.status_code

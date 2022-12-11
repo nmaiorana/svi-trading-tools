@@ -11,7 +11,7 @@ import pandas_datareader as pdr
 
 def gather_sp500_price_history():
     logging.config.fileConfig('./config/logging.ini')
-    logger = logging.getLogger('GatherPriceHistories')
+    logger = logging.getLogger(__name__)
     logger.info(f'Python version: {python_version()}')
     logger.info(f'Pandas version: {pd.__version__}')
     logger.info(f'Pandas Data Reader version: {pdr.__version__}')
@@ -19,30 +19,6 @@ def gather_sp500_price_history():
     config = configparser.ConfigParser()
     config.read('./config/config.ini')
     default_config = config["DEFAULT"]
-    alpha_config = config["Alpha"]
-
-    # # Stage 1: Generate Stock Universe
-    #how
-    # - Gather stocks from specific criteria (SP500 top 50...)
-    # - Use stock sentiment to select stocks
-    # - Gather price histories
-
-    # ## Stock Universe
-    #
-    # Here we set up the univers. This needs some work. The long term goal is to use a pipeline process to help select
-    # stock that are in the top 500 or something similar.
-    #
-    # For now, we will use stocks from the portfolio, but stocks of interest (high news items), a list of well known
-    # stocks (this also has been augmented with some stocks that made Ameritrade's top 10 movers for a couple of days.
-    # This Ameritrade function has not been coded yet, but should be added down the line to automate pulling these
-    # tickers.
-
-    # # Price History data
-    #
-    # One you have a set of investments you want to work with, you will need to pull some historical data for them.
-    #
-    # We will obtain 5 years of price histories. In the end this will provide us with 2 years of factor data since some
-    #  factors are based on 1 year returns.
 
     # Make sure we have a data directory
     Path(default_config["DataDirectory"]).mkdir(parents=True, exist_ok=True)
@@ -75,4 +51,6 @@ def gather_sp500_price_history():
     logger.info('Done gathering S&P 500 price histories...')
 
 
-gather_sp500_price_history()
+print(__name__)
+if __name__ == '__main__':
+    gather_sp500_price_history()

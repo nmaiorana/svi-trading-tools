@@ -11,6 +11,7 @@ TEST_USER = 'TEST_USER'
 TEST_PW = 'TEST_PW'
 TEST_CLIENT_ID = 'TEST_CLIENT_ID'
 TEST_CONFIG_PATH = 'test_config/td_config.ini'
+TEST_MASKED_ACCOUNT = '#---9216'
 
 TEST_AUTHORIZATION = {
     "access_token": "TEST_AUTH_TOKEN",
@@ -389,7 +390,7 @@ class TestAuthenticated(unittest.TestCase):
 
     def test_parse_accounts(self):
         accounts_list = self.class_under_test.parse_accounts()
-        self.assertEquals(accounts_list.shape, (3, 8))
+        self.assertEqual(accounts_list.shape, (3, 8))
         self.assertIn('currentBalances_cashBalance', accounts_list.columns)
         self.assertIn('currentBalances_equity', accounts_list.columns)
 
@@ -414,3 +415,103 @@ class TestAuthenticated(unittest.TestCase):
         self.class_under_test.refresh_data()
         self.assertIsNotNone(self.class_under_test.account_data)
         self.assertIsNotNone(self.class_under_test.positions_data)
+
+    def test_create_market_order(self):
+        order = amc.create_market_order(
+            'TEST_ACCOUNT',
+            'AAPL',
+            asset_type='EQUITY',
+            quantity=1,
+            instruction='SELL',
+            session='NORMAL',
+            duration='DAY')
+
+        self.assertEqual('TEST_ACCOUNT', order['account'])
+        self.assertEqual('AAPL', order['symbol'])
+        self.assertEqual('EQUITY', order['asset_type'])
+        self.assertEqual(1, order['quantity'])
+        self.assertEqual('NORMAL', order['session'])
+        self.assertEqual('DAY', order['duration'])
+        self.assertEqual('MARKET', order['order_type'])
+        self.assertNotIn('price', order)
+
+    def test_create_limit_order(self):
+        order = amc.create_limit_order(
+            'TEST_ACCOUNT',
+            'AAPL',
+            asset_type='EQUITY',
+            quantity=1,
+            instruction='SELL',
+            session='NORMAL',
+            duration='DAY',
+            price=1.0)
+
+        self.assertEqual('TEST_ACCOUNT', order['account'])
+        self.assertEqual('AAPL', order['symbol'])
+        self.assertEqual('EQUITY', order['asset_type'])
+        self.assertEqual(1, order['quantity'])
+        self.assertEqual('NORMAL', order['session'])
+        self.assertEqual('DAY', order['duration'])
+        self.assertEqual('LIMIT', order['order_type'])
+        self.assertEqual(1.0, order['price'])
+
+    def test_place_saved_order(self):
+        self.class_under_test.get_accounts()
+        quotes = self.class_under_test.get_quotes(['AAPL'])
+        account = self.class_under_test.unmask_account(TEST_MASKED_ACCOUNT)
+        order = amc.create_limit_order(
+            account,
+            'AAPL',
+            asset_type='EQUITY',
+            quantity=1,
+            instruction='SELL',
+            session='NORMAL',
+            duration='DAY',
+            price=quotes.loc['AAPL'].askPrice)
+
+        existing_saved_orders = self.class_under_test.get_saved_orders(account)
+        response = self.class_under_test.place_order(order, saved=True)
+        self.assertIsNotNone(response)
+        self.assertEqual(200, response)
+        new_saved_orders = self.class_under_test.get_saved_orders(account)
+        self.assertTrue(len(existing_saved_orders) < len(new_saved_orders))
+
+    def test_get_saved_orders(self):
+        self.class_under_test.get_accounts()
+        quotes = self.class_under_test.get_quotes(['AAPL'])
+        account = self.class_under_test.unmask_account(TEST_MASKED_ACCOUNT)
+        order = amc.create_limit_order(
+            account,
+            'AAPL',
+            asset_type='EQUITY',
+            quantity=1,
+            instruction='SELL',
+            session='NORMAL',
+            duration='DAY',
+            price=quotes.loc['AAPL'].askPrice)
+        self.class_under_test.place_order(order, saved=True)
+        saved_orders = self.class_under_test.get_saved_orders(account)
+        self.assertIsNotNone(saved_orders)
+
+    def test_remove_saved_order(self):
+        self.class_under_test.get_accounts()
+        quotes = self.class_under_test.get_quotes(['AAPL'])
+        account = self.class_under_test.unmask_account(TEST_MASKED_ACCOUNT)
+        order = amc.create_limit_order(
+            account,
+            'AAPL',
+            asset_type='EQUITY',
+            quantity=1,
+            instruction='SELL',
+            session='NORMAL',
+            duration='DAY',
+            price=quotes.loc['AAPL'].askPrice)
+        self.class_under_test.place_order(order, saved=True)
+        saved_orders = self.class_under_test.get_saved_orders(account)
+        saved_order_ids = saved_orders.index.tolist()
+        for order_id in saved_order_ids:
+            self.class_under_test.remove_saved_order(account, order_id)
+        saved_orders = self.class_under_test.get_saved_orders(account)
+        self.assertIsNone(saved_orders)
+
+
