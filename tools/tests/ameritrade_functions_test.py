@@ -458,9 +458,8 @@ class TestAuthenticated(unittest.TestCase):
     def test_place_saved_order(self):
         self.class_under_test.get_accounts()
         quotes = self.class_under_test.get_quotes(['AAPL'])
-        account = self.class_under_test.unmask_account(TEST_MASKED_ACCOUNT)
         order = amc.create_limit_order(
-            account,
+            TEST_MASKED_ACCOUNT,
             'AAPL',
             asset_type='EQUITY',
             quantity=1,
@@ -469,19 +468,22 @@ class TestAuthenticated(unittest.TestCase):
             duration='DAY',
             price=quotes.loc['AAPL'].askPrice)
 
-        existing_saved_orders = self.class_under_test.get_saved_orders(account)
+        existing_saved_orders = self.class_under_test.get_saved_orders(TEST_MASKED_ACCOUNT)
+        if existing_saved_orders is None:
+            len_saved_orders = 0
+        else:
+            len_saved_orders = len(existing_saved_orders)
         response = self.class_under_test.place_order(order, saved=True)
         self.assertIsNotNone(response)
         self.assertEqual(200, response)
-        new_saved_orders = self.class_under_test.get_saved_orders(account)
-        self.assertTrue(len(existing_saved_orders) < len(new_saved_orders))
+        new_saved_orders = self.class_under_test.get_saved_orders(TEST_MASKED_ACCOUNT)
+        self.assertTrue(len(new_saved_orders) > len_saved_orders)
 
     def test_get_saved_orders(self):
         self.class_under_test.get_accounts()
         quotes = self.class_under_test.get_quotes(['AAPL'])
-        account = self.class_under_test.unmask_account(TEST_MASKED_ACCOUNT)
         order = amc.create_limit_order(
-            account,
+            TEST_MASKED_ACCOUNT,
             'AAPL',
             asset_type='EQUITY',
             quantity=1,
@@ -490,15 +492,14 @@ class TestAuthenticated(unittest.TestCase):
             duration='DAY',
             price=quotes.loc['AAPL'].askPrice)
         self.class_under_test.place_order(order, saved=True)
-        saved_orders = self.class_under_test.get_saved_orders(account)
+        saved_orders = self.class_under_test.get_saved_orders(TEST_MASKED_ACCOUNT)
         self.assertIsNotNone(saved_orders)
 
     def test_remove_saved_order(self):
         self.class_under_test.get_accounts()
         quotes = self.class_under_test.get_quotes(['AAPL'])
-        account = self.class_under_test.unmask_account(TEST_MASKED_ACCOUNT)
         order = amc.create_limit_order(
-            account,
+            TEST_MASKED_ACCOUNT,
             'AAPL',
             asset_type='EQUITY',
             quantity=1,
@@ -507,11 +508,11 @@ class TestAuthenticated(unittest.TestCase):
             duration='DAY',
             price=quotes.loc['AAPL'].askPrice)
         self.class_under_test.place_order(order, saved=True)
-        saved_orders = self.class_under_test.get_saved_orders(account)
+        saved_orders = self.class_under_test.get_saved_orders(TEST_MASKED_ACCOUNT)
         saved_order_ids = saved_orders.index.tolist()
         for order_id in saved_order_ids:
-            self.class_under_test.remove_saved_order(account, order_id)
-        saved_orders = self.class_under_test.get_saved_orders(account)
+            self.class_under_test.remove_saved_order(TEST_MASKED_ACCOUNT, order_id)
+        saved_orders = self.class_under_test.get_saved_orders(TEST_MASKED_ACCOUNT)
         self.assertIsNone(saved_orders)
 
 

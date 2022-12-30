@@ -11,7 +11,7 @@ import pandas_datareader as pdr
 
 def gather_sp500_price_history():
     logging.config.fileConfig('./config/logging.ini')
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger('gather_sp500_price_history')
     logger.info(f'Python version: {python_version()}')
     logger.info(f'Pandas version: {pd.__version__}')
     logger.info(f'Pandas Data Reader version: {pdr.__version__}')

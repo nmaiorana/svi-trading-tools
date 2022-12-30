@@ -566,10 +566,11 @@ class AmeritradeRest:
         return pd.DataFrame.from_records(fundamental_list).fillna(0)
 
     def place_order(self, order: dict, saved=True):
+        account = self.unmask_account(order["account"])
         if saved:
-            endpoint = f'https://api.tdameritrade.com/v1/accounts/{order["account"]}/savedorders'
+            endpoint = f'https://api.tdameritrade.com/v1/accounts/{account}/savedorders'
         else:
-            endpoint = f'https://api.tdameritrade.com/v1/accounts/{order["account"]}/orders'
+            endpoint = f'https://api.tdameritrade.com/v1/accounts/{account}/orders'
 
         headers = self.get_authorization_headers(content_type='application/json')
         payload = {
@@ -594,43 +595,8 @@ class AmeritradeRest:
         if content.status_code != requests.codes.ok:
             print('Error: {}'.format(content.reason))
             return None
-        print(f'Placed {order["order_type"]} {order["instruction"]} order on {self.mask_account(order["account"])} for {order["quantity"]} shares of {order["symbol"]}')
+        print(f'Placed {order["order_type"]} {order["instruction"]} order on {order["account"]} for {order["quantity"]} shares of {order["symbol"]} at {order.get("price", "MARKET PRICE")}')
         return content.status_code
-
-    def place_order_old(self, account, symbol, asset_type='EQUITY', quantity=0, instruction='SELL', session='NORMAL', duration='DAY', order_type='MARKET'):
-        # "session": "'NORMAL' or 'AM' or 'PM' or 'SEAMLESS'", "duration": "'DAY' or 'GOOD_TILL_CANCEL' or
-        # 'FILL_OR_KILL'", "orderType": "'MARKET' or 'LIMIT' or 'STOP' or 'STOP_LIMIT' or 'TRAILING_STOP' or
-        # 'MARKET_ON_CLOSE' or 'EXERCISE' or 'TRAILING_STOP_LIMIT' or 'NET_DEBIT' or 'NET_CREDIT' or 'NET_ZERO'",
-        endpoint = f'https://api.tdameritrade.com/v1/accounts/{account}/savedorders'
-        headers = self.get_authorization_headers(content_type='application/json')
-        payload = {
-                    'complexOrderStrategyType': 'NONE',
-                    'session': session,
-                    'duration': duration,
-                    'orderType': order_type,
-                    'orderStrategyType': 'SINGLE',
-                    'orderLegCollection': [
-                        {'instruction': instruction,
-                         'quantity': quantity,
-                         'instrument': {'symbol': symbol, 'assetType': asset_type}}
-                    ]
-                }
-        
-        content = requests.post(url=endpoint, headers=headers, json=payload)
-        if content.status_code != requests.codes.ok:
-            print('Error: {}'.format(content.reason))
-            return None        
-        print(f'Placed {instruction} order on {self.mask_account(account)} for {quantity} shares of {symbol}')
-        return content
-    
-    def place_bulk_sell_orders(self, account, stocks_df, session='NORMAL', duration='DAY', order_type='MARKET'):
-        results = {}
-        for row in stocks_df.itertuples():
-            print(f'Placing SELL order on {self.mask_account(account)} for {row.longQuantity} shares of {row[0][1]}...')
-            result = self.place_order_old(account, row[0][1], row.assetType, row.longQuantity, 'SELL', session=session, duration=duration, order_type=order_type)
-            results[row[0][1]] = result
-            
-        return results
 
     def get_quotes(self, tickers):
         endpoint = f'https://api.tdameritrade.com/v1/marketdata/quotes'
@@ -642,7 +608,8 @@ class AmeritradeRest:
         content = requests.get(url=endpoint, headers=headers, params=payload)
         return pd.DataFrame.from_dict(content.json(), orient='index')
 
-    def get_saved_orders(self, account):
+    def get_saved_orders(self, masked_account):
+        account = self.unmask_account(masked_account)
         endpoint = f'https://api.tdameritrade.com/v1/accounts/{account}/savedorders'
         headers = self.get_authorization_headers()
         content = requests.get(url=endpoint, headers=headers)
@@ -654,7 +621,8 @@ class AmeritradeRest:
             return None
         return pd.DataFrame.from_records(content.json(), index='savedOrderId')
 
-    def remove_saved_order(self, account, order_id):
+    def remove_saved_order(self, masked_account, order_id):
+        account = self.unmask_account(masked_account)
         endpoint = f'https://api.tdameritrade.com/v1/accounts/{account}/savedorders/{order_id}'
         headers = self.get_authorization_headers()
         content = requests.delete(url=endpoint, headers=headers)

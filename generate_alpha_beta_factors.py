@@ -84,3 +84,10 @@ def generate_alpha_beta_factors():
     with open(beta_factors_file_name, 'wb') as f:
         # Pickle the 'data' dictionary using the highest protocol available.
         pickle.dump(daily_betas, f, pickle.HIGHEST_PROTOCOL)
+
+###########################################################
+# Stand-alone execution
+###########################################################
+
+if __name__ == '__main__':
+    generate_alpha_beta_factors()

@@ -23,7 +23,8 @@ import pickle
 
 from sklearn.ensemble import RandomForestClassifier
 
-logger = logging.getLogger('GenerateAIAlphaFactor')
+logging.config.fileConfig('./config/logging.ini')
+logger = logging.getLogger('GenerateAIAlphaModel')
 plt.style.use('ggplot')
 plt.rcParams['figure.figsize'] = (20, 8)
 
@@ -80,10 +81,11 @@ logger.info(f'Factors from date: {all_factors.index.levels[0].min()} to date: {a
 features = all_factors.columns.tolist()
 
 training_factors = pd.concat(
-[
-    all_factors,
-    alpha_factors.FactorReturnQuantiles(price_histories, prod_target_quantiles, forward_prediction_days).for_al(prod_target_source),
-], axis=1).dropna()
+    [
+        all_factors,
+        alpha_factors.FactorReturnQuantiles(
+            price_histories, prod_target_quantiles, forward_prediction_days).for_al(prod_target_source),
+    ], axis=1).dropna()
 training_factors.sort_index(inplace=True)
 
 training_factors['target'] = training_factors.groupby(level=1)[prod_target_source].shift(-forward_prediction_days)
@@ -121,24 +123,12 @@ logger.info(f'Training classifier...')
 clf_nov.fit(X, y)
 
 logger.info(f'CLASSIFIER|TRAIN|{clf_nov.score(X, y.values)}|OOB|{clf_nov.oob_score_}')
-ai_alpha_name = default_config['AIAlphaName']
-logger.info(f'AIAlpha|GET_SCORE|{ai_alpha_name}')
-factors_with_alpha = alpha_factors.add_alpha_score(training_factors[features].copy(), clf_nov, ai_alpha_name)
-logger.info(f'Factors with AIAlpha from date: {factors_with_alpha.index.levels[0].min()} to date: {factors_with_alpha.index.levels[0].max()}')
-for alpha_factor in factors_with_alpha.columns:
-    logger.info(f'ALPHA_FACTOR|{alpha_factor}')
 
-factors_to_compare = features
-_ = alpha_factors.evaluate_alpha(factors_with_alpha[[ai_alpha_name]], close)
-ai_alpha = factors_with_alpha[ai_alpha_name].copy()
-alpha_vectors = ai_alpha.reset_index().pivot(index='Date', columns='Symbols', values=ai_alpha_name)
-ai_alpha_factors_file_name = default_config['DataDirectory'] + '/' + default_config['AIAlphaFileName']
-logger.info(f'AI_ALPHA_FACTORS_FILE|{ai_alpha_factors_file_name}')
-alpha_vectors.reset_index().to_csv(ai_alpha_factors_file_name, index=False)
-
-pre_backtest_model_file_name = default_config['DataDirectory'] + '/' + default_config['PreBacktestModelFileName']
-
-with open(pre_backtest_model_file_name, 'wb') as f:
+# TODO: Run Backtest
+# TODO: Save by some sort of version of model
+# TODO: Save to standard model name to be used downstream
+model_file_name = default_config['DataDirectory'] + '/' + default_config['model_file_name']
+with open(model_file_name, 'wb') as f:
     # Pickle the 'data' dictionary using the highest protocol available.
     pickle.dump(clf_nov, f, pickle.HIGHEST_PROTOCOL)
-
+logger.info(f'AI_ALPHA_MODEL_FILE|{model_file_name}')
