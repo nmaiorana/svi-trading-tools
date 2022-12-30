@@ -112,7 +112,6 @@ sequenceDiagram
 participant portfolio_XXX_adjust_holdings
 participant portfolio_optimizer
 participant ameritrade_functions
-portfolio_XXX_adjust_holdings --> price_histories_yahoo.csv: Load Price Histories
 portfolio_XXX_adjust_holdings ->> portfolio_optimizer: Find optimal holdings
 
 portfolio_optimizer --> price_histories_yahoo.csv: Use Price Histories
