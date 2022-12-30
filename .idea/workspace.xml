@@ -5,27 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gather_sp500_price_histories.py" beforeDir="false" afterPath="$PROJECT_DIR$/gather_sp500_price_histories.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gather_stock_histories_yahoo.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/_old_ameritrade_processes/gather_stock_histories_yahoo.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generate_AI_alpha_factor.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/generate_AI_alpha_factor.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generate_ai_alpha_factor.py" beforeDir="false" afterPath="$PROJECT_DIR$/generate_ai_alpha_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generate_alphaNbeta_factors.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/_old_ameritrade_processes/generate_alphaNbeta_factors.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generate_alpha_beta_factors.py" beforeDir="false" afterPath="$PROJECT_DIR$/generate_alpha_beta_factors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generate_backtest.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/generate_backtest.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/portfolio_analysis_ira.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/_old_ameritrade_processes/portfolio_analysis_ira.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/portfolio_analysis_ira_20210323.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/_old_ameritrade_processes/portfolio_analysis_ira_20210323.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/portfolio_analysis_joint_20210406.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/_old_ameritrade_processes/portfolio_analysis_joint_20210406.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/portfolio_analysis_ml.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/portfolio_analysis_ml.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/portfolio_analysis_process.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/_old_ameritrade_processes/portfolio_analysis_process.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/portfolio_ind_adjust_holdings.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/portfolio_ind_adjust_holdings.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/portfolio_ira_adjust_holdings.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/portfolio_ira_adjust_holdings.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/portfolio_ira_buy_and_sell.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/_old_ameritrade_processes/portfolio_ira_buy_and_sell.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/portfolio_joint_adjust_holdings.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/portfolio_joint_adjust_holdings.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/positions_data.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/ameritrade_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/ameritrade_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/tests/ameritrade_functions_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tests/ameritrade_functions_test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -243,7 +223,7 @@
       <workItem from="1668198029624" duration="53298000" />
       <workItem from="1670001063257" duration="48401000" />
       <workItem from="1671213065612" duration="2091000" />
-      <workItem from="1672427866438" duration="12833000" />
+      <workItem from="1672427866438" duration="13437000" />
     </task>
     <task id="LOCAL-00001" summary="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <created>1653248026830</created>
