@@ -39,10 +39,12 @@ generate_alpha_beta_factors --> daily_beta.pickle
 price_histories_yahoo.csv --> generate_ai_alpha_model
 all_factors.csv --> generate_ai_alpha_model
 generate_ai_alpha_model --> alpha_ai_model.pickle
+alpha_ai_model.pickle --> generate_ai_alpha
+generate_ai_alpha --> alpha_vectors.csv
 price_histories_yahoo.csv --> portfolio_XXX_adjust_holdings
-all_factors.csv --> portfolio_XXX_adjust_holdings
+alpha_vectors.csv --> portfolio_XXX_adjust_holdings
 daily_beta.pickle --> portfolio_XXX_adjust_holdings
-alpha_ai_model.pickle --> portfolio_XXX_adjust_holdings
+
 portfolio_XXX_adjust_holdings --> [*]
 ```
 
