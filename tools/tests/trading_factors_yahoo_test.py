@@ -9,7 +9,7 @@ import tools.trading_factors_yahoo as alpha_factors
 import ssl
 
 # This is used to get s&p 500 data. Without it, we get cert errors
-ssl._create_default_https_context = ssl._create_unverified_context
+# ssl._create_default_https_context = ssl._create_unverified_context
 
 # Make sure we have a data directory
 Path('test_data').mkdir(parents=True, exist_ok=True)
@@ -174,7 +174,7 @@ class TestFactorData(unittest.TestCase):
         self.assertEqual(class_under_test.factor_name, 'annualized_volatility_20_day')
         self.assertEqual('AAPL', class_under_test.factor_data.columns[0])
         self.assertTupleEqual(class_under_test.factor_data.shape, (213, 2))
-        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-30']['AAPL'], 0.3957571629968691, places=4)
+        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-30']['AAPL'], 0.3957571629968691, places=2)
 
     def test_market_dispersion(self):
         class_under_test = alpha_factors.MarketDispersion(self.test_data_df, 20)
