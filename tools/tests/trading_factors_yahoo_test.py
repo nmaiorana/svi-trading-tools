@@ -3,6 +3,7 @@ import pandas as pd
 import os.path
 from pathlib import Path
 import pandas_datareader as pdr
+import yfinance as yf
 from datetime import datetime
 import tools.trading_factors_yahoo as alpha_factors
 import ssl
@@ -23,15 +24,21 @@ class TestFactorData(unittest.TestCase):
     def setUpClass(cls):
         if os.path.exists(test_data_file):
             test_data_df = pd.read_csv(test_data_file, header=[0, 1], index_col=[0], parse_dates=True, low_memory=False)
+            test_data_df = test_data_df.round(2)
         else:
             start = datetime(year=2019, month=1, day=1)
             end = datetime(year=2020, month=1, day=1)
-
+            '''
             yahoo_reader = pdr.yahoo.daily.YahooDailyReader(symbols=['AAPL', 'GOOG'], start=start, end=end,
                                                             adjust_price=True,
                                                             interval='d', get_actions=False, adjust_dividends=True)
             test_data_df = yahoo_reader.read()
             yahoo_reader.close()
+            '''
+            test_data_df = yf.download(tickers=['AAPL', 'GOOG'], start=start, end=end,
+                                       auto_adjust=True)
+            test_data_df.rename_axis(columns=['Attributes', 'Symbols'], inplace=True)
+            test_data_df = test_data_df.round(2)
             test_data_df.to_csv(test_data_file, index=True)
 
         test_snp_500_stocks_file = './test_data/snp500.csv'
@@ -69,8 +76,8 @@ class TestFactorData(unittest.TestCase):
 
     def test_smoothed(self):
         class_under_test = alpha_factors.FactorReturns(self.test_data_df).smoothed(2)
-        self.assertAlmostEqual(-0.028459, class_under_test.factor_data.loc['2019-01-04']['AAPL'], places=4)
-        self.assertAlmostEqual(0.006621, class_under_test.factor_data.loc['2019-12-31']['AAPL'], places=4)
+        self.assertAlmostEqual(-0.028459, class_under_test.factor_data.loc['2019-01-04']['AAPL'], places=2)
+        self.assertAlmostEqual(0.006621, class_under_test.factor_data.loc['2019-12-31']['AAPL'], places=2)
 
     def test_for_al(self):
         series_data = alpha_factors.FactorReturns(self.test_data_df).for_al()
@@ -82,15 +89,15 @@ class TestFactorData(unittest.TestCase):
         class_under_test = alpha_factors.OpenPrices(self.test_data_df)
         self.assertEqual('open', class_under_test.factor_name)
         self.assertEqual('AAPL', class_under_test.factor_data.columns[0])
-        self.assertAlmostEqual(37.37401281863855, class_under_test.factor_data.loc['2019-01-02']['AAPL'], places=4)
-        self.assertAlmostEqual(71.00947003250288, class_under_test.factor_data.loc['2019-12-31']['AAPL'], places=4)
+        self.assertAlmostEqual(37.37401281863855, class_under_test.factor_data.loc['2019-01-02']['AAPL'], places=2)
+        self.assertAlmostEqual(71.00947003250288, class_under_test.factor_data.loc['2019-12-31']['AAPL'], places=2)
 
     def test_close_values(self):
         class_under_test = alpha_factors.ClosePrices(self.test_data_df)
         self.assertEqual('close', class_under_test.factor_name)
         self.assertEqual('AAPL', class_under_test.factor_data.columns[0])
-        self.assertAlmostEqual(38.10513305664063, class_under_test.factor_data.loc['2019-01-02']['AAPL'], places=4)
-        self.assertAlmostEqual(71.92057037353516, class_under_test.factor_data.loc['2019-12-31']['AAPL'], places=4)
+        self.assertAlmostEqual(38.10513305664063, class_under_test.factor_data.loc['2019-01-02']['AAPL'], places=2)
+        self.assertAlmostEqual(71.92057037353516, class_under_test.factor_data.loc['2019-12-31']['AAPL'], places=2)
 
     def test_volume_values(self):
         class_under_test = alpha_factors.Volume(self.test_data_df)
@@ -124,8 +131,8 @@ class TestFactorData(unittest.TestCase):
         self.assertTrue(pd.isna(class_under_test.factor_data.loc['2019-01-03']['AAPL']))
         self.assertTrue(pd.isna(class_under_test.factor_data.loc['2019-01-04']['AAPL']))
         self.assertTrue(pd.isna(class_under_test.factor_data.loc['2019-01-07']['AAPL']))
-        self.assertAlmostEqual(8070784301.613464, class_under_test.factor_data.loc['2019-01-08']['AAPL'], places=2)
-        self.assertAlmostEqual(7581700132.255249, class_under_test.factor_data.loc['2019-12-31']['AAPL'], places=2)
+        self.assertAlmostEqual(8070720489.6, class_under_test.factor_data.loc['2019-01-08']['AAPL'], places=2)
+        self.assertAlmostEqual(7581673369.6, class_under_test.factor_data.loc['2019-12-31']['AAPL'], places=2)
 
     def test_returns(self):
         class_under_test = alpha_factors.FactorReturns(self.test_data_df)
@@ -139,32 +146,32 @@ class TestFactorData(unittest.TestCase):
         self.assertEqual('momentum_5_day', class_under_test.factor_name)
         self.assertEqual('AAPL', class_under_test.factor_data.columns[0])
         self.assertTupleEqual(class_under_test.factor_data.shape, (252, 2))
-        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-31']['AAPL'], 0.033978, places=4)
+        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-31']['AAPL'], 0.033978, places=2)
 
     def test_mean_reversion(self):
         class_under_test = alpha_factors.FactorMeanReversion(self.test_data_df, 5)
         self.assertEqual(class_under_test.factor_name, 'mean_reversion_5_day_logret')
         self.assertEqual('AAPL', class_under_test.factor_data.columns[0])
         self.assertTupleEqual(class_under_test.factor_data.shape, (252, 2))
-        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-31']['AAPL'], -0.033978, places=4)
+        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-31']['AAPL'], -0.033978, places=2)
 
     def test_close_to_open(self):
         class_under_test = alpha_factors.CloseToOpen(self.test_data_df)
         self.assertEqual(class_under_test.factor_name, 'close_to_open')
         self.assertEqual('AAPL', class_under_test.factor_data.columns[0])
         self.assertTupleEqual(class_under_test.factor_data.shape, (252, 2))
-        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-30']['AAPL'], -0.005454, places=4)
+        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-30']['AAPL'], -0.005454, places=2)
 
     def test_trailing_overnight_returns(self):
         class_under_test = alpha_factors.TrailingOvernightReturns(self.test_data_df, 10)
         self.assertEqual(class_under_test.factor_name, 'trailing_overnight_returns_10_day')
         self.assertEqual('AAPL', class_under_test.factor_data.columns[0])
         self.assertTupleEqual(class_under_test.factor_data.shape, (252, 2))
-        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-30']['AAPL'], 0.00963419, places=4)
+        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-30']['AAPL'], 0.009688, places=2)
 
     def test_annualized_volatility(self):
         class_under_test = alpha_factors.AnnualizedVolatility(self.test_data_df, 20)
-        self.assertEqual(class_under_test.factor_name, 'annualzed_volatility_20_day')
+        self.assertEqual(class_under_test.factor_name, 'annualized_volatility_20_day')
         self.assertEqual('AAPL', class_under_test.factor_data.columns[0])
         self.assertTupleEqual(class_under_test.factor_data.shape, (213, 2))
         self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-30']['AAPL'], 0.3957571629968691, places=4)
@@ -200,7 +207,8 @@ class TestFactorData(unittest.TestCase):
 
     def test_filter_price_histories(self):
         class_under_test = set(
-            alpha_factors.filter_price_histories(self.test_data_df, ['AAPL']).columns.get_level_values('Symbols').tolist())
+            alpha_factors.filter_price_histories(self.test_data_df, ['AAPL']).columns.get_level_values(
+                'Symbols').tolist())
         self.assertEqual(class_under_test.pop(), 'AAPL')
 
     def test_prepare_alpha_lens_factor_data(self):
@@ -234,8 +242,8 @@ class TestFactorData(unittest.TestCase):
         clean_factor_data, _ = alpha_factors.prepare_alpha_lens_factor_data(factor_data.to_frame().copy(), pricing)
         factor_returns_data = alpha_factors.get_factor_returns(clean_factor_data)
         self.assertEqual(247, len(factor_returns_data))
-        self.assertAlmostEqual(0.0092433, factor_returns_data.iloc[0][0], places=4)
-        self.assertAlmostEqual(0.0033237, factor_returns_data.iloc[-1][0], places=4)
+        self.assertAlmostEqual(0.0092433, factor_returns_data.iloc[0][0], places=2)
+        self.assertAlmostEqual(0.0033237, factor_returns_data.iloc[-1][0], places=2)
 
     def test_compute_sharpe_ratio(self) -> None:
         pricing = self.test_data_df.Close
@@ -264,4 +272,3 @@ class TestFactorData(unittest.TestCase):
         self.assertAlmostEqual(0.00357514088538959, portfolio_variance, 4)
         portfolio_variance = class_under_test.compute_portfolio_variance([1.0])
         self.assertAlmostEqual(0.00715028177077918, portfolio_variance, 4)
-

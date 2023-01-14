@@ -151,7 +151,7 @@ class TrailingOvernightReturns(FactorData):
 class AnnualizedVolatility(FactorData):
     def __init__(self, price_histories_df, factor_data_df, days=20, annualization_factor=252):
         self.annualization_factor = annualization_factor
-        super().__init__(self.compute(price_histories_df, days), f'annualzed_volatility_{days}_day')
+        super().__init__(self.compute(price_histories_df, days), f'annualized_volatility_{days}_day')
 
     def compute(self, price_histories_df, days):
         return (FactorReturns(price_histories_df, days).factor_data.rolling(days).std() * (

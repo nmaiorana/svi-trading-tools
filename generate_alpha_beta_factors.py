@@ -25,7 +25,8 @@ def generate_alpha_beta_factors():
     alpha_config = config["Alpha"]
     price_histories_file_name = alpha_config["DataDirectory"] + '/' + alpha_config["PriceHistoriesFileName"]
     logger.info(f'PRICE_HISTORIES_FILE|{price_histories_file_name}...')
-    price_histories = pd.read_csv(price_histories_file_name, header=[0, 1], index_col=[0], parse_dates=True, low_memory=False)
+    price_histories = pd.read_csv(price_histories_file_name, header=[0, 1], index_col=[0], parse_dates=True,
+                                  low_memory=False)
     logger.info(f'PRICE_HISTORIES|{price_histories.index.min()}|{price_histories.index.max()}')
     logger.info(f'Using {alpha_config["NumberOfYearsForAlpha"]} years of price history data to generate alpha factors.')
     latest_date = price_histories.index.max()
@@ -41,7 +42,8 @@ def generate_alpha_beta_factors():
     sector_helper = alpha_factors.get_sector_helper(snp_500_stocks, 'GICS Sector', close.columns)
     logger.info(f'Stock sector information gathered.')
     alpha_factors_list = [
-        alpha_factors.TrailingOvernightReturns(price_histories, 10).rank().zscore().smoothed(10).rank().zscore().for_al(),
+        alpha_factors.TrailingOvernightReturns(price_histories, 10).rank().zscore().smoothed(
+            10).rank().zscore().for_al(),
         alpha_factors.MarketDispersion(price_histories, 120).for_al(),
         alpha_factors.MarketVolatility(price_histories, 120).for_al(),
     ]
@@ -84,6 +86,7 @@ def generate_alpha_beta_factors():
     with open(beta_factors_file_name, 'wb') as f:
         # Pickle the 'data' dictionary using the highest protocol available.
         pickle.dump(daily_betas, f, pickle.HIGHEST_PROTOCOL)
+
 
 ###########################################################
 # Stand-alone execution
