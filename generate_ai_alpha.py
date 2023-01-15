@@ -27,13 +27,14 @@ for alpha_factor in all_factors.columns:
 model_file_name = default_config['DataDirectory'] + '/' + default_config['ModelFileName']
 logger.info(f'Reading AI Alpha Model: {model_file_name}')
 clf_nov = pickle.load(open(model_file_name, 'rb'))
-
+logger.info(f'Generating AI Alpha Score...')
 factors_with_alpha = alpha_factors.add_alpha_score(all_factors, clf_nov, default_config['AIAlphaName'])
 ai_alpha = factors_with_alpha[default_config['AIAlphaName']].copy()
 alpha_vectors = ai_alpha.reset_index().pivot(index='Date', columns='Symbols', values=default_config['AIAlphaName'])
 ai_alpha_factors_file_name = default_config['DataDirectory'] + '/' + default_config['AIAlphaFileName']
 logger.info(f'AI_ALPHA_FACTORS_FILE|{ai_alpha_factors_file_name}')
 alpha_vectors.reset_index().to_csv(ai_alpha_factors_file_name, index=False)
+logger.info(f'Done Generating AI Alpha.')
 
 
 

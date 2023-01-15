@@ -23,12 +23,12 @@ class FactorData:
     def top(self, n=10):
         return self.factor_data.iloc[-1].nlargest(n).index.tolist()
 
-    def demean(self, groupby=None):
-        if groupby is None:
+    def demean(self, group_by=None):
+        if group_by is None:
             return FactorData(self.factor_data.sub(self.factor_data.mean(axis=1), axis=0), self.factor_name)
 
         demeaned_sectors = []
-        for sector_tickers in groupby:
+        for sector_tickers in group_by:
             sector_factor_data = self.factor_data[sector_tickers]
             demeaned_sectors.append(sector_factor_data.sub(sector_factor_data.mean(axis=1), axis=0))
 
@@ -196,7 +196,7 @@ class MarketVolatility(FactorData):
 
 
 # Date Parts
-class FactorDateParts():
+class FactorDateParts:
     def __init__(self, factors_df):
         self.factors_df = factors_df
         self.start_date = np.min(factors_df.index.get_level_values(0))
@@ -261,14 +261,14 @@ def filter_price_histories(price_histories, mask):
 
 
 def compute_ai_alpha_score(samples, classifier):
-    factor_probas = classifier.predict_proba(samples)
-    classification_count = factor_probas.shape[1]
+    factor_probabilities = classifier.predict_proba(samples)
+    classification_count = factor_probabilities.shape[1]
 
     prob_array = [*range(-int(classification_count / 2), 0)] + \
                  ([] if classification_count % 2 == 0 else [0]) + \
                  [*range(1, int(classification_count / 2) + 1)]
 
-    return factor_probas.dot(prob_array)
+    return factor_probabilities.dot(prob_array)
 
 
 def add_alpha_score(factor_data, classifier, ai_factor_name='AI_ALPHA'):
@@ -278,7 +278,7 @@ def add_alpha_score(factor_data, classifier, ai_factor_name='AI_ALPHA'):
 
 
 def evaluate_alpha(data, pricing):
-    clean_factor_data, unixt_factor_data = prepare_alpha_lens_factor_data(data.copy(), pricing)
+    clean_factor_data, unix_time_factor_data = prepare_alpha_lens_factor_data(data.copy(), pricing)
     print('\n-----------------------\n')
 
     # Calculate Factor Returns and Sharpe Ratio
@@ -290,31 +290,33 @@ def evaluate_alpha(data, pricing):
     print(factors_sharpe_ratio.round(2))
     plot_factor_returns(factor_returns_data)
     plot_factor_rank_autocorrelation(clean_factor_data)
-    plot_basis_points_per_day_quantile(unixt_factor_data)
-    return factor_returns_data, clean_factor_data, unixt_factor_data
+    plot_basis_points_per_day_quantile(unix_time_factor_data)
+    return factor_returns_data, clean_factor_data, unix_time_factor_data
 
 
 def prepare_alpha_lens_factor_data(all_factors, pricing):
+    # TODO: Find a way to suppress al print
+    # TODO: Find a way to continue if max_loss is exceeded
     clean_factor_data = {
         factor: al.utils.get_clean_factor_and_forward_returns(
             factor=factor_data, prices=pricing, periods=[1]) for factor, factor_data in all_factors.iteritems()}
 
-    unixt_factor_data = {
+    unix_time_factor_data = {
         factor: factor_data.set_index(pd.MultiIndex.from_tuples(
             [(x.timestamp(), y) for x, y in factor_data.index.values],
             names=['date', 'asset'])) for factor, factor_data in clean_factor_data.items()}
 
-    return clean_factor_data, unixt_factor_data
+    return clean_factor_data, unix_time_factor_data
 
 
 def eval_factor_and_add(factors_list, factor, pricing, min_sharpe_ratio=0.5):
     logger = logging.getLogger('trading_factors/eval_factor_and_add')
     logger.info(f'FACTOR_EVAL|{factor.factor_name}|{min_sharpe_ratio}...')
     factor_data = factor.for_al()
-    clean_factor_data, unixt_factor_data = prepare_alpha_lens_factor_data(factor_data.to_frame().copy(),
-                                                                          pricing)
-    factor_returns = get_factor_returns(clean_factor_data)
-    sharpe_ratio = compute_sharpe_ratio(factor_returns)['Sharpe Ratio'].values[0]
+    clean_factor_data, unix_time_factor_data = prepare_alpha_lens_factor_data(factor_data.to_frame().copy(),
+                                                                              pricing)
+    factor_returns_clean_factors = get_factor_returns(clean_factor_data)
+    sharpe_ratio = compute_sharpe_ratio(factor_returns_clean_factors)['Sharpe Ratio'].values[0]
 
     if sharpe_ratio < min_sharpe_ratio:
         logger.info(f'FACTOR_EVAL|{factor.factor_name}|{min_sharpe_ratio}|{sharpe_ratio}|REJECTED')
@@ -360,20 +362,19 @@ def plot_factor_returns(factor_returns):
     (1 + factor_returns).cumprod().plot(title='Factor Returns')
 
 
-
-def plot_factor_rank_autocorrelation(unixt_factor_data):
+def plot_factor_rank_autocorrelation(unix_time_factor_data):
     ls_FRA = pd.DataFrame()
 
-    for factor, factor_data in unixt_factor_data.items():
+    for factor, factor_data in unix_time_factor_data.items():
         ls_FRA[factor] = al.performance.factor_rank_autocorrelation(factor_data)
 
     ls_FRA.plot(title="Factor Rank Autocorrelation", ylim=(0.8, 1.0))
 
 
-def plot_basis_points_per_day_quantile(unixt_factor_data):
+def plot_basis_points_per_day_quantile(unix_time_factor_data):
     qr_factor_returns = pd.DataFrame()
 
-    for factor, factor_data in unixt_factor_data.items():
+    for factor, factor_data in unix_time_factor_data.items():
         qr_factor_returns[factor] = al.performance.mean_return_by_quantile(factor_data)[0].iloc[:, 0]
 
     (10000 * qr_factor_returns).plot.bar(

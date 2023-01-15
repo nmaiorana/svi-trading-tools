@@ -23,7 +23,7 @@ import pickle
 
 from sklearn.ensemble import RandomForestClassifier
 
-logging.config.fileConfig('./config/logging.ini')
+logging.config.fileConfig('../config/logging.ini')
 logger = logging.getLogger('GenerateAIAlphaModel')
 plt.style.use('ggplot')
 plt.rcParams['figure.figsize'] = (20, 8)
@@ -32,7 +32,7 @@ logger.info(f'Python version: {python_version()}')
 logger.info(f'Pandas version: {pd.__version__}')
 
 config = configparser.ConfigParser()
-config.read('./config/config.ini')
+config.read('../config/config.ini')
 default_config = config['AIAlpha']
 
 price_histories_file_name = default_config['DataDirectory'] + '/' + default_config['PriceHistoriesFileName']
@@ -124,9 +124,10 @@ clf_nov.fit(X, y)
 
 logger.info(f'CLASSIFIER|TRAIN|{clf_nov.score(X, y.values)}|OOB|{clf_nov.oob_score_}')
 
+# TODO: Save model in pre-backtest directory
 # TODO: Run Backtest
-# TODO: Save by some sort of version of model
-# TODO: Save to standard model name to be used downstream
+# TODO: If model passes backtest, move to main directory
+
 model_file_name = default_config['DataDirectory'] + '/' + default_config['model_file_name']
 with open(model_file_name, 'wb') as f:
     # Pickle the 'data' dictionary using the highest protocol available.

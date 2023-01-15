@@ -6,53 +6,24 @@ import pandas_datareader as pdr
 import yfinance as yf
 from datetime import datetime
 import tools.trading_factors_yahoo as alpha_factors
+import tools.price_histories_helper as phh
 import ssl
 
 # This is used to get s&p 500 data. Without it, we get cert errors
 # ssl._create_default_https_context = ssl._create_unverified_context
 
-# Make sure we have a data directory
-Path('test_data').mkdir(parents=True, exist_ok=True)
-
-# # Test Harness
-
-test_data_file = 'test_data/test_data.csv'
-
 
 class TestFactorData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if os.path.exists(test_data_file):
-            test_data_df = pd.read_csv(test_data_file, header=[0, 1], index_col=[0], parse_dates=True, low_memory=False)
-            test_data_df = test_data_df.round(2)
-        else:
-            start = datetime(year=2019, month=1, day=1)
-            end = datetime(year=2020, month=1, day=1)
-            '''
-            yahoo_reader = pdr.yahoo.daily.YahooDailyReader(symbols=['AAPL', 'GOOG'], start=start, end=end,
-                                                            adjust_price=True,
-                                                            interval='d', get_actions=False, adjust_dividends=True)
-            test_data_df = yahoo_reader.read()
-            yahoo_reader.close()
-            '''
-            test_data_df = yf.download(tickers=['AAPL', 'GOOG'], start=start, end=end,
-                                       auto_adjust=True)
-            test_data_df.rename_axis(columns=['Attributes', 'Symbols'], inplace=True)
-            test_data_df = test_data_df.round(2)
-            test_data_df.to_csv(test_data_file, index=True)
-
-        test_snp_500_stocks_file = './test_data/snp500.csv'
-        if os.path.exists(test_snp_500_stocks_file):
-            snp_500_stocks = pd.read_csv(test_snp_500_stocks_file, index_col=[0], low_memory=False)
-        else:
-            snp_500_stocks = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies',
-                                          header=0,
-                                          attrs={'id': 'constituents'},
-                                          index_col='Symbol')[0]
-            snp_500_stocks.to_csv(test_snp_500_stocks_file)
-
-        cls.test_data_df = test_data_df
-        cls.snp_500_stocks = snp_500_stocks
+        start = datetime(year=2019, month=1, day=1)
+        end = datetime(year=2020, month=1, day=1)
+        cls.test_data_df = phh.from_yahoo_finance(symbols=['AAPL', 'GOOG'],
+                                                  storage_path=Path('test_data/test_data.csv'),
+                                                  start=start, end=end)
+        cls.close = cls.test_data_df.Close
+        cls.snp_500_stocks = phh.load_snp500_symbols(Path('./test_data/snp500.csv'))
+        cls.sector_helper = alpha_factors.get_sector_helper(cls.snp_500_stocks, 'GICS Sector', cls.close.columns)
 
     def test_init(self):
         class_under_test = alpha_factors.FactorData(self.test_data_df)
