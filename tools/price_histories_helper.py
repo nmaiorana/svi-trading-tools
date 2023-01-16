@@ -5,15 +5,15 @@ import tools.utils as utils
 import pandas as pd
 import yfinance as yf
 
-HISTORIES_FILE_NAME = "PriceHistoriesFileName"
+HISTORIES_FILE_NAME_KEY = "PriceHistoriesFileName"
 
-DATA_DIRECTORY = "DataDirectory"
+DATA_DIRECTORY_KEY = "DataDirectory"
 
 DEFAULT_SNP500_FILE = 'snp500.csv'
 
 
 def default_histories_path(configuration: SectionProxy) -> Path:
-    file_name = configuration[DATA_DIRECTORY] + '/' + configuration[HISTORIES_FILE_NAME]
+    file_name = configuration[DATA_DIRECTORY_KEY] + '/' + configuration[HISTORIES_FILE_NAME_KEY]
     file_path = Path(file_name)
     return file_path
 
@@ -37,10 +37,11 @@ def ensure_data_directory(storage_path: Path):
 
 
 def from_yahoo_finance_config(configuration: SectionProxy,
+                              symbols: [] = [],
                               reload=False) -> pd.DataFrame:
     price_histories_path = default_histories_path(configuration)
     period = configuration.get("NumberOfYearsPriceHistories", '5') + 'y'
-    return from_yahoo_finance(storage_path=price_histories_path, period=period, reload=reload)
+    return from_yahoo_finance(symbols=symbols, storage_path=price_histories_path, period=period, reload=reload)
 
 
 def from_yahoo_finance(symbols: [] = [],
