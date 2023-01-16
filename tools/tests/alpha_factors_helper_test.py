@@ -10,18 +10,6 @@ import tools.trading_factors_yahoo as alpha_factors
 import tools.alpha_factors_helper as afh
 import tools.price_histories_helper as phh
 
-logging.config.fileConfig('./test_config/logging.ini')
-
-# This is used to get s&p 500 data. Without it, we get cert errors
-# ssl._create_default_https_context = ssl._create_unverified_context
-
-# Make sure we have a data directory
-Path('test_data').mkdir(parents=True, exist_ok=True)
-
-# # Test Harness
-
-test_data_file = 'test_data/test_data.csv'
-
 
 class TestAlphaFactorsHelper(unittest.TestCase):
     @classmethod

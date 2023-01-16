@@ -13,7 +13,7 @@ from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
 import pickle
 
-import gather_sp500_price_histories
+import tools.price_histories_helper as phh
 import tools.trading_factors_yahoo as alpha_factors
 import tools.alpha_factors_helper as afh
 import tools.utils as utils
@@ -34,24 +34,15 @@ config = configparser.ConfigParser()
 config.read('../config/config.ini')
 alpha_config = config["Alpha"]
 
-gather_sp500_price_histories.gather_sp500_price_history(config["DEFAULT"])
-price_histories_file_name = alpha_config["DataDirectory"] + '/' + alpha_config["PriceHistoriesFileName"]
-logger.info(f'PRICE_HISTORIES_FILE|{price_histories_file_name}...')
-price_histories = pd.read_csv(price_histories_file_name,
-                              header=[0, 1], index_col=[0], parse_dates=True, low_memory=False)
-logger.info(f'PRICE_HISTORIES|{price_histories.index.min()}|{price_histories.index.max()}')
-logger.info(f'Using {alpha_config["NumberOfYearsForAlpha"]} years of price history data to generate alpha factors.')
-latest_date = price_histories.index.max()
-earliest_date = latest_date - pd.DateOffset(years=int(alpha_config["NumberOfYearsForAlpha"]))
-price_histories = price_histories[(price_histories.index >= earliest_date) & (price_histories.index <= latest_date)]
-logger.info(f'PRICE_HISTORIES_ALPHA|{price_histories.index.min()}|{price_histories.index.max()}')
+
+price_histories = phh.from_yahoo_finance_config(alpha_config, reload=True)
+
 close = price_histories.Close
 logger.info(f'STOCK_TICKERS|{len(close.columns)}')
 alpha_factors_file_name = alpha_config["DataDirectory"] + '/' + alpha_config["AlphaFactorsFileName"]
-beta_factors_file_name = alpha_config["DataDirectory"] + '/' + alpha_config["BetaFactorsFileName"]
 
 logger.info('Gathering stock ticker sector data...')
-snp_500_stocks = utils.get_snp500()
+snp_500_stocks = phh.load_snp500_symbols(phh.default_snp500_path_config(alpha_config))
 sector_helper = alpha_factors.get_sector_helper(snp_500_stocks, 'GICS Sector', close.columns)
 logger.info(f'Stock sector information gathered.')
 alpha_factors_list = []

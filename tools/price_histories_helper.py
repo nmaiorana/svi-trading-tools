@@ -1,27 +1,40 @@
 import logging.config
-import configparser
 from configparser import SectionProxy
 from pathlib import Path
 import tools.utils as utils
 import pandas as pd
 import yfinance as yf
 
+DEFAULT_SNP500_FILE = 'snp500.csv'
 
-def default_histories_file(configuration: SectionProxy) -> Path:
+
+def default_histories_path(configuration: SectionProxy) -> Path:
     file_name = configuration["DataDirectory"] + '/' + configuration["PriceHistoriesFileName"]
     file_path = Path(file_name)
     return file_path
 
 
+def default_snp500_path_config(configuration: SectionProxy) -> Path:
+    return default_snp500_path(default_histories_path(configuration))
+
+
+# This will use the same directory as the histories' path by default
+def default_snp500_path(histories_path: Path) -> Path:
+    if histories_path is None:
+        return None
+
+    return Path(histories_path.parent, DEFAULT_SNP500_FILE)
+
+
 def ensure_data_directory(storage_path: Path):
     if storage_path is None:
         return
-    storage_path.mkdir(parents=True, exist_ok=True)
+    storage_path.parent.mkdir(parents=True, exist_ok=True)
 
 
 def from_yahoo_finance_config(configuration: SectionProxy,
                               reload=False) -> pd.DataFrame:
-    price_histories_path = default_histories_file(configuration)
+    price_histories_path = default_histories_path(configuration)
     period = configuration.get("NumberOfYearsPriceHistories", '5') + 'y'
     return from_yahoo_finance(storage_path=price_histories_path, period=period, reload=reload)
 
@@ -41,7 +54,8 @@ def from_yahoo_finance(symbols: [] = [],
             return load_price_histories(storage_path)
 
     if len(symbols) == 0:
-        symbols = utils.get_snp500().index.to_list()
+        snp500_path = default_snp500_path(storage_path)
+        symbols = load_snp500_symbols(snp500_path, reload=True).index.to_list()
         logger.info(f'SYMBOLS|S&P500|{len(symbols)}')
     else:
         logger.info(f'SYMBOLS|CUSTOM|{len(symbols)}')
@@ -76,6 +90,7 @@ def download_histories_and_adjust(symbols: [], start=None, end=None, period='5y'
         argv = {'period': period}
 
     price_histories = yf.download(tickers=symbols, auto_adjust=True, **argv)
+    price_histories.index = pd.DatetimeIndex(price_histories.index)
     price_histories.rename_axis(columns=['Attributes', 'Symbols'], inplace=True)
     price_histories = price_histories.round(2)
     logger.info(f'PRICE_HISTORIES|Back filling from first price for each symbol...')
@@ -92,6 +107,7 @@ def download_histories_and_adjust(symbols: [], start=None, end=None, period='5y'
 
 def load_snp500_symbols(storage_path: Path, reload: bool = False) -> pd.DataFrame:
     logger = logging.getLogger('price_histories_helper.load_snp500')
+    logger.info(f'SNP500_FILE|{storage_path}')
     if storage_path is not None and storage_path.exists():
         logger.info(f'SNP500_FILE|EXISTS')
         if not reload:

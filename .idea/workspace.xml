@@ -5,28 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
-      <change afterPath="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_and_select_alpha_factors.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_backtest.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tools/alpha_factors_helper.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tools/backtesting_functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tools/price_histories_helper.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tools/tests/alpha_factors_helper_test.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tools/tests/backtesting_functions_test.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tools/tests/test_config/logging.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/_old_ameritrade_processes/generate_alphaNbeta_factors.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_alphaNbeta_factors.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/alpha_factor_analysis/.ipynb_checkpoints/alpha_factor_analysis_ml-checkpoint.ipynb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/alpha_factor_analysis/alpha_factor_analysis_ml.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/_old_ameritrade_processes/alpha_factor_analysis_ml.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_old_ameritrade_processes/gather_stock_histories.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/_old_ameritrade_processes/gather_stock_histories.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_and_select_alpha_factors.py" beforeDir="false" afterPath="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_and_select_alpha_factors.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gather_sp500_price_histories.py" beforeDir="false" afterPath="$PROJECT_DIR$/gather_sp500_price_histories.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generate_AI_alpha_factor.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/_old_ameritrade_processes/generate_AI_alpha_factor.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generate_ai_alpha.py" beforeDir="false" afterPath="$PROJECT_DIR$/generate_ai_alpha.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generate_ai_alpha_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_ai_alpha_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generate_backtest.ipynb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/experimentation.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/experimenting/experimentation.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/tests/trading_factors_yahoo_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tests/trading_factors_yahoo_test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/trading_factors_yahoo.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/trading_factors_yahoo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/alpha_factors_helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/alpha_factors_helper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/price_histories_helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/price_histories_helper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/tests/alpha_factors_helper_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tests/alpha_factors_helper_test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -117,17 +102,17 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="gather_sp500_price_histories" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="generate_and_select_alpha_factors" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/ai_alpha_model_evaluation" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/gather_sp500_price_histories.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_and_select_alpha_factors.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -136,10 +121,13 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="price_histories_helper (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="price_histories_helper" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tools" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -218,10 +206,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python tests.Python tests in alpha_factors_helper_test.py" />
+        <item itemvalue="Python.generate_and_select_alpha_factors" />
+        <item itemvalue="Python.price_histories_helper" />
         <item itemvalue="Python tests.Python tests for alpha_factors_helper_test.TestAlphaFactorsHelper" />
         <item itemvalue="Python tests.Python tests for trading_factors_yahoo_test.TestFactorData" />
-        <item itemvalue="Python.gather_sp500_price_histories" />
-        <item itemvalue="Python.price_histories_helper (1)" />
       </list>
     </recent_temporary>
   </component>
@@ -246,7 +234,7 @@
       <workItem from="1671213065612" duration="2091000" />
       <workItem from="1672427866438" duration="14112000" />
       <workItem from="1672690043928" duration="4148000" />
-      <workItem from="1673625782503" duration="44540000" />
+      <workItem from="1673625782503" duration="52204000" />
     </task>
     <task id="LOCAL-00001" summary="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <created>1653248026830</created>
@@ -325,6 +313,16 @@
           <line>153</line>
           <option name="timeStamp" value="48" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/tools/alpha_factors_helper.py</url>
+          <line>17</line>
+          <option name="timeStamp" value="52" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/tools/price_histories_helper.py</url>
+          <line>63</line>
+          <option name="timeStamp" value="54" />
+        </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
@@ -338,10 +336,12 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/svi_trading_tools$gather_sp500_price_histories.coverage" NAME="gather_sp500_price_histories Coverage Results" MODIFIED="1673626432187" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_ameritrade_functions_test_TestAuthenticated_test_refresh_access_token.coverage" NAME="Unittests for ameritrade_functions_test.TestAuthenticated.test_refresh_access_token Coverage Results" MODIFIED="1670717175363" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
+    <SUITE FILE_PATH="coverage/svi_trading_tools$generate_and_select_alpha_factors.coverage" NAME="generate_and_select_alpha_factors Coverage Results" MODIFIED="1673826306808" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ai_alpha_model_evaluation" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_ameritrade_functions_test_TestAuthenticated_setUpClass.coverage" NAME="Unittests for ameritrade_functions_test.TestAuthenticated.setUpClass Coverage Results" MODIFIED="1669689168153" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_tests_trading_factors_yahoo_test_TestFactorData_test_average_dollar_volume.coverage" NAME="Unittests for tests.trading_factors_yahoo_test.TestFactorData.test_average_dollar_volume Coverage Results" MODIFIED="1669579452540" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
-    <SUITE FILE_PATH="coverage/svi_trading_tools$.coverage" NAME=" Coverage Results" MODIFIED="1673819124593" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
+    <SUITE FILE_PATH="coverage/svi_trading_tools$.coverage" NAME=" Coverage Results" MODIFIED="1673827372179" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_ameritrade_functions_test_TestStockInformationFunctions_test_get_daily_price_history.coverage" NAME="Unittests for ameritrade_functions_test.TestStockInformationFunctions.test_get_daily_price_history Coverage Results" MODIFIED="1670716452973" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_ameritrade_functions_test_TestAuthenticated_test_authentication.coverage" NAME="Unittests for ameritrade_functions_test.TestAuthenticated.test_authentication Coverage Results" MODIFIED="1670716191869" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
+    <SUITE FILE_PATH="coverage/svi_trading_tools$price_histories_helper.coverage" NAME="price_histories_helper Coverage Results" MODIFIED="1673826117767" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
   </component>
 </project>
