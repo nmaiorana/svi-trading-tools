@@ -42,13 +42,13 @@ class PriceHistoriesHelperTest(unittest.TestCase):
                                               storage_path=Path('test_data/test_data.csv'),
                                               start=start, end=end, reload=True)
         self.assertIsNotNone(test_data_df)
-        self.assertSetEqual(set(['AAPL', 'GOOG']), set(test_data_df.Close.columns.values))
+        self.assertSetEqual(set(['AAPL', 'GOOG']), set(test_data_df.columns.get_level_values('Symbols')))
         self.assertIsInstance(test_data_df.index, pd.DatetimeIndex)
         test_data_df = phh.from_yahoo_finance(symbols=['AAPL', 'GOOG'],
                                               storage_path=Path('test_data/test_data.csv'),
                                               start=start, end=end, reload=False)
         self.assertIsNotNone(test_data_df)
-        self.assertSetEqual(set(['AAPL', 'GOOG']), set(test_data_df.Close.columns.values))
+        self.assertSetEqual(set(['AAPL', 'GOOG']), set(test_data_df.columns.get_level_values('Symbols')))
         self.assertIsInstance(test_data_df.index, pd.DatetimeIndex)
 
     def test_from_yahoo_finance_config(self):

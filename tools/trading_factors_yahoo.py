@@ -247,7 +247,7 @@ class FactorReturnQuantiles(FactorData):
 
 # Utils
 
-def get_sector_helper(stocks_df, sector_column, tickers):
+def get_sector_helper(stocks_df: pd.DataFrame, sector_column: str, tickers: []) -> dict:
     sector_data = stocks_df[sector_column][tickers]
     sector_helper = {}
     for sector in set(sector_data.values):

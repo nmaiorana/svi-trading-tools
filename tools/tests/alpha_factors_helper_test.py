@@ -23,12 +23,29 @@ class TestAlphaFactorsHelper(unittest.TestCase):
         cls.snp_500_stocks = phh.load_snp500_symbols(Path('./test_data/snp500.csv'))
         cls.sector_helper = alpha_factors.get_sector_helper(cls.snp_500_stocks, 'GICS Sector', cls.close.columns)
 
-    def test_eval_factor_and_add(self):
-        potential_factor = alpha_factors.FactorReturns(self.test_data_df, 1)
-        factors_list = []
-        factors_to_use = []
-        afh.eval_factor_and_add(factors_list, factors_to_use, potential_factor, self.close)
-        self.assertTrue(len(factors_to_use) > 0)
+    def test_generate_scored_factors(self):
+        factors = afh.generate_scored_factors(self.test_data_df, self.sector_helper)
+        self.assertTrue(len(factors) > 0)
+
+    def test_generate_fixed_factors(self):
+        factors = afh.generate_fixed_factors(self.test_data_df)
+        self.assertTrue(len(factors) > 0)
+
+    def test_eval_factor(self):
+        factor = alpha_factors.FactorReturns(self.test_data_df, 1).for_al()
+        use_factor = afh.eval_factor(factor, self.close)
+        self.assertTrue(use_factor)
+        factors = afh.generate_scored_factors(self.test_data_df, self.sector_helper)
+
+        for scored_factor in factors:
+            use_factor = afh.eval_factor(scored_factor, self.close)
+            self.assertIsInstance(use_factor, bool)
+
+        factors = afh.generate_fixed_factors(self.test_data_df)
+
+        for scored_factor in factors:
+            use_factor = afh.eval_factor(scored_factor, self.close)
+            self.assertIsInstance(use_factor, bool)
 
 
 if __name__ == '__main__':
