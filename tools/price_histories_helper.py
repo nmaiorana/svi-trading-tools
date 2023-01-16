@@ -5,11 +5,15 @@ import tools.utils as utils
 import pandas as pd
 import yfinance as yf
 
+HISTORIES_FILE_NAME = "PriceHistoriesFileName"
+
+DATA_DIRECTORY = "DataDirectory"
+
 DEFAULT_SNP500_FILE = 'snp500.csv'
 
 
 def default_histories_path(configuration: SectionProxy) -> Path:
-    file_name = configuration["DataDirectory"] + '/' + configuration["PriceHistoriesFileName"]
+    file_name = configuration[DATA_DIRECTORY] + '/' + configuration[HISTORIES_FILE_NAME]
     file_path = Path(file_name)
     return file_path
 
