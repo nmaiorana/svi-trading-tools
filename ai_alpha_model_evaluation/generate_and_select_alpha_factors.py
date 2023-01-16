@@ -35,17 +35,17 @@ config.read('../config/config.ini')
 alpha_config = config["Alpha"]
 
 
-price_histories = phh.from_yahoo_finance_config(alpha_config, reload=True)
+price_histories = phh.from_yahoo_finance_config(alpha_config, reload=False)
 sector_helper = afh.get_sector_helper(alpha_config, price_histories.Close)
 alpha_factors_file_name = alpha_config["DataDirectory"] + '/' + alpha_config["AlphaFactorsFileName"]
 
-scored_factors = afh.generate_scored_factors(price_histories)
-fixed_factors = afh.generate_fixed_factors(price_histories)
+all_factors = afh.generate_factors(price_histories, sector_helper)
 
 min_sharpe_ratio = float(alpha_config['min_sharpe_ratio'])
 logger.info(f'FACTOR_EVAL|MIN_SHARPE_RATIO|{min_sharpe_ratio}')
-
-all_factors_df = pd.concat(scored_factors + fixed_factors, axis=1)
+factors_to_use = afh.identify_factors_to_use(all_factors, price_histories.Close, min_sharpe_ratio)
+for factor_name in factors_to_use:
+    logger.info(f'SELECTED_FACTOR|{factor_name}')
 
 # TODO: Add standard factors
 # TODO: Save Factors

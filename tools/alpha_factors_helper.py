@@ -5,16 +5,19 @@ from alphalens.utils import MaxLossExceededError
 
 import tools.trading_factors_yahoo as alpha_factors
 import tools.price_histories_helper as phh
-import tools.utils as utils
 
 logging.basicConfig(format='%(asctime)s|%(name)s|%(levelname)s|%(message)s', level=logging.INFO)
 
 
+# TODO: Add standard factors
+# TODO: Save Factors
+# TODO: Create Configuration for factors used for model training features
+
 def eval_factor(factor_data: pd.Series,
                 pricing: pd.DataFrame,
                 min_sharpe_ratio=0.5) -> bool:
-    logger = logging.getLogger('AlphaFactorsHelper.eval_and_add')
-    logger.info(f'FACTOR_EVAL|{factor_data.name}|{min_sharpe_ratio}...')
+    logger = logging.getLogger('AlphaFactorsHelper.eval_factor')
+    logger.info(f'Evaluate factor {factor_data.name} with a minimum Sharpe Ratio of {min_sharpe_ratio}...')
 
     try:
         clean_factor_data, unix_time_factor_data = alpha_factors.prepare_alpha_lens_factor_data(
@@ -29,8 +32,18 @@ def eval_factor(factor_data: pd.Series,
     if sharpe_ratio < min_sharpe_ratio:
         logger.info(f'FACTOR_EVAL|{factor_data.name}|{min_sharpe_ratio}|{sharpe_ratio}|REJECTED')
         return False
+
     logger.info(f'FACTOR_EVAL|{factor_data.name}|{min_sharpe_ratio}|{sharpe_ratio}|ACCEPTED')
     return True
+
+
+def identify_factors_to_use(factors_df: pd.DataFrame, pricing: pd.DataFrame, min_sharpe_ratio=0.5) -> []:
+    factors_to_use = []
+    for factor_name in factors_df.columns:
+        use_factor = eval_factor(factors_df[factor_name], pricing, min_sharpe_ratio)
+        if use_factor:
+            factors_to_use.append(factor_name)
+    return factors_to_use
 
 
 def get_sector_helper(configuration: SectionProxy, close: pd.DataFrame) -> dict:
@@ -42,10 +55,10 @@ def get_sector_helper(configuration: SectionProxy, close: pd.DataFrame) -> dict:
     return sector_helper
 
 
-def generate_scored_factors(price_histories: pd.DataFrame, sector_helper: dict) -> []:
+def generate_factors(price_histories: pd.DataFrame, sector_helper: dict) -> pd.DataFrame:
     logger = logging.getLogger('AlphaFactorsHelper.scored_factors')
-    logger.info(f'Generating scored factors...')
-    factors = [
+    logger.info(f'Generating factors...')
+    factors_array = [
         alpha_factors.FactorMomentum(price_histories, 252)
         .demean(group_by=sector_helper.values()).rank().zscore().for_al(),
         alpha_factors.TrailingOvernightReturns(price_histories, 10)
@@ -60,20 +73,15 @@ def generate_scored_factors(price_histories: pd.DataFrame, sector_helper: dict) 
         alpha_factors.AnnualizedVolatility(price_histories, 120).rank().zscore().for_al(),
         alpha_factors.AverageDollarVolume(price_histories, 20).rank().zscore().for_al(),
         alpha_factors.AverageDollarVolume(price_histories, 120).rank().zscore().for_al(),
-    ]
-    logger.info(f'Done generating scored factors.')
-    return factors
-
-
-def generate_fixed_factors(price_histories: pd.DataFrame) -> []:
-    logger = logging.getLogger('AlphaFactorsHelper.fixed_factors')
-    logger.info(f'Generating fixed factors...')
-    factors = [
+        # Regime factors
         alpha_factors.MarketDispersion(price_histories, 120).for_al(),
         alpha_factors.MarketVolatility(price_histories, 120).for_al()
     ]
-    logger.info(f'Done generating fixed factors.')
-    return factors
-    # TODO: Add standard factors
-    # TODO: Save Factors
-    # TODO: Create Configuration for factors used for model training features
+    factors_df = pd.concat(factors_array, axis=1)
+    # Date Factors
+    logger.info(f'Adding date parts...')
+    alpha_factors.FactorDateParts(factors_df)
+    logger.info(f'Done generating factors.')
+    return factors_df.dropna()
+
+

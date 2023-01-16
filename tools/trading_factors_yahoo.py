@@ -3,7 +3,6 @@
 # These functions were derived from an AI for Trading course provided by Udacity. The functions were originally part
 # of quizzes / exercises given during the course.
 
-import logging
 import alphalens as al
 import numpy as np
 import pandas as pd
@@ -149,12 +148,12 @@ class TrailingOvernightReturns(FactorData):
 
 # Universal Quant Features
 class AnnualizedVolatility(FactorData):
-    def __init__(self, price_histories_df, factor_data_df, days=20, annualization_factor=252):
+    def __init__(self, price_histories_df, days=20, annualization_factor=252):
         self.annualization_factor = annualization_factor
         super().__init__(self.compute(price_histories_df, days), f'annualized_volatility_{days}_day')
 
     def compute(self, price_histories_df, days):
-        return (FactorReturns(price_histories_df, days).factor_data.rolling(days).std() * (
+        return (FactorReturns(price_histories_df).factor_data.rolling(days).std() * (
                 self.annualization_factor ** .5)).dropna()
 
 
@@ -197,7 +196,7 @@ class MarketVolatility(FactorData):
 
 # Date Parts
 class FactorDateParts:
-    def __init__(self, factors_df):
+    def __init__(self, factors_df: pd.DataFrame):
         self.factors_df = factors_df
         self.start_date = np.min(factors_df.index.get_level_values(0))
         self.end_date = np.max(factors_df.index.get_level_values(0))
@@ -277,6 +276,7 @@ def add_alpha_score(factor_data, classifier, ai_factor_name='AI_ALPHA'):
     return factor_data
 
 
+# TODO: See if this is still needed. It would be nice to pot.
 def evaluate_alpha(data, pricing):
     clean_factor_data, unix_time_factor_data = prepare_alpha_lens_factor_data(data.copy(), pricing)
     print('\n-----------------------\n')
@@ -309,22 +309,6 @@ def prepare_alpha_lens_factor_data(all_factors, pricing):
     return clean_factor_data, unix_time_factor_data
 
 
-def eval_factor_and_add(factors_list, factor, pricing, min_sharpe_ratio=0.5):
-    logger = logging.getLogger('trading_factors/eval_factor_and_add')
-    logger.info(f'FACTOR_EVAL|{factor.factor_name}|{min_sharpe_ratio}...')
-    factor_data = factor.for_al()
-    clean_factor_data, unix_time_factor_data = prepare_alpha_lens_factor_data(factor_data.to_frame().copy(),
-                                                                              pricing)
-    factor_returns_clean_factors = get_factor_returns(clean_factor_data)
-    sharpe_ratio = compute_sharpe_ratio(factor_returns_clean_factors)['Sharpe Ratio'].values[0]
-
-    if sharpe_ratio < min_sharpe_ratio:
-        logger.info(f'FACTOR_EVAL|{factor.factor_name}|{min_sharpe_ratio}|{sharpe_ratio}|REJECTED')
-        return
-    logger.info(f'FACTOR_EVAL|{factor.factor_name}|{min_sharpe_ratio}|{sharpe_ratio}|ACCEPTED')
-    factors_list.append(factor_data)
-
-
 def get_factor_returns(factor_data):
     ls_factor_returns = pd.DataFrame()
 
@@ -335,7 +319,7 @@ def get_factor_returns(factor_data):
 
 
 # Annualized Sharpe Ratios (daily = daily to annual, ...)
-def compute_sharpe_ratio(df, frequency="daily"):
+def compute_sharpe_ratio(df: pd.DataFrame, frequency="daily") -> pd.DataFrame:
     if frequency == "daily":
         annualization_factor = np.sqrt(252)
     elif frequency == "monthly":
