@@ -51,6 +51,11 @@ class TestAlphaFactorsHelper(unittest.TestCase):
         print(factors_to_use)
         self.assertTrue(len(factors_to_use) > 0)
 
+    def test_train_ai_alpha_model(self):
+        factors_df = afh.generate_factors(self.test_data_df, self.sector_helper)
+        model = afh.train_ai_alpha_model(factors_df, self.close)
+        self.assertIsNotNone(model)
+
 
 if __name__ == '__main__':
     unittest.main()

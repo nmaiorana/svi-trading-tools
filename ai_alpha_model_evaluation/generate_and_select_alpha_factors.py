@@ -34,19 +34,22 @@ config = configparser.ConfigParser()
 config.read('../config/config.ini')
 alpha_config = config["Alpha"]
 
-
 price_histories = phh.from_yahoo_finance_config(alpha_config, reload=False)
+close = price_histories.Close
 sector_helper = afh.get_sector_helper(alpha_config, price_histories.Close)
 alpha_factors_file_name = alpha_config["DataDirectory"] + '/' + alpha_config["AlphaFactorsFileName"]
 
-all_factors = afh.generate_factors(price_histories, sector_helper)
+alpha_factors_df = afh.generate_factors(price_histories, sector_helper)
 
 min_sharpe_ratio = float(alpha_config['min_sharpe_ratio'])
 logger.info(f'FACTOR_EVAL|MIN_SHARPE_RATIO|{min_sharpe_ratio}')
-factors_to_use = afh.identify_factors_to_use(all_factors, price_histories.Close, min_sharpe_ratio)
+factors_to_use = afh.identify_factors_to_use(alpha_factors_df, close, min_sharpe_ratio)
 for factor_name in factors_to_use:
     logger.info(f'SELECTED_FACTOR|{factor_name}')
 
-# TODO: Add standard factors
 # TODO: Save Factors
-# TODO: Create Configuration for factors used for model training features
+# TODO: Create Configuration for factors_to_use for model training features
+# TODO: Train model on factors_to_use
+# TODO: Score model
+# TODO: Backtest
+# TODO: Evaluate and push to prod for use
