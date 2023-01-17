@@ -90,14 +90,14 @@ def generate_factors(price_histories: pd.DataFrame, sector_helper: dict) -> pd.D
 def generate_ai_alpha(configuration: SectionProxy,
                       alpha_factors_df: pd.DataFrame,
                       factors_to_use,
-                      close_prices: pd.DataFrame):
+                      price_histories: pd.DataFrame):
     logger = logging.getLogger('AlphaFactorsHelper.ai_alpha')
     logger.info(f'Generating AI Alpha...')
-    ai_alpha_model = train_ai_alpha_model(alpha_factors_df[factors_to_use], close_prices)
+    ai_alpha_model = train_ai_alpha_model(alpha_factors_df[factors_to_use], price_histories)
 
 
 def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
-                         close_prices: pd.DataFrame,
+                         price_histories: pd.DataFrame,
                          forward_prediction_days: int = 5,
                          target_quantiles: int = 2,
                          n_trees: int = 5000):
@@ -128,8 +128,8 @@ def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
     training_factors = pd.concat(
         [
             alpha_factors_df,
-            alpha_factors_df.FactorReturnQuantiles(
-                close_prices, target_quantiles, forward_prediction_days).for_al(prod_target_source),
+            alpha_factors.FactorReturnQuantiles(
+                price_histories, target_quantiles, forward_prediction_days).for_al(prod_target_source),
         ], axis=1).dropna()
     training_factors.sort_index(inplace=True)
 
@@ -146,7 +146,7 @@ def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
     logger.info(f'TRAINING_DATASET|{len(X)}|LABEL_DATASET|{len(y)}')
 
     n_days = 10
-    n_stocks = len(set(alpha_factors_df.index.get_level_values(level='Symbol').values))
+    n_stocks = len(set(alpha_factors_df.index.get_level_values(level='Symbols').values))
     clf_random_state = 42
 
     clf_parameters = {
@@ -167,5 +167,5 @@ def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
     logger.info(f'Training classifier...')
     clf_nov.fit(X, y)
 
-    logger.info(f'CLASSIFIER|TRAIN|{clf_nov.score(X, y.values)}|OOB|{clf_nov.oob_score_}')
+    logger.info(f'CLASSIFIER|TRAIN_SCORE|{clf_nov.score(X, y.values)}|OOB_SCORE|{clf_nov.oob_score_}')
     return clf_nov

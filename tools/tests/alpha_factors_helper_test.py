@@ -10,6 +10,8 @@ import tools.trading_factors_yahoo as alpha_factors
 import tools.alpha_factors_helper as afh
 import tools.price_histories_helper as phh
 
+logging.config.fileConfig('./test_config/logging.ini')
+
 
 class TestAlphaFactorsHelper(unittest.TestCase):
     @classmethod
@@ -53,7 +55,8 @@ class TestAlphaFactorsHelper(unittest.TestCase):
 
     def test_train_ai_alpha_model(self):
         factors_df = afh.generate_factors(self.test_data_df, self.sector_helper)
-        model = afh.train_ai_alpha_model(factors_df, self.close)
+        factors_to_use = afh.identify_factors_to_use(factors_df, self.close)
+        model = afh.train_ai_alpha_model(factors_df[factors_to_use], self.test_data_df)
         self.assertIsNotNone(model)
 
 

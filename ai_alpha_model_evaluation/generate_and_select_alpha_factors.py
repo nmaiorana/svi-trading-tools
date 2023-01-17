@@ -47,6 +47,7 @@ factors_to_use = afh.identify_factors_to_use(alpha_factors_df, close, min_sharpe
 for factor_name in factors_to_use:
     logger.info(f'SELECTED_FACTOR|{factor_name}')
 
+ai_alpha_model = afh.train_ai_alpha_model(alpha_factors_df[factors_to_use], price_histories)
 # TODO: Save Factors
 # TODO: Create Configuration for factors_to_use for model training features
 # TODO: Train model on factors_to_use
