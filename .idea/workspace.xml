@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tools/configuration_helper.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_and_select_alpha_factors.py" beforeDir="false" afterPath="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_and_select_alpha_factors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/alpha_factors_helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/alpha_factors_helper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/tests/alpha_factors_helper_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tests/alpha_factors_helper_test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,8 +16,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="Python Unit Test" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -224,7 +222,7 @@
       <workItem from="1671213065612" duration="2091000" />
       <workItem from="1672427866438" duration="14112000" />
       <workItem from="1672690043928" duration="4148000" />
-      <workItem from="1673625782503" duration="72390000" />
+      <workItem from="1673625782503" duration="72971000" />
     </task>
     <task id="LOCAL-00001" summary="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <created>1653248026830</created>
