@@ -16,6 +16,7 @@ import pickle
 import tools.price_histories_helper as phh
 import tools.trading_factors_yahoo as alpha_factors
 import tools.alpha_factors_helper as afh
+import tools.configuration_helper as config_helper
 import tools.utils as utils
 import warnings
 
@@ -37,7 +38,8 @@ alpha_config = config["Alpha"]
 price_histories = phh.from_yahoo_finance_config(alpha_config, reload=False)
 close = price_histories.Close
 sector_helper = afh.get_sector_helper(alpha_config, price_histories.Close)
-alpha_factors_file_name = alpha_config["DataDirectory"] + '/' + alpha_config["AlphaFactorsFileName"]
+
+alpha_factors_file_name = config_helper.get_alpha_factors_path(alpha_config)
 
 alpha_factors_df = afh.generate_factors(price_histories, sector_helper)
 
