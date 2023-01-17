@@ -36,6 +36,7 @@ def ensure_data_directory(storage_path: Path):
     storage_path.parent.mkdir(parents=True, exist_ok=True)
 
 
+# TODO: Get rid of this method and use the config helper from calling script to pass information
 def from_yahoo_finance_config(configuration: SectionProxy,
                               symbols: [] = [],
                               reload=False) -> pd.DataFrame:
@@ -110,6 +111,7 @@ def download_histories_and_adjust(symbols: [], start=None, end=None, period='5y'
     return price_histories
 
 
+# TODO: Make this a call from parent script with the Path to the snp500 file from config_helper
 def load_snp500_symbols(storage_path: Path, reload: bool = False) -> pd.DataFrame:
     logger = logging.getLogger('price_histories_helper.load_snp500')
     logger.info(f'SNP500_FILE|{storage_path}')
