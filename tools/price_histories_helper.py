@@ -5,44 +5,11 @@ import tools.utils as utils
 import pandas as pd
 import yfinance as yf
 
-HISTORIES_FILE_NAME_KEY = "PriceHistoriesFileName"
-
-DATA_DIRECTORY_KEY = "DataDirectory"
-
-DEFAULT_SNP500_FILE = 'snp500.csv'
-
-
-def default_histories_path(configuration: SectionProxy) -> Path:
-    file_name = configuration[DATA_DIRECTORY_KEY] + '/' + configuration[HISTORIES_FILE_NAME_KEY]
-    file_path = Path(file_name)
-    return file_path
-
-
-def default_snp500_path_config(configuration: SectionProxy) -> Path:
-    return default_snp500_path(default_histories_path(configuration))
-
-
-# This will use the same directory as the histories' path by default
-def default_snp500_path(histories_path: Path) -> Path:
-    if histories_path is None:
-        return None
-
-    return Path(histories_path.parent, DEFAULT_SNP500_FILE)
-
 
 def ensure_data_directory(storage_path: Path):
     if storage_path is None:
         return
     storage_path.parent.mkdir(parents=True, exist_ok=True)
-
-
-# TODO: Get rid of this method and use the config helper from calling script to pass information
-def from_yahoo_finance_config(configuration: SectionProxy,
-                              symbols: [] = [],
-                              reload=False) -> pd.DataFrame:
-    price_histories_path = default_histories_path(configuration)
-    period = configuration.get("NumberOfYearsPriceHistories", '5') + 'y'
-    return from_yahoo_finance(symbols=symbols, storage_path=price_histories_path, period=period, reload=reload)
 
 
 def from_yahoo_finance(symbols: [] = [],
@@ -109,28 +76,6 @@ def download_histories_and_adjust(symbols: [], start=None, end=None, period='5y'
         logger.warning(f'PRICE_HISTORIES|DROPPED|{dropped_symbol}')
     logger.info(f'PRICE_HISTORIES|{len(price_histories)}|{price_histories.index.min()}|{price_histories.index.max()}')
     return price_histories
-
-
-# TODO: Make this a call from parent script with the Path to the snp500 file from config_helper
-def load_snp500_symbols(storage_path: Path, reload: bool = False) -> pd.DataFrame:
-    logger = logging.getLogger('price_histories_helper.load_snp500')
-    logger.info(f'SNP500_FILE|{storage_path}')
-    if storage_path is not None and storage_path.exists():
-        logger.info(f'SNP500_FILE|EXISTS')
-        if not reload:
-            logger.info(f'SNP500_FILE|RELOAD|{reload}')
-            return pd.read_csv(storage_path, index_col=[0], low_memory=False)
-
-    snp_500_stocks = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies',
-                                  header=0,
-                                  attrs={'id': 'constituents'},
-                                  index_col='Symbol')[0]
-
-    if storage_path is not None:
-        ensure_data_directory(storage_path)
-        snp_500_stocks.to_csv(storage_path)
-
-    return snp_500_stocks
 
 
 if __name__ == '__main__':

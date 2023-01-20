@@ -16,7 +16,7 @@ logging.basicConfig(format='%(asctime)s|%(name)s|%(levelname)s|%(message)s', lev
 # TODO: Create Configuration for factors used for model training features
 
 def eval_factor(factor_data: pd.Series,
-                close_prices: pd.DataFrame,
+                price_histories: pd.DataFrame,
                 min_sharpe_ratio=0.5) -> bool:
     logger = logging.getLogger('AlphaFactorsHelper.eval_factor')
     logger.info(f'Evaluate factor {factor_data.name} with a minimum Sharpe Ratio of {min_sharpe_ratio}...')
@@ -24,7 +24,7 @@ def eval_factor(factor_data: pd.Series,
     try:
         clean_factor_data, unix_time_factor_data = alpha_factors.prepare_alpha_lens_factor_data(
             factor_data.to_frame().copy(),
-            close_prices)
+            price_histories.Close)
         factor_returns = alpha_factors.get_factor_returns(clean_factor_data)
         sharpe_ratio = alpha_factors.compute_sharpe_ratio(factor_returns)['Sharpe Ratio'].values[0]
     except MaxLossExceededError:
@@ -48,11 +48,10 @@ def identify_factors_to_use(factors_df: pd.DataFrame, close_pricing: pd.DataFram
     return factors_to_use
 
 
-def get_sector_helper(configuration: SectionProxy, close: pd.DataFrame) -> dict:
+def get_sector_helper(snp_500_stocks: pd.DataFrame, price_histories: pd.DataFrame) -> dict:
     logger = logging.getLogger('AlphaFactorsHelper.sector_helper')
     logger.info('Gathering stock ticker sector data...')
-    snp_500_stocks = phh.load_snp500_symbols(phh.default_snp500_path_config(configuration))
-    sector_helper = alpha_factors.get_sector_helper(snp_500_stocks, 'GICS Sector', close.columns)
+    sector_helper = alpha_factors.get_sector_helper(snp_500_stocks, 'GICS Sector', price_histories.Close.columns)
     logger.info(f'Stock sector information gathered.')
     return sector_helper
 
@@ -87,13 +86,29 @@ def generate_factors(price_histories: pd.DataFrame, sector_helper: dict) -> pd.D
     return factors_df.dropna()
 
 
-def generate_ai_alpha(configuration: SectionProxy,
-                      alpha_factors_df: pd.DataFrame,
-                      factors_to_use,
-                      price_histories: pd.DataFrame):
+def generate_ai_alpha(price_histories: pd.DataFrame,
+                      snp_500_stocks: pd.DataFrame,
+                      ai_alpha_name: str = 'AI_ALPHA',
+                      min_sharpe_ratio: float = 0.85) -> pd.DataFrame:
     logger = logging.getLogger('AlphaFactorsHelper.ai_alpha')
     logger.info(f'Generating AI Alpha...')
+    sector_helper = get_sector_helper(snp_500_stocks, price_histories)
+    alpha_factors_df = generate_factors(price_histories, sector_helper)
+    logger.info(f'FACTOR_EVAL|MIN_SHARPE_RATIO|{min_sharpe_ratio}')
+    factors_to_use = identify_factors_to_use(alpha_factors_df, price_histories, min_sharpe_ratio)
+    for factor_name in factors_to_use:
+        logger.info(f'SELECTED_FACTOR|{factor_name}')
     ai_alpha_model = train_ai_alpha_model(alpha_factors_df[factors_to_use], price_histories)
+    logger.info(f'AIAlpha|ADD_AI_ALPHA|{ai_alpha_name}')
+    factors_with_alpha = alpha_factors.add_alpha_score(alpha_factors_df[factors_to_use].copy(),
+                                                       ai_alpha_model,
+                                                       ai_alpha_name)
+    logger.info(f'AIAlpha|GET_SCORE|{ai_alpha_name}')
+    eval_factor(factors_with_alpha[[ai_alpha_name]], price_histories)
+    # alpha_factors.evaluate_alpha(factors_with_alpha[[ai_alpha_name]], price_histories.Close)
+    ai_alpha = factors_with_alpha[ai_alpha_name].copy()
+    alpha_vectors = ai_alpha.reset_index().pivot(index='Date', columns='Symbols', values=ai_alpha_name)
+    return alpha_vectors
 
 
 def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,

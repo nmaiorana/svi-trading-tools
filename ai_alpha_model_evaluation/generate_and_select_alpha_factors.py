@@ -35,8 +35,16 @@ config = configparser.ConfigParser()
 config.read('../config/config.ini')
 alpha_config = config["Alpha"]
 
-price_histories = phh.from_yahoo_finance_config(alpha_config, reload=False)
-close = price_histories.Close
+snp_500_stocks = utils.get_snp500()
+price_histories = phh.from_yahoo_finance(symbols=snp_500_stocks.index.to_list(),
+                                         period=config_helper.get_number_of_years_of_price_histories(alpha_config),
+                                         storage_path=config_helper.get_price_histories_path(alpha_config),
+                                         reload=False)
+ai_alpha = afh.generate_ai_alpha(price_histories,
+                                 snp_500_stocks,
+                                 alpha_config['AIAlphaName'],
+                                 float(alpha_config['min_sharpe_ratio']))
+
 sector_helper = afh.get_sector_helper(alpha_config, price_histories.Close)
 
 alpha_factors_file_name = config_helper.get_alpha_factors_path(alpha_config)
