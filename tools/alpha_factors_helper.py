@@ -104,7 +104,7 @@ def generate_ai_alpha(price_histories: pd.DataFrame,
                                                        ai_alpha_model,
                                                        ai_alpha_name)
     logger.info(f'AIAlpha|GET_SCORE|{ai_alpha_name}')
-    eval_factor(factors_with_alpha[[ai_alpha_name]], price_histories)
+    eval_factor(factors_with_alpha[ai_alpha_name], price_histories)
     # alpha_factors.evaluate_alpha(factors_with_alpha[[ai_alpha_name]], price_histories.Close)
     ai_alpha = factors_with_alpha[ai_alpha_name].copy()
     alpha_vectors = ai_alpha.reset_index().pivot(index='Date', columns='Symbols', values=ai_alpha_name)
