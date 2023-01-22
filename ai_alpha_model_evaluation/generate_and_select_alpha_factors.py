@@ -23,6 +23,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 logging.config.fileConfig('../config/logging.ini')
+
 logger = logging.getLogger('GenerateAndSelectAlphaFactors')
 
 plt.style.use('ggplot')
@@ -33,31 +34,37 @@ logger.info(f'Pandas version: {pd.__version__}')
 
 config = configparser.ConfigParser()
 config.read('../config/config.ini')
-alpha_config = config["Alpha"]
+alpha_config = config["AIAlpha"]
 
 snp_500_stocks = utils.get_snp500()
 price_histories = phh.from_yahoo_finance(symbols=snp_500_stocks.index.to_list(),
                                          period=config_helper.get_number_of_years_of_price_histories(alpha_config),
                                          storage_path=config_helper.get_price_histories_path(alpha_config),
                                          reload=False)
-ai_alpha = afh.generate_ai_alpha(price_histories,
-                                 snp_500_stocks,
-                                 alpha_config['AIAlphaName'],
-                                 float(alpha_config['min_sharpe_ratio']))
+ai_alpha_name = alpha_config['AIAlphaName']
+# TODO: Check for Alpha Factors file, if exists skip making one
+# TODO: Check for Alpha model file, if exists skip making one
+# TODO: Check for Alpha vectors file, if exists skip making one
+# This will most likely involve breaking up the following call
+ai_alpha_model, factors_with_alpha = afh.generate_ai_alpha(price_histories,
+                                                           snp_500_stocks,
+                                                           ai_alpha_name,
+                                                           float(alpha_config['min_sharpe_ratio']),
+                                                           int(alpha_config['ForwardPredictionDays']),
+                                                           int(alpha_config['PredictionQuantiles']),
+                                                           int(alpha_config['RandomForestNTrees']))
 
-sector_helper = afh.get_sector_helper(alpha_config, price_histories.Close)
+ai_alpha = factors_with_alpha[[ai_alpha_name]].copy()
+factor_returns, _, _ = alpha_factors.evaluate_alpha(ai_alpha, price_histories.Close)
+cumulative_factor_returns = (1 + factor_returns).cumprod()
+total_return = cumulative_factor_returns.iloc[-1].values[0]
+logger.info(f'Total return on {ai_alpha_name} is {total_return}')
 
-alpha_factors_file_name = config_helper.get_alpha_factors_path(alpha_config)
+plt.show()
 
-alpha_factors_df = afh.generate_factors(price_histories, sector_helper)
+ai_alpha = factors_with_alpha[ai_alpha_name].copy()
+alpha_vector = ai_alpha.reset_index().pivot(index='Date', columns='Symbols', values=ai_alpha_name)
 
-min_sharpe_ratio = float(alpha_config['min_sharpe_ratio'])
-logger.info(f'FACTOR_EVAL|MIN_SHARPE_RATIO|{min_sharpe_ratio}')
-factors_to_use = afh.identify_factors_to_use(alpha_factors_df, close, min_sharpe_ratio)
-for factor_name in factors_to_use:
-    logger.info(f'SELECTED_FACTOR|{factor_name}')
-
-ai_alpha_model = afh.train_ai_alpha_model(alpha_factors_df[factors_to_use], price_histories)
 # TODO: Save Factors
 # TODO: Create Configuration for factors_to_use for model training features
 # TODO: Train model on factors_to_use

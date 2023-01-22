@@ -1,7 +1,6 @@
 import logging.config
-from configparser import SectionProxy
+import sys
 from pathlib import Path
-import tools.utils as utils
 import pandas as pd
 import yfinance as yf
 
@@ -12,11 +11,11 @@ def ensure_data_directory(storage_path: Path):
     storage_path.parent.mkdir(parents=True, exist_ok=True)
 
 
-def from_yahoo_finance(symbols: [] = [],
+def from_yahoo_finance(symbols: list,
                        start=None, end=None, period='5y',
                        storage_path: Path = None,
                        reload=False) -> pd.DataFrame:
-    logger = logging.getLogger('from_yahoo_finance')
+    logger = logging.getLogger('phh.from_yahoo_finance')
     logger.info(f'Pandas version: {pd.__version__}')
     logger.info(f'Yahoo Finance version: {yf.__version__}')
 
@@ -26,21 +25,14 @@ def from_yahoo_finance(symbols: [] = [],
             logger.info(f'PRICE_HISTORIES_FILE|RELOAD|{reload}')
             return load_price_histories(storage_path)
 
-    if len(symbols) == 0:
-        snp500_path = default_snp500_path(storage_path)
-        symbols = load_snp500_symbols(snp500_path, reload=True).index.to_list()
-        logger.info(f'SYMBOLS|S&P500|{len(symbols)}')
-    else:
-        logger.info(f'SYMBOLS|CUSTOM|{len(symbols)}')
-
     price_histories = download_histories_and_adjust(symbols, start, end, period)
     save_price_histories(price_histories, storage_path)
-    logger.info('Done gathering S&P 500 price histories...')
+    logger.info(f'Done gathering {len(symbols)} price histories...')
     return price_histories
 
 
 def save_price_histories(price_histories: pd.DataFrame, storage_path: Path = None):
-    logger = logging.getLogger('price_histories_helper.save')
+    logger = logging.getLogger('phh.save')
     if storage_path is None:
         logger.info(f'PRICE_HISTORIES_FILE|NOT_SAVED')
         return
@@ -55,8 +47,8 @@ def load_price_histories(storage_path: Path = None) -> pd.DataFrame:
                        header=[0, 1], index_col=[0], parse_dates=True, low_memory=False)
 
 
-def download_histories_and_adjust(symbols: [], start=None, end=None, period='5y') -> pd.DataFrame:
-    logger = logging.getLogger('price_histories_helper.download')
+def download_histories_and_adjust(symbols: list, start=None, end=None, period='5y') -> pd.DataFrame:
+    logger = logging.getLogger('phh.download')
     if start is not None or end is not None:
         argv = {'start': start, 'end': end}
     else:

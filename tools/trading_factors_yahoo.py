@@ -326,10 +326,8 @@ def compute_sharpe_ratio(df: pd.DataFrame, frequency="daily") -> pd.DataFrame:
 
         annualization_factor = np.sqrt(12)
     else:
-        # TODO: no conversion
         annualization_factor = 1
 
-    # TODO: calculate the sharpe ratio and store it in a dataframe.
     # name the column 'Sharpe Ratio'.  
     # round the numbers to 2 decimal places
     df_sharpe = pd.DataFrame(data=annualization_factor * df.mean() / df.std(), columns=['Sharpe Ratio']).round(2)

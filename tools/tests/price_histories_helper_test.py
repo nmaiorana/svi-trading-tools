@@ -1,16 +1,15 @@
 import unittest
+import logging
 from datetime import datetime
 from pathlib import Path
 import configparser
-
 import pandas as pd
-
 import tools.price_histories_helper as phh
-import configuration_helper as config_helper
 
-TEST_DATA_DIR = 'test_data'
+logging.config.fileConfig('./test_config/logging.ini')
 
-TEST_DATA_CSV = 'price_hist_helper_test_data.csv'
+
+TEST_DATA_CSV = 'test_data/price_hist_helper_test_data.csv'
 
 
 class PriceHistoriesHelperTest(unittest.TestCase):
@@ -19,7 +18,7 @@ class PriceHistoriesHelperTest(unittest.TestCase):
         config = configparser.ConfigParser()
         config.read('test_config/config.ini')
         cls.config = config['DEFAULT']
-        cls.price_histories_path = config_helper.get_data_directory(cls.config).joinpath(TEST_DATA_CSV)
+        cls.price_histories_path = Path(TEST_DATA_CSV)
 
     def test_from_yahoo_finance(self):
         self.price_histories_path.unlink(missing_ok=True)

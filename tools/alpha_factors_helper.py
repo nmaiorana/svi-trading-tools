@@ -1,14 +1,12 @@
 import logging
-from configparser import SectionProxy
 import pandas as pd
 from alphalens.utils import MaxLossExceededError
 from sklearn.ensemble import RandomForestClassifier
-
 import tools.trading_factors_yahoo as alpha_factors
-import tools.price_histories_helper as phh
-import tools.nonoverlapping_estimator as ai_estimator
+from tools.nonoverlapping_estimator import NoOverlapVoter
+import matplotlib.pyplot as plt
 
-logging.basicConfig(format='%(asctime)s|%(name)s|%(levelname)s|%(message)s', level=logging.INFO)
+plt.interactive(False)
 
 
 # TODO: Add standard factors
@@ -19,7 +17,7 @@ def eval_factor(factor_data: pd.Series,
                 price_histories: pd.DataFrame,
                 min_sharpe_ratio=0.5) -> bool:
     logger = logging.getLogger('AlphaFactorsHelper.eval_factor')
-    logger.info(f'Evaluate factor {factor_data.name} with a minimum Sharpe Ratio of {min_sharpe_ratio}...')
+    logger.info(f'Evaluate factor {factor_data.name}({len(factor_data)}) with a minimum Sharpe Ratio of {min_sharpe_ratio}...')
 
     try:
         clean_factor_data, unix_time_factor_data = alpha_factors.prepare_alpha_lens_factor_data(
@@ -39,10 +37,10 @@ def eval_factor(factor_data: pd.Series,
     return True
 
 
-def identify_factors_to_use(factors_df: pd.DataFrame, close_pricing: pd.DataFrame, min_sharpe_ratio=0.5) -> []:
+def identify_factors_to_use(factors_df: pd.DataFrame, price_histories: pd.DataFrame, min_sharpe_ratio=0.5) -> list:
     factors_to_use = []
     for factor_name in factors_df.columns:
-        use_factor = eval_factor(factors_df[factor_name], close_pricing, min_sharpe_ratio)
+        use_factor = eval_factor(factors_df[factor_name], price_histories, min_sharpe_ratio)
         if use_factor:
             factors_to_use.append(factor_name)
     return factors_to_use
@@ -56,12 +54,30 @@ def get_sector_helper(snp_500_stocks: pd.DataFrame, price_histories: pd.DataFram
     return sector_helper
 
 
-def generate_factors(price_histories: pd.DataFrame, sector_helper: dict) -> pd.DataFrame:
+def generate_factors_df(price_histories: pd.DataFrame = None,
+                        sector_helper: dict = None,
+                        factors_array: list = None
+                        ) -> pd.DataFrame:
     logger = logging.getLogger('AlphaFactorsHelper.scored_factors')
+    if price_histories is not None and sector_helper is None:
+        logger.error('You have to define sector_helper if using price_histories!' +
+                     'Are you trying to pass factors_array? Use factors_array = array.')
+        raise ValueError('You have to define sector_helper if using price_histories!')
     logger.info(f'Generating factors...')
+    if factors_array is None:
+        factors_array = default_factors(price_histories, sector_helper)
+    factors_df = pd.concat(factors_array, axis=1)
+    # Date Factors
+    logger.info(f'Adding date parts...')
+    alpha_factors.FactorDateParts(factors_df)
+    logger.info(f'Done generating factors.')
+    return factors_df.dropna()
+
+
+def default_factors(price_histories: pd.DataFrame, sector_helper: dict) -> list:
     factors_array = [
-        alpha_factors.FactorMomentum(price_histories, 252)
-        .demean(group_by=sector_helper.values()).rank().zscore().for_al(),
+        alpha_factors.FactorMomentum(price_histories, 252).demean(
+            group_by=sector_helper.values()).rank().zscore().for_al(),
         alpha_factors.TrailingOvernightReturns(price_histories, 10)
         .rank().zscore().smoothed(10).rank().zscore().for_al(),
         alpha_factors.FactorMeanReversion(price_histories, 30).demean(
@@ -78,44 +94,47 @@ def generate_factors(price_histories: pd.DataFrame, sector_helper: dict) -> pd.D
         alpha_factors.MarketDispersion(price_histories, 120).for_al(),
         alpha_factors.MarketVolatility(price_histories, 120).for_al()
     ]
-    factors_df = pd.concat(factors_array, axis=1)
-    # Date Factors
-    logger.info(f'Adding date parts...')
-    alpha_factors.FactorDateParts(factors_df)
-    logger.info(f'Done generating factors.')
-    return factors_df.dropna()
+    return factors_array
 
 
 def generate_ai_alpha(price_histories: pd.DataFrame,
                       snp_500_stocks: pd.DataFrame,
                       ai_alpha_name: str = 'AI_ALPHA',
-                      min_sharpe_ratio: float = 0.85) -> pd.DataFrame:
+                      min_sharpe_ratio: float = 0.85,
+                      forward_prediction_days: int = 5,
+                      target_quantiles: int = 2,
+                      n_trees: int = 50,
+                      factors_array: list = None) -> (NoOverlapVoter, pd.DataFrame):
     logger = logging.getLogger('AlphaFactorsHelper.ai_alpha')
     logger.info(f'Generating AI Alpha...')
     sector_helper = get_sector_helper(snp_500_stocks, price_histories)
-    alpha_factors_df = generate_factors(price_histories, sector_helper)
+    alpha_factors_df = generate_factors_df(price_histories=price_histories,
+                                           sector_helper=sector_helper,
+                                           factors_array=factors_array)
     logger.info(f'FACTOR_EVAL|MIN_SHARPE_RATIO|{min_sharpe_ratio}')
     factors_to_use = identify_factors_to_use(alpha_factors_df, price_histories, min_sharpe_ratio)
     for factor_name in factors_to_use:
         logger.info(f'SELECTED_FACTOR|{factor_name}')
-    ai_alpha_model = train_ai_alpha_model(alpha_factors_df[factors_to_use], price_histories)
+    ai_alpha_model = train_ai_alpha_model(alpha_factors_df[factors_to_use],
+                                          price_histories,
+                                          forward_prediction_days,
+                                          target_quantiles,
+                                          n_trees)
     logger.info(f'AIAlpha|ADD_AI_ALPHA|{ai_alpha_name}')
     factors_with_alpha = alpha_factors.add_alpha_score(alpha_factors_df[factors_to_use].copy(),
                                                        ai_alpha_model,
                                                        ai_alpha_name)
     logger.info(f'AIAlpha|GET_SCORE|{ai_alpha_name}')
     eval_factor(factors_with_alpha[ai_alpha_name], price_histories)
-    # alpha_factors.evaluate_alpha(factors_with_alpha[[ai_alpha_name]], price_histories.Close)
-    ai_alpha = factors_with_alpha[ai_alpha_name].copy()
-    alpha_vectors = ai_alpha.reset_index().pivot(index='Date', columns='Symbols', values=ai_alpha_name)
-    return alpha_vectors
+
+    return ai_alpha_model, factors_with_alpha
 
 
 def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
                          price_histories: pd.DataFrame,
                          forward_prediction_days: int = 5,
                          target_quantiles: int = 2,
-                         n_trees: int = 5000):
+                         n_trees: int = 50):
     # - Compute target values (y)
     #     - Quantize with 2 bins
     # - Train model for Feature importance
@@ -177,7 +196,7 @@ def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
     clf = RandomForestClassifier(n_trees, **clf_parameters)
 
     logger.info(f'Creating Non-Overlapping Voter with {forward_prediction_days - 1} non-overlapping windows...')
-    clf_nov = ai_estimator.NoOverlapVoter(clf, n_skip_samples=forward_prediction_days - 1)
+    clf_nov = NoOverlapVoter(clf, n_skip_samples=forward_prediction_days - 1)
 
     logger.info(f'Training classifier...')
     clf_nov.fit(X, y)
