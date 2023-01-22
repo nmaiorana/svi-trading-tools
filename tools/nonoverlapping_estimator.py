@@ -22,6 +22,13 @@ class NoOverlapVoterAbstract(VotingClassifier):
     
     def __init__(self, estimator, voting='soft', n_skip_samples=4):
         # List of estimators for all the subsets of data
+        self.feature_importances_ = None
+        self.oob_score_ = None
+        self.named_estimators_ = None
+        self.estimators_ = None
+        self.classes_ = None
+        self.le_ = None
+        self.feature_names_in_ = None
         self.estimator = estimator
         estimators = [('clf'+str(i), estimator) for i in range(n_skip_samples + 1)]
         
@@ -30,6 +37,7 @@ class NoOverlapVoterAbstract(VotingClassifier):
     
     def fit(self, X, y, sample_weight=None):
         estimator_names, clfs = zip(*self.estimators)
+        self.feature_names_in_ = X.columns.to_list()
         self.le_ = LabelEncoder().fit(y)
         self.classes_ = self.le_.classes_
         

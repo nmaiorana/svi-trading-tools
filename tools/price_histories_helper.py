@@ -20,7 +20,7 @@ def from_yahoo_finance(symbols: list,
     logger.info(f'Yahoo Finance version: {yf.__version__}')
 
     if storage_path is not None and storage_path.exists():
-        logger.info(f'PRICE_HISTORIES_FILE|EXISTS')
+        logger.info(f'PRICE_HISTORIES_FILE|EXISTS|{storage_path}')
         if not reload:
             logger.info(f'PRICE_HISTORIES_FILE|RELOAD|{reload}')
             return load_price_histories(storage_path)
@@ -38,13 +38,19 @@ def save_price_histories(price_histories: pd.DataFrame, storage_path: Path = Non
         return
 
     ensure_data_directory(storage_path)
-    price_histories.to_csv(storage_path, index=True)
+    if storage_path.suffix == 'parquet':
+        price_histories.to_parquet(storage_path)
+    else:
+        price_histories.to_csv(storage_path, index=True)
     logger.info(f'PRICE_HISTORIES_FILE|SAVED|{storage_path}')
 
 
 def load_price_histories(storage_path: Path = None) -> pd.DataFrame:
-    return pd.read_csv(storage_path,
-                       header=[0, 1], index_col=[0], parse_dates=True, low_memory=False)
+    if storage_path.suffix == 'parquet':
+        return pd.read_parquet(storage_path)
+    else:
+        return pd.read_csv(storage_path,
+                           header=[0, 1], index_col=[0], parse_dates=True, low_memory=False)
 
 
 def download_histories_and_adjust(symbols: list, start=None, end=None, period='5y') -> pd.DataFrame:

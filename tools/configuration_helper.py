@@ -1,6 +1,8 @@
 from configparser import SectionProxy
 from pathlib import Path
 
+FACTORS_TO_USE_FILE_NAME = 'FactorsToUseFileName'
+
 YEARS_PRICE_HISTORIES = 'NumberOfYearsPriceHistories'
 DATA_DIRECTORY = "DataDirectory"
 HISTORIES_FILE_NAME = "PriceHistoriesFileName"
@@ -21,3 +23,7 @@ def get_alpha_factors_path(configuration: SectionProxy) -> Path:
 
 def get_number_of_years_of_price_histories(configuration: SectionProxy) -> str:
     return configuration[YEARS_PRICE_HISTORIES] + 'y'
+
+
+def get_factors_used_path(configuration: SectionProxy) -> Path:
+    return get_data_directory(configuration).joinpath(configuration[FACTORS_TO_USE_FILE_NAME])

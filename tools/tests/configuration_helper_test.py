@@ -25,6 +25,9 @@ class ConfigurationHelperTest(unittest.TestCase):
     def test_get_number_of_years_of_price_histories(self):
         self.assertIsInstance(config_helper.get_number_of_years_of_price_histories(self.config[DEFAULT]), str)
 
+    def test_get(self):
+        self.assertIsInstance(config_helper.get_factors_used_path(self.config[DEFAULT]), Path)
+
 
 if __name__ == '__main__':
     unittest.main()

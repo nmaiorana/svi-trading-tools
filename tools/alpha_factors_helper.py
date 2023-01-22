@@ -1,5 +1,7 @@
 import logging
+from pathlib import Path
 import pandas as pd
+import pickle
 from alphalens.utils import MaxLossExceededError
 from sklearn.ensemble import RandomForestClassifier
 import tools.trading_factors_yahoo as alpha_factors
@@ -37,6 +39,25 @@ def eval_factor(factor_data: pd.Series,
     return True
 
 
+def get_factors_to_use(factors_df: pd.DataFrame, price_histories: pd.DataFrame,
+                       min_sharpe_ratio, storage_path: Path, reload: bool = False) -> list:
+    logger = logging.getLogger('AlphaFactorsHelper.get_factors_to_use')
+    if storage_path is not None and storage_path.exists():
+        logger.info(f'FACTORS_TO_USE_FILE|EXISTS|{storage_path}')
+        if not reload:
+            logger.info(f'FACTORS_TO_USE_FILE|RELOAD|{reload}')
+            return pickle.load(open(storage_path, 'rb'))
+
+    factors_to_use = identify_factors_to_use(factors_df, price_histories, min_sharpe_ratio)
+    if storage_path is None:
+        logger.info(f'FACTORS_TO_USE_FILE|NOT_SAVED')
+    else:
+        logger.info(f'FACTORS_TO_USE_FILE|SAVED|{storage_path}')
+        with open(storage_path, 'wb') as f:
+            pickle.dump(factors_to_use, f, pickle.HIGHEST_PROTOCOL)
+    return factors_to_use
+
+
 def identify_factors_to_use(factors_df: pd.DataFrame, price_histories: pd.DataFrame, min_sharpe_ratio=0.5) -> list:
     factors_to_use = []
     for factor_name in factors_df.columns:
@@ -54,9 +75,27 @@ def get_sector_helper(snp_500_stocks: pd.DataFrame, price_histories: pd.DataFram
     return sector_helper
 
 
+def get_alpha_factors(price_histories: pd.DataFrame = None, sector_helper: dict = None, factors_array: list = None,
+                      storage_path: Path = None, reload: bool = False):
+    logger = logging.getLogger('AlphaFactorsHelper.get_alpha_factors')
+    if storage_path is not None and storage_path.exists():
+        logger.info(f'ALPHA_FACTORS_FILE|EXISTS|{storage_path}')
+        if not reload:
+            logger.info(f'ALPHA_FACTORS_FILE|RELOAD|{reload}')
+            return pd.read_csv(storage_path, parse_dates=['Date']).set_index(['Date', 'Symbols']).sort_index()
+
+    alpha_factors_df = generate_factors_df(price_histories, sector_helper, factors_array)
+    if storage_path is None:
+        logger.info(f'ALPHA_FACTORS_FILE|NOT_SAVED')
+    else:
+        logger.info(f'ALPHA_FACTORS_FILE|SAVED|{storage_path}')
+        alpha_factors_df.to_csv(storage_path)
+    return alpha_factors_df
+
+
 def generate_factors_df(price_histories: pd.DataFrame = None,
                         sector_helper: dict = None,
-                        factors_array: list = None
+                        factors_array: list = None,
                         ) -> pd.DataFrame:
     logger = logging.getLogger('AlphaFactorsHelper.scored_factors')
     if price_histories is not None and sector_helper is None:
@@ -130,11 +169,38 @@ def generate_ai_alpha(price_histories: pd.DataFrame,
     return ai_alpha_model, factors_with_alpha
 
 
+def get_ai_alpha_model(alpha_factors_df: pd.DataFrame, price_histories: pd.DataFrame,
+                       forward_prediction_days: int = 5,
+                       target_quantiles: int = 2,
+                       n_trees: int = 50,
+                       storage_path: Path = None,
+                       reload: bool = False) -> NoOverlapVoter:
+    logger = logging.getLogger('AlphaFactorsHelper.get_ai_alpha_model')
+    if storage_path is not None and storage_path.exists():
+        logger.info(f'AI_ALPHA_MODEL_FILE|EXISTS|{storage_path}')
+        if not reload:
+            logger.info(f'AI_ALPHA_MODEL_FILE|RELOAD|{reload}')
+            return pickle.load(open(storage_path, 'rb'))
+
+    ai_alpha_model = train_ai_alpha_model(alpha_factors_df,
+                                          price_histories,
+                                          forward_prediction_days,
+                                          target_quantiles,
+                                          n_trees)
+    if storage_path is None:
+        logger.info(f'AI_ALPHA_MODEL_FILE|NOT_SAVED')
+    else:
+        logger.info(f'AI_ALPHA_MODEL_FILE|SAVED|{storage_path}')
+        with open(storage_path, 'wb') as f:
+            pickle.dump(ai_alpha_model, f, pickle.HIGHEST_PROTOCOL)
+    return ai_alpha_model
+
+
 def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
                          price_histories: pd.DataFrame,
                          forward_prediction_days: int = 5,
                          target_quantiles: int = 2,
-                         n_trees: int = 50):
+                         n_trees: int = 50) -> NoOverlapVoter:
     # - Compute target values (y)
     #     - Quantize with 2 bins
     # - Train model for Feature importance
@@ -154,7 +220,6 @@ def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
     logger.info(
         f'Setting {forward_prediction_days} days-{target_quantiles} quantiles to target {prod_target_source}')
 
-    all_assets = alpha_factors_df.index.get_level_values('Symbols').values.tolist()
     logger.info(f'Factors from date: {alpha_factors_df.index.get_level_values("Date").min()}' +
                 f'to date: {alpha_factors_df.index.get_level_values("Date").max()}')
     features = alpha_factors_df.columns.tolist()
@@ -179,16 +244,14 @@ def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
 
     logger.info(f'TRAINING_DATASET|{len(X)}|LABEL_DATASET|{len(y)}')
 
-    n_days = 10
     n_stocks = len(set(alpha_factors_df.index.get_level_values(level='Symbols').values))
-    clf_random_state = 42
 
     clf_parameters = {
         'criterion': 'entropy',
-        'min_samples_leaf': n_days * n_stocks,
+        'min_samples_leaf': forward_prediction_days * n_stocks,
         'oob_score': True,
         'n_jobs': -1,
-        'random_state': clf_random_state}
+        'random_state': 42}
 
     logger.info(f'Creating RandomForestClassifier with {n_trees} trees...')
     for key, value in clf_parameters.items():
