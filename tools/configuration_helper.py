@@ -1,6 +1,10 @@
 from configparser import SectionProxy
 from pathlib import Path
 
+AI_ALPHA_FILE_NAME = 'AIAlphaFileName'
+
+MODEL_FILE_NAME = 'ModelFileName'
+
 FACTORS_TO_USE_FILE_NAME = 'FactorsToUseFileName'
 
 YEARS_PRICE_HISTORIES = 'NumberOfYearsPriceHistories'
@@ -25,5 +29,9 @@ def get_number_of_years_of_price_histories(configuration: SectionProxy) -> str:
     return configuration[YEARS_PRICE_HISTORIES] + 'y'
 
 
-def get_factors_used_path(configuration: SectionProxy) -> Path:
-    return get_data_directory(configuration).joinpath(configuration[FACTORS_TO_USE_FILE_NAME])
+def get_ai_alpha_path(configuration: SectionProxy):
+    return get_data_directory(configuration).joinpath(configuration[AI_ALPHA_FILE_NAME])
+
+
+def get_ai_model_path(configuration: SectionProxy):
+    return get_data_directory(configuration).joinpath(configuration[MODEL_FILE_NAME])

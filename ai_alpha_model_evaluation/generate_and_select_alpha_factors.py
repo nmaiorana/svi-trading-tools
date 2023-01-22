@@ -50,44 +50,32 @@ sector_helper = afh.get_sector_helper(snp_500_stocks, price_histories)
 
 # These are the alpha factors
 alpha_factors_df = afh.get_alpha_factors(price_histories, sector_helper,
-                                         config_helper.get_alpha_factors_path(alpha_config), reload=False)
-
-# Which alpha factors should we use to build a model
-factors_to_use = afh.identify_factors_to_use(alpha_factors_df, price_histories,
-                                             float(alpha_config['min_sharpe_ratio']),
-                                             config_helper.get_factors_used_path(alpha_config),
-                                             reload=False)
-
-ai_alpha_name = alpha_config['AIAlphaName']
-ai_alpha_model = afh.get_ai_alpha_model(alpha_factors_df[factors_to_use],
+                                         storage_path=config_helper.get_alpha_factors_path(alpha_config), reload=False)
+ai_alpha_model = afh.get_ai_alpha_model(alpha_factors_df,
                                         price_histories,
+                                        float(alpha_config['min_sharpe_ratio']),
                                         int(alpha_config['ForwardPredictionDays']),
                                         int(alpha_config['PredictionQuantiles']),
                                         int(alpha_config['RandomForestNTrees']),
-                                        config_helper.get_ai_model_path(),
+                                        storage_path=config_helper.get_ai_model_path(alpha_config),
                                         reload=False)
 
-# TODO: Check for Alpha model file, if exists skip making one
-# TODO: Check for Alpha vectors file, if exists skip making one
-# This will most likely involve breaking up the following call
-ai_alpha_model, factors_with_alpha = afh.generate_ai_alpha(price_histories,
-                                                           snp_500_stocks,
-                                                           ai_alpha_name,
-                                                           float(alpha_config['min_sharpe_ratio']),
-                                                           int(alpha_config['ForwardPredictionDays']),
-                                                           int(alpha_config['PredictionQuantiles']),
-                                                           int(alpha_config['RandomForestNTrees']))
-
-ai_alpha = factors_with_alpha[[ai_alpha_name]].copy()
-factor_returns, _, _ = alpha_factors.evaluate_alpha(ai_alpha, price_histories.Close)
-cumulative_factor_returns = (1 + factor_returns).cumprod()
+ai_alpha_name = alpha_config['AIAlphaName']
+ai_alpha = afh.get_ai_alpha_vector(alpha_factors_df,
+                                   ai_alpha_model,
+                                   ai_alpha_name,
+                                   storage_path=config_helper.get_ai_alpha_path(alpha_config),
+                                   reload=False)
+factor_returns_data, clean_factor_data, unix_time_factor_data = alpha_factors.evaluate_alpha(ai_alpha,
+                                                                                             price_histories.Close)
+alpha_factors.plot_factor_returns(factor_returns_data)
+alpha_factors.plot_factor_rank_autocorrelation(clean_factor_data)
+alpha_factors.plot_basis_points_per_day_quantile(unix_time_factor_data)
+cumulative_factor_returns = (1 + factor_returns_data).cumprod()
 total_return = cumulative_factor_returns.iloc[-1].values[0]
-logger.info(f'Total return on {ai_alpha_name} is {total_return}')
+logger.info(f'Total return on {ai_alpha.name} is {total_return}')
 
 plt.show()
-
-ai_alpha = factors_with_alpha[ai_alpha_name].copy()
-alpha_vector = ai_alpha.reset_index().pivot(index='Date', columns='Symbols', values=ai_alpha_name)
 
 # TODO: Save Factors
 # TODO: Create Configuration for factors_to_use for model training features

@@ -78,17 +78,6 @@ class TestAlphaFactorsHelper(unittest.TestCase):
         factors_to_use = afh.identify_factors_to_use(self.factors_df, self.price_histories)
         self.assertTrue(len(factors_to_use) > 0)
 
-    def test_get_factors_to_use(self):
-        factors_to_use_path = Path('test_data/factors_to_use.pickle')
-        factors_to_use_path.unlink(missing_ok=True)
-        factors_to_use = afh.get_factors_to_use(self.factors_df, self.price_histories, 0.5,
-                                                factors_to_use_path, reload=True)
-        self.assertTrue(factors_to_use_path.exists())
-        factors_to_use_reloaded = afh.get_factors_to_use(self.factors_df,
-                                                         self.price_histories, 0.5, factors_to_use_path, reload=False)
-        self.assertEquals(factors_to_use, factors_to_use_reloaded)
-        factors_to_use_path.unlink(missing_ok=True)
-
     def test_train_ai_alpha_model(self):
         model = afh.train_ai_alpha_model(self.factors_df, self.price_histories, n_trees=10)
         self.assertIsNotNone(model)

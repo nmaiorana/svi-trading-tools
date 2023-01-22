@@ -288,9 +288,6 @@ def evaluate_alpha(data, pricing):
     # Show Results
     print('             Sharpe Ratios')
     print(factors_sharpe_ratio.round(2))
-    plot_factor_returns(factor_returns_data)
-    plot_factor_rank_autocorrelation(clean_factor_data)
-    plot_basis_points_per_day_quantile(unix_time_factor_data)
     return factor_returns_data, clean_factor_data, unix_time_factor_data
 
 

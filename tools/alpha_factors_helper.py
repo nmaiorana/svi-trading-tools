@@ -19,7 +19,8 @@ def eval_factor(factor_data: pd.Series,
                 price_histories: pd.DataFrame,
                 min_sharpe_ratio=0.5) -> bool:
     logger = logging.getLogger('AlphaFactorsHelper.eval_factor')
-    logger.info(f'Evaluate factor {factor_data.name}({len(factor_data)}) with a minimum Sharpe Ratio of {min_sharpe_ratio}...')
+    logger.info(
+        f'Evaluate factor {factor_data.name}({len(factor_data)}) with a minimum Sharpe Ratio of {min_sharpe_ratio}...')
 
     try:
         clean_factor_data, unix_time_factor_data = alpha_factors.prepare_alpha_lens_factor_data(
@@ -37,25 +38,6 @@ def eval_factor(factor_data: pd.Series,
 
     logger.info(f'FACTOR_EVAL|{factor_data.name}|{min_sharpe_ratio}|{sharpe_ratio}|ACCEPTED')
     return True
-
-
-def get_factors_to_use(factors_df: pd.DataFrame, price_histories: pd.DataFrame,
-                       min_sharpe_ratio, storage_path: Path, reload: bool = False) -> list:
-    logger = logging.getLogger('AlphaFactorsHelper.get_factors_to_use')
-    if storage_path is not None and storage_path.exists():
-        logger.info(f'FACTORS_TO_USE_FILE|EXISTS|{storage_path}')
-        if not reload:
-            logger.info(f'FACTORS_TO_USE_FILE|RELOAD|{reload}')
-            return pickle.load(open(storage_path, 'rb'))
-
-    factors_to_use = identify_factors_to_use(factors_df, price_histories, min_sharpe_ratio)
-    if storage_path is None:
-        logger.info(f'FACTORS_TO_USE_FILE|NOT_SAVED')
-    else:
-        logger.info(f'FACTORS_TO_USE_FILE|SAVED|{storage_path}')
-        with open(storage_path, 'wb') as f:
-            pickle.dump(factors_to_use, f, pickle.HIGHEST_PROTOCOL)
-    return factors_to_use
 
 
 def identify_factors_to_use(factors_df: pd.DataFrame, price_histories: pd.DataFrame, min_sharpe_ratio=0.5) -> list:
@@ -169,7 +151,9 @@ def generate_ai_alpha(price_histories: pd.DataFrame,
     return ai_alpha_model, factors_with_alpha
 
 
-def get_ai_alpha_model(alpha_factors_df: pd.DataFrame, price_histories: pd.DataFrame,
+def get_ai_alpha_model(alpha_factors_df: pd.DataFrame,
+                       price_histories: pd.DataFrame,
+                       min_sharpe_ratio: float = 0.85,
                        forward_prediction_days: int = 5,
                        target_quantiles: int = 2,
                        n_trees: int = 50,
@@ -184,6 +168,7 @@ def get_ai_alpha_model(alpha_factors_df: pd.DataFrame, price_histories: pd.DataF
 
     ai_alpha_model = train_ai_alpha_model(alpha_factors_df,
                                           price_histories,
+                                          min_sharpe_ratio,
                                           forward_prediction_days,
                                           target_quantiles,
                                           n_trees)
@@ -198,6 +183,7 @@ def get_ai_alpha_model(alpha_factors_df: pd.DataFrame, price_histories: pd.DataF
 
 def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
                          price_histories: pd.DataFrame,
+                         min_sharpe_ratio: float = 0.85,
                          forward_prediction_days: int = 5,
                          target_quantiles: int = 2,
                          n_trees: int = 50) -> NoOverlapVoter:
@@ -219,14 +205,13 @@ def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
     prod_target_source = f'{forward_prediction_days}Day{target_quantiles}Quant'
     logger.info(
         f'Setting {forward_prediction_days} days-{target_quantiles} quantiles to target {prod_target_source}')
-
     logger.info(f'Factors from date: {alpha_factors_df.index.get_level_values("Date").min()}' +
                 f'to date: {alpha_factors_df.index.get_level_values("Date").max()}')
-    features = alpha_factors_df.columns.tolist()
 
+    features = identify_factors_to_use(alpha_factors_df, price_histories, min_sharpe_ratio)
     training_factors = pd.concat(
         [
-            alpha_factors_df,
+            alpha_factors_df[features],
             alpha_factors.FactorReturnQuantiles(
                 price_histories, target_quantiles, forward_prediction_days).for_al(prod_target_source),
         ], axis=1).dropna()
@@ -266,3 +251,32 @@ def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
 
     logger.info(f'CLASSIFIER|TRAIN_SCORE|{clf_nov.score(X, y.values)}|OOB_SCORE|{clf_nov.oob_score_}')
     return clf_nov
+
+
+def get_ai_alpha_vector(alpha_factors_df: pd.DataFrame,
+                        ai_alpha_model: NoOverlapVoter,
+                        ai_alpha_name: str = 'AI_ALPHA',
+                        storage_path: Path = None,
+                        reload: bool = False):
+    logger = logging.getLogger('AlphaFactorsHelper.get_ai_alpha_vector')
+    logger.info(f'Generating AI Alpha Score...')
+    if storage_path is not None and storage_path.exists():
+        logger.info(f'AI_ALPHA_VECTOR_FILE|EXISTS|{storage_path}')
+        if not reload:
+            logger.info(f'AI_ALPHA_VECTOR_FILE|RELOAD|{reload}')
+            return pd.read_csv(storage_path, parse_dates=['Date']).set_index(['Date']).sort_index()
+
+    factors_with_alpha = alpha_factors.add_alpha_score(alpha_factors_df[ai_alpha_model.feature_names_in_],
+                                                       ai_alpha_model,
+                                                       ai_alpha_name)
+    alpha_vectors = factors_with_alpha[ai_alpha_name].copy() \
+        .reset_index().pivot(index='Date', columns='Symbols', values=ai_alpha_name)
+
+    if storage_path is None:
+        logger.info(f'AI_ALPHA_VECTOR_FILE|NOT_SAVED')
+    else:
+        logger.info(f'AI_ALPHA_VECTOR_FILE|SAVED|{storage_path}')
+        alpha_vectors.to_csv(storage_path)
+
+    logger.info(f'Done Generating AI Alpha.')
+    return alpha_vectors
