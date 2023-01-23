@@ -5,11 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/_old_ameritrade_processes/portfolio_ira_buy_and_sell.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/_old_ameritrade_processes/portfolio_ira_buy_and_sell.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai_alpha_model_evaluation/config/ai_alpha_config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/ai_alpha_model_evaluation/config/ai_alpha_config.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_and_select_alpha_factors.py" beforeDir="false" afterPath="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_and_select_alpha_factors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_backtest.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/ai_alpha_model_evaluation/generate_backtest.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/portfolio-ind/portfolio_workflow_yahoo.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/portfolio-ind/portfolio_workflow_yahoo.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -232,7 +229,7 @@
       <workItem from="1671213065612" duration="2091000" />
       <workItem from="1672427866438" duration="14112000" />
       <workItem from="1672690043928" duration="4148000" />
-      <workItem from="1673625782503" duration="143277000" />
+      <workItem from="1673625782503" duration="144603000" />
     </task>
     <task id="LOCAL-00001" summary="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <created>1653248026830</created>
