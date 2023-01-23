@@ -16,6 +16,7 @@ import pickle
 import tools.price_histories_helper as phh
 import tools.trading_factors_yahoo as alpha_factors
 import tools.alpha_factors_helper as afh
+import tools.backtesting_functions as btf
 import tools.configuration_helper as config_helper
 import tools.utils as utils
 import warnings
@@ -82,10 +83,16 @@ alpha_factors.plot_basis_points_per_day_quantile(unix_time_factor_data)
 plt.show()
 
 # Back testing phase
-
-alpha_vectors = ai_alpha_df.copy().reset_index().pivot(index='Date', columns='Symbols', values=ai_alpha_name)
-# if alpha_vectors needs to be read/stored:
-#   pd.read_csv(storage_path, parse_dates=['Date']).set_index(['Date']).sort_index()
-
 # TODO: Backtest
+
+alpha_vectors = btf.get_alpha_vectors(alpha_factors_df,
+                                      config_helper.get_alpha_vectors_path(alpha_config),
+                                      reload=False)
+daily_betas = btf.generate_beta_factors(price_histories,
+                                        config_helper.get_number_of_years_of_price_histories_int(alpha_config),
+                                        config_helper.get_daily_betas_path(alpha_config),
+                                        reload=False)
+
+
 # TODO: Evaluate and push to prod for use
+

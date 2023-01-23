@@ -24,6 +24,10 @@ def get_alpha_factors_path(configuration: SectionProxy) -> Path:
     return get_data_directory(configuration).joinpath(configuration[ALPHA_FACTORS_FILE_NAME])
 
 
+def get_number_of_years_of_price_histories_int(configuration: SectionProxy) -> str:
+    return int(configuration[YEARS_PRICE_HISTORIES])
+
+
 def get_number_of_years_of_price_histories(configuration: SectionProxy) -> str:
     return configuration[YEARS_PRICE_HISTORIES] + 'y'
 
