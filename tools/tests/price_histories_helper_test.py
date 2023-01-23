@@ -16,7 +16,7 @@ class PriceHistoriesHelperTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         config = configparser.ConfigParser()
-        config.read('test_config/config.ini')
+        config.read('test_config/ai_alpha_config.ini')
         cls.config = config['DEFAULT']
         cls.price_histories_path = Path(TEST_DATA_CSV)
 

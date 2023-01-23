@@ -57,6 +57,27 @@ def get_sector_helper(snp_500_stocks: pd.DataFrame, price_histories: pd.DataFram
     return sector_helper
 
 
+def save_alpha_factors(factors_df: pd.DataFrame, storage_path: Path = None):
+    logger = logging.getLogger('AlphaFactorsHelper.save_alpha_factors')
+    if storage_path is None:
+        logger.info(f'ALPHA_FACTORS_FILE|NOT_SAVED')
+        return
+
+    storage_path.parent.mkdir(parents=True, exist_ok=True)
+    if storage_path.suffix == 'parquet':
+        factors_df.to_parquet(storage_path)
+    else:
+        factors_df.to_csv(storage_path, index=True)
+    logger.info(f'ALPHA_FACTORS_FILE|SAVED|{storage_path}')
+
+
+def load_alpha_factors(storage_path: Path = None) -> pd.DataFrame:
+    if storage_path.suffix == 'parquet':
+        return pd.read_parquet(storage_path)
+    else:
+        return pd.read_csv(storage_path, parse_dates=['Date']).set_index(['Date', 'Symbols']).sort_index()
+
+
 def get_alpha_factors(price_histories: pd.DataFrame = None, sector_helper: dict = None, factors_array: list = None,
                       storage_path: Path = None, reload: bool = False):
     logger = logging.getLogger('AlphaFactorsHelper.get_alpha_factors')
@@ -64,14 +85,10 @@ def get_alpha_factors(price_histories: pd.DataFrame = None, sector_helper: dict 
         logger.info(f'ALPHA_FACTORS_FILE|EXISTS|{storage_path}')
         if not reload:
             logger.info(f'ALPHA_FACTORS_FILE|RELOAD|{reload}')
-            return pd.read_csv(storage_path, parse_dates=['Date']).set_index(['Date', 'Symbols']).sort_index()
+            return load_alpha_factors(storage_path)
 
     alpha_factors_df = generate_factors_df(price_histories, sector_helper, factors_array)
-    if storage_path is None:
-        logger.info(f'ALPHA_FACTORS_FILE|NOT_SAVED')
-    else:
-        logger.info(f'ALPHA_FACTORS_FILE|SAVED|{storage_path}')
-        alpha_factors_df.to_csv(storage_path)
+    save_alpha_factors(alpha_factors_df, storage_path)
     return alpha_factors_df
 
 
@@ -79,7 +96,7 @@ def generate_factors_df(price_histories: pd.DataFrame = None,
                         sector_helper: dict = None,
                         factors_array: list = None,
                         ) -> pd.DataFrame:
-    logger = logging.getLogger('AlphaFactorsHelper.scored_factors')
+    logger = logging.getLogger('AlphaFactorsHelper.generate_factors_df')
     if price_histories is not None and sector_helper is None:
         logger.error('You have to define sector_helper if using price_histories!' +
                      'Are you trying to pass factors_array? Use factors_array = array.')
@@ -88,6 +105,10 @@ def generate_factors_df(price_histories: pd.DataFrame = None,
     if factors_array is None:
         factors_array = default_factors(price_histories, sector_helper)
     factors_df = pd.concat(factors_array, axis=1)
+    factors_df.reset_index(inplace=True)
+    factors_df['Date'] = pd.to_datetime(factors_df['Date'])
+    factors_df.set_index(['Date', 'Symbols'], inplace=True)
+
     # Date Factors
     logger.info(f'Adding date parts...')
     alpha_factors.FactorDateParts(factors_df)
@@ -116,39 +137,6 @@ def default_factors(price_histories: pd.DataFrame, sector_helper: dict) -> list:
         alpha_factors.MarketVolatility(price_histories, 120).for_al()
     ]
     return factors_array
-
-
-def generate_ai_alpha(price_histories: pd.DataFrame,
-                      snp_500_stocks: pd.DataFrame,
-                      ai_alpha_name: str = 'AI_ALPHA',
-                      min_sharpe_ratio: float = 0.85,
-                      forward_prediction_days: int = 5,
-                      target_quantiles: int = 2,
-                      n_trees: int = 50,
-                      factors_array: list = None) -> (NoOverlapVoter, pd.DataFrame):
-    logger = logging.getLogger('AlphaFactorsHelper.ai_alpha')
-    logger.info(f'Generating AI Alpha...')
-    sector_helper = get_sector_helper(snp_500_stocks, price_histories)
-    alpha_factors_df = generate_factors_df(price_histories=price_histories,
-                                           sector_helper=sector_helper,
-                                           factors_array=factors_array)
-    logger.info(f'FACTOR_EVAL|MIN_SHARPE_RATIO|{min_sharpe_ratio}')
-    factors_to_use = identify_factors_to_use(alpha_factors_df, price_histories, min_sharpe_ratio)
-    for factor_name in factors_to_use:
-        logger.info(f'SELECTED_FACTOR|{factor_name}')
-    ai_alpha_model = train_ai_alpha_model(alpha_factors_df[factors_to_use],
-                                          price_histories,
-                                          forward_prediction_days,
-                                          target_quantiles,
-                                          n_trees)
-    logger.info(f'AIAlpha|ADD_AI_ALPHA|{ai_alpha_name}')
-    factors_with_alpha = alpha_factors.add_alpha_score(alpha_factors_df[factors_to_use].copy(),
-                                                       ai_alpha_model,
-                                                       ai_alpha_name)
-    logger.info(f'AIAlpha|GET_SCORE|{ai_alpha_name}')
-    eval_factor(factors_with_alpha[ai_alpha_name], price_histories)
-
-    return ai_alpha_model, factors_with_alpha
 
 
 def get_ai_alpha_model(alpha_factors_df: pd.DataFrame,
@@ -200,7 +188,7 @@ def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
     # This is something you want to experiment with. If you are planning on holding on to assets for long periods of
     # time, perhaps a 20, 40 or 60 forward prediction will work better.
 
-    logger = logging.getLogger('AlphaFactorsHelper.ai_alpha_model')
+    logger = logging.getLogger('AlphaFactorsHelper.train_ai_alpha_model')
     logger.info(f'Training ai alpha model')
     prod_target_source = f'{forward_prediction_days}Day{target_quantiles}Quant'
     logger.info(
@@ -253,30 +241,24 @@ def train_ai_alpha_model(alpha_factors_df: pd.DataFrame,
     return clf_nov
 
 
-def get_ai_alpha_vector(alpha_factors_df: pd.DataFrame,
+def get_ai_alpha_factor(alpha_factors_df: pd.DataFrame,
                         ai_alpha_model: NoOverlapVoter,
                         ai_alpha_name: str = 'AI_ALPHA',
                         storage_path: Path = None,
                         reload: bool = False):
-    logger = logging.getLogger('AlphaFactorsHelper.get_ai_alpha_vector')
+    logger = logging.getLogger('AlphaFactorsHelper.get_ai_alpha_factor')
     logger.info(f'Generating AI Alpha Score...')
     if storage_path is not None and storage_path.exists():
         logger.info(f'AI_ALPHA_VECTOR_FILE|EXISTS|{storage_path}')
         if not reload:
             logger.info(f'AI_ALPHA_VECTOR_FILE|RELOAD|{reload}')
+            return load_alpha_factors(storage_path)
             return pd.read_csv(storage_path, parse_dates=['Date']).set_index(['Date']).sort_index()
 
     factors_with_alpha = alpha_factors.add_alpha_score(alpha_factors_df[ai_alpha_model.feature_names_in_],
                                                        ai_alpha_model,
                                                        ai_alpha_name)
-    alpha_vectors = factors_with_alpha[ai_alpha_name].copy() \
-        .reset_index().pivot(index='Date', columns='Symbols', values=ai_alpha_name)
-
-    if storage_path is None:
-        logger.info(f'AI_ALPHA_VECTOR_FILE|NOT_SAVED')
-    else:
-        logger.info(f'AI_ALPHA_VECTOR_FILE|SAVED|{storage_path}')
-        alpha_vectors.to_csv(storage_path)
-
-    logger.info(f'Done Generating AI Alpha.')
-    return alpha_vectors
+    ai_alpha_factor_df = factors_with_alpha[ai_alpha_name].copy()
+    save_alpha_factors(ai_alpha_factor_df, storage_path)
+    logger.info(f'Done Generating AI Alpha ({len(ai_alpha_factor_df)}.')
+    return save_alpha_factors

@@ -32,7 +32,7 @@ logger.info(f'Python version: {python_version()}')
 logger.info(f'Pandas version: {pd.__version__}')
 
 config = configparser.ConfigParser()
-config.read('../config/config.ini')
+config.read('../config/ai_alpha_config.ini')
 default_config = config['AIAlpha']
 
 price_histories_file_name = default_config['DataDirectory'] + '/' + default_config['PriceHistoriesFileName']

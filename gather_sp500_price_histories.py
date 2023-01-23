@@ -6,7 +6,7 @@ import tools.price_histories_helper as phh
 logging.config.fileConfig('./config/logging.ini')
 logger = logging.getLogger('get_sp500_price_histories')
 config = configparser.ConfigParser()
-config.read('./config/config.ini')
+config.read('./config/ai_alpha_config.ini')
 default_config = config["DEFAULT"]
 
 logger.info(f'Getting stock histories for S&P 500')

@@ -8,7 +8,7 @@ import generate_alpha_beta_factors
 
 
 config = configparser.ConfigParser()
-config.read('./config/config.ini')
+config.read('./config/ai_alpha_config.ini')
 default_config = config['AIAlpha']
 
 generate_alpha_beta_factors.generate_alpha_beta_factors()

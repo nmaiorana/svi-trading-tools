@@ -28,6 +28,12 @@ class ConfigurationHelperTest(unittest.TestCase):
     def test_get_ai_alpha_path(self):
         self.assertIsInstance(config_helper.get_ai_alpha_path(self.config[DEFAULT]), Path)
 
+    def test_get_alpha_vectors_path(self):
+        self.assertIsInstance(config_helper.get_alpha_vectors_path(self.config[DEFAULT]), Path)
+
+    def test_get_daily_betas_path(self):
+        self.assertIsInstance(config_helper.get_daily_betas_path(self.config[DEFAULT]), Path)
+
     def test_get_ai_model_path(self):
         self.assertIsInstance(config_helper.get_ai_model_path(self.config[DEFAULT]), Path)
 

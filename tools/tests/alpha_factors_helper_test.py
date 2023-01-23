@@ -34,7 +34,7 @@ class TestAlphaFactorsHelper(unittest.TestCase):
         price_histories_path = Path('test_data/alpha_factors_test_data.parquet')
         cls.price_histories = phh.from_yahoo_finance(symbols=symbols,
                                                      period='1mo',
-                                                     storage_path=price_histories_path, reload=False)
+                                                     storage_path=price_histories_path, reload=True)
         cls.close = cls.price_histories.Close
         cls.sector_helper = alpha_factors.get_sector_helper(cls.snp_500_stocks, 'GICS Sector', cls.close.columns)
         cls.factors_array = default_test_factors(cls.price_histories)
@@ -42,6 +42,8 @@ class TestAlphaFactorsHelper(unittest.TestCase):
 
     def test_generate_factors_df(self):
         factors_df = afh.generate_factors_df(factors_array=self.factors_array)
+        self.assertIsInstance(factors_df.index, pd.MultiIndex)
+        self.assertIsInstance(factors_df.index.get_level_values(level='Date').to_list()[0], datetime)
         self.assertIsInstance(factors_df, pd.DataFrame)
         self.assertTrue(len(factors_df) > 0)
         for factor in self.factors_array:

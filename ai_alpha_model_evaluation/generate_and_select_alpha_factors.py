@@ -33,7 +33,7 @@ logger.info(f'Python version: {python_version()}')
 logger.info(f'Pandas version: {pd.__version__}')
 
 config = configparser.ConfigParser()
-config.read('../config/config.ini')
+config.read('./config/ai_alpha_config.ini')
 alpha_config = config["AIAlpha"]
 
 # These are the stocks to use
@@ -51,6 +51,8 @@ sector_helper = afh.get_sector_helper(snp_500_stocks, price_histories)
 # These are the alpha factors
 alpha_factors_df = afh.get_alpha_factors(price_histories, sector_helper,
                                          storage_path=config_helper.get_alpha_factors_path(alpha_config), reload=False)
+
+# Train a model to generate the AI Alpha
 ai_alpha_model = afh.get_ai_alpha_model(alpha_factors_df,
                                         price_histories,
                                         float(alpha_config['min_sharpe_ratio']),
@@ -60,26 +62,30 @@ ai_alpha_model = afh.get_ai_alpha_model(alpha_factors_df,
                                         storage_path=config_helper.get_ai_model_path(alpha_config),
                                         reload=False)
 
+# Create AI Alpha factors using the model and existing alpha factors
 ai_alpha_name = alpha_config['AIAlphaName']
-ai_alpha = afh.get_ai_alpha_vector(alpha_factors_df,
-                                   ai_alpha_model,
-                                   ai_alpha_name,
-                                   storage_path=config_helper.get_ai_alpha_path(alpha_config),
-                                   reload=False)
-factor_returns_data, clean_factor_data, unix_time_factor_data = alpha_factors.evaluate_alpha(ai_alpha,
+ai_alpha_df = afh.get_ai_alpha_factor(alpha_factors_df,
+                                      ai_alpha_model,
+                                      ai_alpha_name,
+                                      storage_path=config_helper.get_ai_alpha_path(alpha_config),
+                                      reload=False)
+
+# Make some plots
+# TODO: Checkout alphalense tear sheets examples
+factor_returns_data, clean_factor_data, unix_time_factor_data = alpha_factors.evaluate_alpha(ai_alpha_df,
                                                                                              price_histories.Close)
 alpha_factors.plot_factor_returns(factor_returns_data)
+plt.show()
 alpha_factors.plot_factor_rank_autocorrelation(clean_factor_data)
+plt.show()
 alpha_factors.plot_basis_points_per_day_quantile(unix_time_factor_data)
-cumulative_factor_returns = (1 + factor_returns_data).cumprod()
-total_return = cumulative_factor_returns.iloc[-1].values[0]
-logger.info(f'Total return on {ai_alpha.name} is {total_return}')
-
 plt.show()
 
-# TODO: Save Factors
-# TODO: Create Configuration for factors_to_use for model training features
-# TODO: Train model on factors_to_use
-# TODO: Score model
+# Back testing phase
+
+alpha_vectors = ai_alpha_df.copy().reset_index().pivot(index='Date', columns='Symbols', values=ai_alpha_name)
+# if alpha_vectors needs to be read/stored:
+#   pd.read_csv(storage_path, parse_dates=['Date']).set_index(['Date']).sort_index()
+
 # TODO: Backtest
 # TODO: Evaluate and push to prod for use

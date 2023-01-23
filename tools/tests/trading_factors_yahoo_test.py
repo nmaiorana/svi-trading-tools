@@ -7,6 +7,7 @@ import yfinance as yf
 from datetime import datetime
 import tools.trading_factors_yahoo as alpha_factors
 import tools.price_histories_helper as phh
+import tools.utils as utils
 import ssl
 
 # This is used to get s&p 500 data. Without it, we get cert errors
@@ -22,7 +23,7 @@ class TestFactorData(unittest.TestCase):
                                                   storage_path=Path('test_data/test_data.csv'),
                                                   start=start, end=end)
         cls.close = cls.test_data_df.Close
-        cls.snp_500_stocks = phh.load_snp500_symbols(Path('./test_data/snp500.csv'))
+        cls.snp_500_stocks = utils.get_snp500()
         cls.sector_helper = alpha_factors.get_sector_helper(cls.snp_500_stocks, 'GICS Sector', cls.close.columns)
 
     def test_init(self):

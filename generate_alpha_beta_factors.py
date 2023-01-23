@@ -20,7 +20,7 @@ def generate_alpha_beta_factors():
     logger.info(f'Pandas version: {pd.__version__}')
     logger.info(f'Pandas Data Reader version: {pdr.__version__}')
     config = configparser.ConfigParser()
-    config.read('./config/config.ini')
+    config.read('./config/ai_alpha_config.ini')
     default_config = config["DEFAULT"]
     alpha_config = config["Alpha"]
     price_histories_file_name = alpha_config["DataDirectory"] + '/' + alpha_config["PriceHistoriesFileName"]
