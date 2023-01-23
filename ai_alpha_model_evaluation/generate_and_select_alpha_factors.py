@@ -9,7 +9,7 @@ import os
 import pandas as pd
 import numpy as np
 import math
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 import tools.price_histories_helper as phh
@@ -146,6 +146,7 @@ for opt_date in tqdm(delayed_returns.index.to_list()[-252::daily_return_n_days_d
 port_return = round(np.sum(list(opt_date_returns.values())) * 100, 2)
 logger.info(f'OPT_PORT_RETURN|{port_return}%')
 pd.Series(opt_date_returns).cumsum().plot()
+plt.show()
 if port_return >= min_viable_port_return:
     logger.info(f'OPT|PROCEED|{port_return}%')
 else:
