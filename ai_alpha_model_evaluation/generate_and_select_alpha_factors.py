@@ -11,7 +11,6 @@ import numpy as np
 import math
 from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
-import pickle
 
 import tools.price_histories_helper as phh
 import tools.trading_factors_yahoo as alpha_factors
@@ -20,6 +19,8 @@ import tools.backtesting_functions as btf
 import tools.configuration_helper as config_helper
 import tools.utils as utils
 import warnings
+
+from portfolio_optimizer import OptimalHoldings
 
 warnings.filterwarnings('ignore')
 
@@ -36,6 +37,7 @@ logger.info(f'Pandas version: {pd.__version__}')
 config = configparser.ConfigParser()
 config.read('./config/ai_alpha_config.ini')
 alpha_config = config["AIAlpha"]
+backtesting_config = config["BackTest"]
 
 # These are the stocks to use
 snp_500_stocks = utils.get_snp500()
@@ -94,5 +96,60 @@ daily_betas = btf.generate_beta_factors(price_histories,
                                         reload=False)
 
 
-# TODO: Evaluate and push to prod for use
+def get_lambda(average_dollar_volume):
+    average_dollar_volume_cleaned = average_dollar_volume.replace(np.nan, 1.0e4)
+    average_dollar_volume_cleaned = average_dollar_volume_cleaned.replace(0.0, 1.0e4)
+    return 0.1 / average_dollar_volume_cleaned
 
+
+def get_total_transaction_costs(h0, h_star, total_cost_lambda):
+    return np.dot((h_star - h0) ** 2, total_cost_lambda)
+
+
+risk_cap = float(backtesting_config['risk_cap'])
+weights_max = float(backtesting_config['weights_max'])
+weights_min = float(backtesting_config['weights_min'])
+logger.info(f'OPTIMIZATION|risk_cap|{risk_cap}')
+logger.info(f'OPTIMIZATION|weights_max|{weights_max}')
+logger.info(f'OPTIMIZATION|weights_min|{weights_min}')
+
+returns = alpha_factors.FactorReturns(price_histories).factor_data
+adv = alpha_factors.AverageDollarVolume(price_histories, int(alpha_config['ForwardPredictionDays'])).factor_data
+daily_return_n_days_delay = int(alpha_config['ForwardPredictionDays'])
+delayed_returns = returns[-252:].shift(-daily_return_n_days_delay).dropna()
+start_date = list(delayed_returns.index)[0]
+end_date = list(delayed_returns.index)[-1]
+logger.info(f'OPT|{start_date}|{end_date}')
+tc_lambda = get_lambda(adv)
+
+current_holdings = pd.Series(np.zeros(len(delayed_returns.columns)), index=delayed_returns.columns)
+
+min_viable_port_return = float(backtesting_config['min_viable_port_return'])
+opt_date_returns = {}
+opt_date_tc = {}
+for opt_date in tqdm(delayed_returns.index.to_list()[-252::daily_return_n_days_delay], desc='Dates',
+                     unit=' Portfolio Optimization'):
+    alpha_vector = pd.DataFrame(alpha_vectors.loc[opt_date])
+    risk_model = daily_betas[opt_date.strftime('%m/%d/%Y')]
+    est_return = delayed_returns.loc[opt_date]
+    optimal_weights = OptimalHoldings(risk_cap=risk_cap, weights_max=weights_max,
+                                      weights_min=weights_min).find(alpha_vector,
+                                                                    risk_model.factor_betas_,
+                                                                    risk_model.factor_cov_matrix_,
+                                                                    risk_model.idiosyncratic_var_vector_)
+    new_holdings = optimal_weights['optimalWeights']
+    opt_date_returns[opt_date] = (new_holdings * est_return).sum()
+    # trading costs
+    opt_date_tc[opt_date] = get_total_transaction_costs(current_holdings, new_holdings, tc_lambda.loc[opt_date])
+    current_holdings = new_holdings
+
+port_return = round(np.sum(list(opt_date_returns.values())) * 100, 2)
+logger.info(f'OPT_PORT_RETURN|{port_return}%')
+pd.Series(opt_date_returns).cumsum().plot()
+if port_return >= min_viable_port_return:
+    logger.info(f'OPT|PROCEED|{port_return}%')
+else:
+    logger.warning(f'OPT|STOP|{port_return}')
+    raise RuntimeError(f'Backtest indicates this strategy needs more work! ({port_return})') from None
+
+# TODO: Evaluate and push to prod for use
