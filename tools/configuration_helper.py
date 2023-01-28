@@ -1,6 +1,10 @@
 from configparser import SectionProxy
 from pathlib import Path
 
+LONG_TERM_STOCKS = 'long_term_stocks'
+
+MASKED_ACCOUNT_NUMBER = 'masked_account_number'
+
 ACCOUNTS = 'Accounts'
 
 NUMBER_OF_RISK_EXPOSURES = 'NumberOfRiskExposures'
@@ -70,3 +74,11 @@ def get_number_of_risk_exposures(strategy_config: SectionProxy) -> int:
 
 def get_accounts(configuration: SectionProxy) -> list:
     return configuration[ACCOUNTS].split()
+
+
+def get_masked_account_number(account_config: SectionProxy) -> str:
+    return account_config.get(MASKED_ACCOUNT_NUMBER)
+
+
+def get_long_term_stocks(account_config: SectionProxy) -> list:
+    return account_config.get(LONG_TERM_STOCKS).split()

@@ -54,6 +54,14 @@ class ConfigurationHelperTest(unittest.TestCase):
     def test_get_accounts(self):
         self.assertIsInstance(config_helper.get_accounts(self.config[DEFAULT]), list)
 
+    def test_get_masked_account_number(self):
+        account = config_helper.get_accounts(self.config[DEFAULT])[0]
+        self.assertIsInstance(config_helper.get_masked_account_number(self.config[account]), str)
+
+    def test_get_long_term_stocks(self):
+        account = config_helper.get_accounts(self.config[DEFAULT])[0]
+        self.assertIsInstance(config_helper.get_long_term_stocks(self.config[account]), list)
+
 
 if __name__ == '__main__':
     unittest.main()

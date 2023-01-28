@@ -113,7 +113,9 @@ for strategy in evaluation_strategies:
                                                          data_path=config_helper.get_data_directory(
                                                              strategy_config), reload=False)
     optimal_holdings = optimal_holdings[(100 * optimal_holdings['optimalWeights']).round() > 5.0]
-    print(optimal_holdings)
+    for index, row in optimal_holdings.iterrows():
+        logger.info(f'STOCK|{index:20}|HOLDING|{row.optimalWeights:2f}')
+
     pd.Series(net_returns).cumsum().plot()
     plt.show()
     port_return = round(net_returns.sum() * 100, 2)
