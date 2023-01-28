@@ -164,6 +164,7 @@ def get_ai_alpha_model(alpha_factors_df: pd.DataFrame,
         logger.info(f'AI_ALPHA_MODEL_FILE|NOT_SAVED')
     else:
         logger.info(f'AI_ALPHA_MODEL_FILE|SAVED|{storage_path}')
+        storage_path.parent.mkdir(parents=True, exist_ok=True)
         with open(storage_path, 'wb') as f:
             pickle.dump(ai_alpha_model, f, pickle.HIGHEST_PROTOCOL)
     return ai_alpha_model
@@ -258,7 +259,7 @@ def get_ai_alpha_factor(alpha_factors_df: pd.DataFrame,
     factors_with_alpha = alpha_factors.add_alpha_score(alpha_factors_df[ai_alpha_model.feature_names_in_],
                                                        ai_alpha_model,
                                                        ai_alpha_name)
-    ai_alpha_factor_df = factors_with_alpha[ai_alpha_name].copy()
+    ai_alpha_factor_df = factors_with_alpha[ai_alpha_name].to_frame()
     save_alpha_factors(ai_alpha_factor_df, storage_path)
-    logger.info(f'Done Generating AI Alpha ({len(ai_alpha_factor_df)}.')
-    return save_alpha_factors
+    logger.info(f'Done Generating AI Alpha ({len(ai_alpha_factor_df)}).')
+    return ai_alpha_factor_df

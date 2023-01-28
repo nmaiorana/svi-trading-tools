@@ -279,15 +279,7 @@ def add_alpha_score(factor_data, classifier, ai_factor_name='AI_ALPHA'):
 # TODO: See if this is still needed. It would be nice to pot.
 def evaluate_alpha(data, pricing):
     clean_factor_data, unix_time_factor_data = prepare_alpha_lens_factor_data(data.copy(), pricing)
-    print('\n-----------------------\n')
-
-    # Calculate Factor Returns and Sharpe Ratio
     factor_returns_data = get_factor_returns(clean_factor_data)
-    factors_sharpe_ratio = compute_sharpe_ratio(factor_returns_data)
-
-    # Show Results
-    print('             Sharpe Ratios')
-    print(factors_sharpe_ratio.round(2))
     return factor_returns_data, clean_factor_data, unix_time_factor_data
 
 
@@ -404,7 +396,7 @@ def idiosyncratic_var_matrix(returns, factor_returns, factor_betas, ann_factor):
 
 
 class RiskModelPCA(object):
-    def __init__(self, returns, ann_factor, num_factor_exposures):
+    def __init__(self, returns: pd.DataFrame, ann_factor: int, num_factor_exposures: int):
         # Configure
         self.factor_names_ = list(range(0, num_factor_exposures))
         self.tickers_ = returns.columns.values
