@@ -82,3 +82,7 @@ def get_masked_account_number(account_config: SectionProxy) -> str:
 
 def get_long_term_stocks(account_config: SectionProxy) -> list:
     return account_config.get(LONG_TERM_STOCKS).split()
+
+
+def get_long_term_asset_types(account_config: SectionProxy) -> list:
+    return account_config.get('long_term_asset_types').split()

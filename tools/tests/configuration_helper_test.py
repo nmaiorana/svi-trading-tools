@@ -62,6 +62,10 @@ class ConfigurationHelperTest(unittest.TestCase):
         account = config_helper.get_accounts(self.config[DEFAULT])[0]
         self.assertIsInstance(config_helper.get_long_term_stocks(self.config[account]), list)
 
+    def test_get_long_term_asset_types(self):
+        account = config_helper.get_accounts(self.config[DEFAULT])[0]
+        self.assertIsInstance(config_helper.get_long_term_asset_types(self.config[account]), list)
+
 
 if __name__ == '__main__':
     unittest.main()
