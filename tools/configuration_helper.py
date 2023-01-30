@@ -1,18 +1,16 @@
 from configparser import SectionProxy
 from pathlib import Path
 
+LONG_TERM_ASSET_TYPES = 'long_term_asset_types'
+
+STRATEGY_CONFIG_FILENAME = 'StrategyConfigFileName'
+
 LONG_TERM_STOCKS = 'long_term_stocks'
-
 MASKED_ACCOUNT_NUMBER = 'masked_account_number'
-
 ACCOUNTS = 'Accounts'
-
 NUMBER_OF_RISK_EXPOSURES = 'NumberOfRiskExposures'
-
 NAME = 'name'
-
 FINAL_NAME = 'final_name'
-
 AI_ALPHA_FILE_NAME = 'AIAlphaFileName'
 MODEL_FILE_NAME = 'ModelFileName'
 FACTORS_TO_USE_FILE_NAME = 'FactorsToUseFileName'
@@ -85,4 +83,8 @@ def get_long_term_stocks(account_config: SectionProxy) -> list:
 
 
 def get_long_term_asset_types(account_config: SectionProxy) -> list:
-    return account_config.get('long_term_asset_types').split()
+    return account_config.get(LONG_TERM_ASSET_TYPES).split()
+
+
+def get_strategy_config_path(configuration: SectionProxy):
+    return get_strategy_path(configuration).joinpath(configuration.get(STRATEGY_CONFIG_FILENAME, 'config.ini'))

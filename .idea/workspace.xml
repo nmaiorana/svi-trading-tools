@@ -5,12 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
+      <change afterPath="$PROJECT_DIR$/data/weekly_low_risk_max15_final/config.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/liquidate_short_term_assets.py" beforeDir="false" afterPath="$PROJECT_DIR$/liquidate_short_term_assets.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/configuration_helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/configuration_helper.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/tests/configuration_helper_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tests/configuration_helper_test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/tests/test_config/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tests/test_config/config.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/trading_strategy_evaluation/config/ai_alpha_config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/trading_strategy_evaluation/config/ai_alpha_config.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/trading_strategy_evaluation/create_and_backtest_stock_selection_strategies.py" beforeDir="false" afterPath="$PROJECT_DIR$/trading_strategy_evaluation/create_and_backtest_stock_selection_strategies.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -91,7 +91,7 @@
       <recent name="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools\tools" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.liquidate_short_term_assets">
+  <component name="RunManager" selected="Python.create_and_backtest_stock_selection_strategies (2)">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -218,10 +218,10 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.liquidate_short_term_assets" />
-        <item itemvalue="Python tests.Python tests for configuration_helper_test.ConfigurationHelperTest" />
-        <item itemvalue="Python tests.Python tests for configuration_helper_test.ConfigurationHelperTest.test_get_daily_betas_path" />
         <item itemvalue="Python.create_and_backtest_stock_selection_strategies (2)" />
+        <item itemvalue="Python tests.Python tests for configuration_helper_test.ConfigurationHelperTest" />
+        <item itemvalue="Python.liquidate_short_term_assets" />
+        <item itemvalue="Python tests.Python tests for configuration_helper_test.ConfigurationHelperTest.test_get_daily_betas_path" />
         <item itemvalue="Python.create_and_backtest_stock_selection_strategies (1)" />
       </list>
     </recent_temporary>
@@ -247,7 +247,7 @@
       <workItem from="1671213065612" duration="2091000" />
       <workItem from="1672427866438" duration="14112000" />
       <workItem from="1672690043928" duration="4148000" />
-      <workItem from="1673625782503" duration="195095000" />
+      <workItem from="1673625782503" duration="204267000" />
     </task>
     <task id="LOCAL-00001" summary="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <created>1653248026830</created>
@@ -373,7 +373,7 @@
     <SUITE FILE_PATH="coverage/svi_trading_tools$generate_and_select_alpha_factors.coverage" NAME="generate_and_select_alpha_factors Coverage Results" MODIFIED="1674707904455" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ai_alpha_model_evaluation" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_ameritrade_functions_test_TestAuthenticated_setUpClass.coverage" NAME="Unittests for ameritrade_functions_test.TestAuthenticated.setUpClass Coverage Results" MODIFIED="1669689168153" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_tests_trading_factors_yahoo_test_TestFactorData_test_average_dollar_volume.coverage" NAME="Unittests for tests.trading_factors_yahoo_test.TestFactorData.test_average_dollar_volume Coverage Results" MODIFIED="1669579452540" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
-    <SUITE FILE_PATH="coverage/svi_trading_tools$.coverage" NAME=" Coverage Results" MODIFIED="1674954269357" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
+    <SUITE FILE_PATH="coverage/svi_trading_tools$.coverage" NAME=" Coverage Results" MODIFIED="1675028589958" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_ameritrade_functions_test_TestStockInformationFunctions_test_get_daily_price_history.coverage" NAME="Unittests for ameritrade_functions_test.TestStockInformationFunctions.test_get_daily_price_history Coverage Results" MODIFIED="1670716452973" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$liquidate_short_term_assets.coverage" NAME="liquidate_short_term_assets Coverage Results" MODIFIED="1674955893741" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_ameritrade_functions_test_TestAuthenticated_test_authentication.coverage" NAME="Unittests for ameritrade_functions_test.TestAuthenticated.test_authentication Coverage Results" MODIFIED="1670716191869" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
