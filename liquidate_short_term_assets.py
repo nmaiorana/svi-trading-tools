@@ -9,7 +9,8 @@ import tools.configuration_helper as config_helper
 import tools.ameritrade_functions as amc
 
 logging.config.fileConfig('./config/logging.ini')
-logger = logging.getLogger('LiquidateShortTermAssets')
+main_logger_name = 'LiquidateShortTermAssets'
+logger = logging.getLogger(main_logger_name)
 logger.info(f'Python version: {python_version()}')
 logger.info(f'Pandas version: {pd.__version__}')
 
@@ -21,7 +22,7 @@ td_ameritrade = amc.AmeritradeRest()
 accounts = config_helper.get_accounts(default_config)
 for account in accounts:
     td_ameritrade.refresh_data()
-    logger = logging.getLogger(f'{logger.name}.{account}')
+    logger = logging.getLogger(f'{main_logger_name}.{account}')
     logger.info(f'Processing account {account}...')
     account_config = config[account]
     masked_account_number = config_helper.get_masked_account_number(account_config)
@@ -54,9 +55,12 @@ for account in accounts:
 
         instruction = 'SELL'
         quantity = int(abs(row.longQuantity))
+        if quantity <= 0:
+            logger.warning(f'Trade for {symbol} is less than 0, skipping...')
+            continue
         ask_price = round(quotes_for_stocks.loc[symbol].regularMarketLastPrice, 2)
 
-        order = amc.create_limit_order(masked_account_number, symbol, 'EQUITY', quantity, instruction, 'NORMAL',
-                                       'DAY', ask_price)
+        order = amc.create_limit_order(masked_account_number,
+                                       symbol, 'EQUITY', quantity, instruction, 'NORMAL', 'DAY', ask_price)
         logger.info(f'ORDER|{order}')
-        # td_ameritrade.place_order(order)
+        td_ameritrade.place_order(order, saved=False)
