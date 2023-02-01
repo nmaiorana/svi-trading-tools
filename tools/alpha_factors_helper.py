@@ -139,6 +139,10 @@ def default_factors(price_histories: pd.DataFrame, sector_helper: dict) -> list:
     return factors_array
 
 
+def load_ai_alpha_model(storage_path):
+    return pickle.load(open(storage_path, 'rb'))
+
+
 def get_ai_alpha_model(alpha_factors_df: pd.DataFrame,
                        price_histories: pd.DataFrame,
                        min_sharpe_ratio: float = 0.85,
@@ -152,7 +156,7 @@ def get_ai_alpha_model(alpha_factors_df: pd.DataFrame,
         logger.info(f'AI_ALPHA_MODEL_FILE|EXISTS|{storage_path}')
         if not reload:
             logger.info(f'AI_ALPHA_MODEL_FILE|RELOAD|{reload}')
-            return pickle.load(open(storage_path, 'rb'))
+            return load_ai_alpha_model(storage_path)
 
     ai_alpha_model = train_ai_alpha_model(alpha_factors_df,
                                           price_histories,
@@ -254,7 +258,6 @@ def get_ai_alpha_factor(alpha_factors_df: pd.DataFrame,
         if not reload:
             logger.info(f'AI_ALPHA_VECTOR_FILE|RELOAD|{reload}')
             return load_alpha_factors(storage_path)
-            return pd.read_csv(storage_path, parse_dates=['Date']).set_index(['Date']).sort_index()
 
     factors_with_alpha = alpha_factors.add_alpha_score(alpha_factors_df[ai_alpha_model.feature_names_in_],
                                                        ai_alpha_model,
@@ -263,3 +266,4 @@ def get_ai_alpha_factor(alpha_factors_df: pd.DataFrame,
     save_alpha_factors(ai_alpha_factor_df, storage_path)
     logger.info(f'Done Generating AI Alpha ({len(ai_alpha_factor_df)}).')
     return ai_alpha_factor_df
+

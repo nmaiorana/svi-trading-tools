@@ -88,3 +88,7 @@ def get_long_term_asset_types(account_config: SectionProxy) -> list:
 
 def get_strategy_config_path(configuration: SectionProxy):
     return get_strategy_path(configuration).joinpath(configuration.get(STRATEGY_CONFIG_FILENAME, 'config.ini'))
+
+
+def get_implemented_strategy(account_config: SectionProxy):
+    return account_config.get('implemented_strategy')

@@ -69,6 +69,10 @@ class ConfigurationHelperTest(unittest.TestCase):
     def test_get_strategy_config_path(self):
         self.assertIsInstance(config_helper.get_strategy_config_path(self.config[STRATEGY]), Path)
 
+    def test_get_implemented_strategy(self):
+        account = config_helper.get_accounts(self.config[DEFAULT])[0]
+        self.assertIsInstance(config_helper.get_implemented_strategy(self.config[account]), str)
+
 
 if __name__ == '__main__':
     unittest.main()
