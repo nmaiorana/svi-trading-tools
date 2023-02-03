@@ -92,34 +92,36 @@ for strategy in implemented_strategies:
     logger.info(f'Updating strategy data: {final_strategy_path}')
 
     # Train a model to generate the AI Alpha
-    ai_alpha_model = afh.load_ai_alpha_model(storage_path=config_helper.get_ai_model_path(strategy_config))
+    ai_alpha_model = afh.load_ai_alpha_model(storage_path=config_helper.get_ai_model_final_path(strategy_config))
 
     # Create AI Alpha factors using the model and existing alpha factors
     ai_alpha_name = strategy_config['AIAlphaName']
     ai_alpha_df = afh.get_ai_alpha_factor(alpha_factors_df,
                                           ai_alpha_model,
                                           ai_alpha_name,
-                                          storage_path=config_helper.get_ai_alpha_path(strategy_config),
+                                          storage_path=config_helper.get_ai_alpha_final_path(strategy_config),
                                           reload=ai_alpha_factor_reload)
     alpha_vectors = btf.get_alpha_vectors(alpha_factors_df,
-                                          config_helper.get_alpha_vectors_path(strategy_config),
+                                          config_helper.get_alpha_vectors_final_path(strategy_config),
                                           reload=alpha_vectors_reload)
     daily_betas = btf.generate_beta_factors(price_histories,
-                                            config_helper.get_number_of_years_of_price_histories_int(strategy_config),
+                                            config_helper.get_number_of_years_of_price_histories_int(portfolio_config),
                                             config_helper.get_number_of_risk_exposures(strategy_config),
-                                            config_helper.get_daily_betas_path(strategy_config),
+                                            config_helper.get_daily_betas_final_path(strategy_config),
                                             reload=daily_betas_reload)
 
 for account in accounts:
     # portfolio adjustments
     account_config = config[account]
     implemented_strategy = config_helper.get_implemented_strategy(account_config)
+    logger = logging.getLogger(f'GenerateAndSelectAlphaFactors.{implemented_strategy}.adjustment')
+    logger.info(f'Adjusting portfolio: {account}')
     strategy_config = configparser.ConfigParser()
     strategy_config.read('./data/' + implemented_strategy + '/config.ini')
     strategy_config = config['DEFAULT']
     final_strategy_path = config_helper.get_final_strategy_path(strategy_config)
-    alpha_vectors = btf.load_alpha_vectors(config_helper.get_alpha_vectors_path(strategy_config))
-    daily_betas = btf.load_beta_factors(config_helper.get_daily_betas_path(strategy_config))
+    alpha_vectors = btf.load_alpha_vectors(config_helper.get_alpha_vectors_final_path(strategy_config))
+    daily_betas = btf.load_beta_factors(config_helper.get_daily_betas_final_path(strategy_config))
     min_viable_return = float(strategy_config['min_viable_port_return'])
     net_returns, optimal_holdings = btf.backtest_factors(price_histories,
                                                          alpha_vectors,

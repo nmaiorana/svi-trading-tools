@@ -1,5 +1,3 @@
-import math
-from datetime import datetime
 from platform import python_version
 import configparser
 import logging.config
@@ -30,7 +28,7 @@ for account in accounts:
     logger.info(f'MASKED_ACCOUNT_NUMBER|{masked_account_number}|VALUE|{total_portfolio_value}')
 
     for account_num, row in td_ameritrade.get_holdings(masked_account_number).iterrows():
-        logger.info(f'{account_num}|MARKET_VALUE|{row.marketValue}|QUANTITY|{row.longQuantity}')
+        logger.info(f'{account_num}|CURRENT_HOLDING|MARKET_VALUE|{row.marketValue}|QUANTITY|{row.longQuantity}')
 
     long_term_stocks = config_helper.get_long_term_stocks(account_config)
     logger.info(f'LONG_TERM_STOCKS|{long_term_stocks}')
@@ -42,8 +40,12 @@ for account in accounts:
     portfolio_fundamentals = td_ameritrade.get_fundamental(portfolio_stock_symbols)
     long_term_by_type = [fundamental[0] for fundamental in portfolio_fundamentals[['symbol', 'assetType']].values
                          if fundamental[1] in long_term_asset_types]
-    stocks_to_trade = [symbol for symbol in portfolio_stock_symbols if symbol not in (long_term_stocks + long_term_by_type)]
+    stocks_to_trade = [symbol for symbol in portfolio_stock_symbols
+                       if symbol not in (long_term_stocks + long_term_by_type)]
     logger.info(f'STOCKS_TO_TRADE|{stocks_to_trade}')
+    if len(stocks_to_trade) == 0:
+        logger.info('No assets to liquidate')
+        continue
     quotes_for_stocks = td_ameritrade.get_quotes(stocks_to_trade)
     for symbol, row in quotes_for_stocks.iterrows():
         logger.info(f'QUOTE|{symbol}|BID|{row.bidPrice}|ASK|{row.askPrice}|LAST|{row.regularMarketLastPrice}')

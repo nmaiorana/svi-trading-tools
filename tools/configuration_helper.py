@@ -46,6 +46,7 @@ def get_strategy_path(configuration: SectionProxy):
     return get_data_directory(configuration).joinpath(configuration[NAME])
 
 
+# TODO: Final version of all strategy paths
 def get_ai_model_path(configuration: SectionProxy):
     return get_strategy_path(configuration).joinpath(configuration[MODEL_FILE_NAME])
 
@@ -92,3 +93,19 @@ def get_strategy_config_path(configuration: SectionProxy):
 
 def get_implemented_strategy(account_config: SectionProxy):
     return account_config.get('implemented_strategy')
+
+
+def get_ai_model_final_path(strategy_config: SectionProxy):
+    return get_final_strategy_path(strategy_config).joinpath(strategy_config[MODEL_FILE_NAME])
+
+
+def get_ai_alpha_final_path(strategy_config: SectionProxy):
+    return get_final_strategy_path(strategy_config).joinpath(strategy_config[AI_ALPHA_FILE_NAME])
+
+
+def get_alpha_vectors_final_path(strategy_config: SectionProxy):
+    return get_final_strategy_path(strategy_config).joinpath(strategy_config[ALPHA_VECTORS_FILE_NAME])
+
+
+def get_daily_betas_final_path(strategy_config):
+    return get_final_strategy_path(strategy_config).joinpath(strategy_config[BETA_FACTORS_FILE_NAME])

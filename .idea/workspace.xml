@@ -5,12 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/liquidate_short_term_assets.py" beforeDir="false" afterPath="$PROJECT_DIR$/liquidate_short_term_assets.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/portfolio_holdings_adjustment.py" beforeDir="false" afterPath="$PROJECT_DIR$/portfolio_holdings_adjustment.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/alpha_factors_helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/alpha_factors_helper.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/configuration_helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/configuration_helper.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/tests/configuration_helper_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tests/configuration_helper_test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/tests/test_config/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tests/test_config/config.ini" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -91,7 +91,7 @@
       <recent name="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools\tools" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.portfolio_holdings_adjustment">
+  <component name="RunManager" selected="Python.liquidate_short_term_assets">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -106,25 +106,6 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="create_and_backtest_stock_selection_strategies (2)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="svi-trading-tools" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/trading_strategy_evaluation" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/trading_strategy_evaluation/create_and_backtest_stock_selection_strategies.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -186,7 +167,7 @@
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for configuration_helper_test.ConfigurationHelperTest.test_get_daily_betas_path" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for configuration_helper_test.ConfigurationHelperTest.test_get_long_term_asset_types" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -197,8 +178,23 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;configuration_helper_test.ConfigurationHelperTest.test_get_daily_betas_path&quot;" />
+      <option name="_new_target" value="&quot;configuration_helper_test.ConfigurationHelperTest.test_get_long_term_asset_types&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests in configuration_helper_test.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="svi-trading-tools" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tools/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/tools/tests/configuration_helper_test.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method v="2" />
     </configuration>
     <configuration name="Python tests in trading_factors_yahoo_test.py" type="tests" factoryName="Autodetect" nameIsGenerated="true">
@@ -218,11 +214,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.portfolio_holdings_adjustment" />
-        <item itemvalue="Python tests.Python tests for configuration_helper_test.ConfigurationHelperTest" />
         <item itemvalue="Python.liquidate_short_term_assets" />
-        <item itemvalue="Python.create_and_backtest_stock_selection_strategies (2)" />
-        <item itemvalue="Python tests.Python tests for configuration_helper_test.ConfigurationHelperTest.test_get_daily_betas_path" />
+        <item itemvalue="Python.portfolio_holdings_adjustment" />
+        <item itemvalue="Python tests.Python tests in configuration_helper_test.py" />
+        <item itemvalue="Python tests.Python tests for configuration_helper_test.ConfigurationHelperTest.test_get_long_term_asset_types" />
+        <item itemvalue="Python tests.Python tests for configuration_helper_test.ConfigurationHelperTest" />
       </list>
     </recent_temporary>
   </component>
@@ -247,7 +243,7 @@
       <workItem from="1671213065612" duration="2091000" />
       <workItem from="1672427866438" duration="14112000" />
       <workItem from="1672690043928" duration="4148000" />
-      <workItem from="1673625782503" duration="209902000" />
+      <workItem from="1673625782503" duration="215679000" />
     </task>
     <task id="LOCAL-00001" summary="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <created>1653248026830</created>
@@ -353,8 +349,18 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/liquidate_short_term_assets.py</url>
-          <line>44</line>
+          <line>42</line>
           <option name="timeStamp" value="82" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/portfolio_holdings_adjustment.py</url>
+          <line>116</line>
+          <option name="timeStamp" value="83" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/liquidate_short_term_assets.py</url>
+          <line>50</line>
+          <option name="timeStamp" value="84" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -373,9 +379,10 @@
     <SUITE FILE_PATH="coverage/svi_trading_tools$generate_and_select_alpha_factors.coverage" NAME="generate_and_select_alpha_factors Coverage Results" MODIFIED="1674707904455" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ai_alpha_model_evaluation" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_ameritrade_functions_test_TestAuthenticated_setUpClass.coverage" NAME="Unittests for ameritrade_functions_test.TestAuthenticated.setUpClass Coverage Results" MODIFIED="1669689168153" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_tests_trading_factors_yahoo_test_TestFactorData_test_average_dollar_volume.coverage" NAME="Unittests for tests.trading_factors_yahoo_test.TestFactorData.test_average_dollar_volume Coverage Results" MODIFIED="1669579452540" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
-    <SUITE FILE_PATH="coverage/svi_trading_tools$.coverage" NAME=" Coverage Results" MODIFIED="1675264598077" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
+    <SUITE FILE_PATH="coverage/svi_trading_tools$.coverage" NAME=" Coverage Results" MODIFIED="1675441180028" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
+    <SUITE FILE_PATH="coverage/svi_trading_tools$portfolio_holdings_adjustment.coverage" NAME="portfolio_holdings_adjustment Coverage Results" MODIFIED="1675448581753" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_ameritrade_functions_test_TestStockInformationFunctions_test_get_daily_price_history.coverage" NAME="Unittests for ameritrade_functions_test.TestStockInformationFunctions.test_get_daily_price_history Coverage Results" MODIFIED="1670716452973" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
-    <SUITE FILE_PATH="coverage/svi_trading_tools$liquidate_short_term_assets.coverage" NAME="liquidate_short_term_assets Coverage Results" MODIFIED="1674955893741" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/svi_trading_tools$liquidate_short_term_assets.coverage" NAME="liquidate_short_term_assets Coverage Results" MODIFIED="1675450356897" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$Unittests_for_ameritrade_functions_test_TestAuthenticated_test_authentication.coverage" NAME="Unittests for ameritrade_functions_test.TestAuthenticated.test_authentication Coverage Results" MODIFIED="1670716191869" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools/tests" />
     <SUITE FILE_PATH="coverage/svi_trading_tools$price_histories_helper.coverage" NAME="price_histories_helper Coverage Results" MODIFIED="1673826117767" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tools" />
   </component>

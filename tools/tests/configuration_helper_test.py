@@ -73,6 +73,18 @@ class ConfigurationHelperTest(unittest.TestCase):
         account = config_helper.get_accounts(self.config[DEFAULT])[0]
         self.assertIsInstance(config_helper.get_implemented_strategy(self.config[account]), str)
 
+    def test_get_ai_model_final_path(self):
+        self.assertIsInstance(config_helper.get_ai_model_final_path(self.config[STRATEGY]), Path)
+
+    def test_get_ai_alpha_final_path(self):
+        self.assertIsInstance(config_helper.get_ai_alpha_final_path(self.config[STRATEGY]), Path)
+
+    def test_get_alpha_vectors_final_path(self):
+        self.assertIsInstance(config_helper.get_alpha_vectors_final_path(self.config[STRATEGY]), Path)
+
+    def test_get_daily_betas_final_path(self):
+        self.assertIsInstance(config_helper.get_daily_betas_final_path(self.config[STRATEGY]), Path)
+
 
 if __name__ == '__main__':
     unittest.main()
