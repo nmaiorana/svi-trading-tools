@@ -130,22 +130,24 @@ for strategy in evaluation_strategies:
                                             config_helper.get_daily_betas_path(strategy_config),
                                             reload=daily_betas_reload)
     min_viable_return = float(strategy_config['min_viable_port_return'])
-    net_returns, optimal_holdings_df = btf.backtest_factors(price_histories,
-                                                            alpha_vectors,
-                                                            daily_betas,
-                                                            int(strategy_config['ForwardPredictionDays']),
-                                                            backtest_days=int(126),
-                                                            risk_cap=float(strategy_config['risk_cap']),
-                                                            weights_max=float(strategy_config['weights_max']),
-                                                            weights_min=float(strategy_config['weights_min']))
-    optimal_holdings = optimal_holdings_df.iloc[-1].round(2)
+    returns, holdings, costs = btf.backtest_factors(price_histories,
+                                                    alpha_vectors,
+                                                    daily_betas,
+                                                    int(strategy_config['ForwardPredictionDays']),
+                                                    backtest_days=int(126),
+                                                    risk_cap=float(strategy_config['risk_cap']),
+                                                    weights_max=float(strategy_config['weights_max']),
+                                                    weights_min=float(strategy_config['weights_min']))
+    optimal_holdings = holdings.iloc[-1].round(2)
     optimal_holdings = optimal_holdings[optimal_holdings > 0.05]
     for index, value in optimal_holdings.items():
         logger.info(f'STOCK|{index:20}|HOLDING|{value:2f}')
 
-    net_returns.cumsum().plot(title=strategy + ' Backtest Returns')
+    returns.cumsum().plot(title=strategy + ' Backtest Returns')
     plt.show()
-    port_return = round(net_returns.sum() * 100, 2)
+    costs.cumsum().plot(title=strategy + ' Trading Costs')
+    plt.show()
+    port_return = round(returns.sum() * 100, 2)
     logger.info(f'OPT_PORT_RETURN|{port_return}%')
     if port_return >= min_viable_return:
         logger.info(f'OPT|PROCEED|{port_return}% >= {min_viable_return}%')

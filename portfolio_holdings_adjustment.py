@@ -1,5 +1,6 @@
 import logging.config
 import configparser
+import math
 from platform import python_version
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,6 +10,7 @@ import tools.alpha_factors_helper as afh
 import tools.backtesting_functions as btf
 import tools.configuration_helper as config_helper
 import tools.utils as utils
+import tools.ameritrade_functions as amc
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -104,10 +106,11 @@ for strategy in implemented_strategies:
                                             config_helper.get_number_of_risk_exposures(strategy_config),
                                             config_helper.get_daily_betas_final_path(strategy_config),
                                             reload=daily_betas_reload)
-
+td_ameritrade = amc.AmeritradeRest()
 for account in accounts:
     # portfolio adjustments
     account_config = config[account]
+    min_shares_to_buy = account_config.getint('MinSharesToBuy')
     implemented_strategy = config_helper.get_implemented_strategy(account_config)
     logger = logging.getLogger(f'GenerateAndSelectAlphaFactors.{implemented_strategy}.adjustment')
     logger.info(f'Adjusting portfolio: {account}')
@@ -127,8 +130,44 @@ for account in accounts:
                                                        weights_min=strategy_config.getfloat('weights_min'))
 
     optimal_holdings = optimal_holdings_df.iloc[-1].round(2)
+    optimal_holdings.name = 'optimalWeights'
     optimal_holdings = optimal_holdings[optimal_holdings > 0.05]
     for index, value in optimal_holdings.items():
         logger.info(f'STOCK|{index:20}|HOLDING|{value:2f}')
-
+    for index, row in td_ameritrade.get_quotes(list(optimal_holdings.index.to_list())).iterrows():
+        logger.info(f'QUOTES|{row.symbol}|{row.assetMainType}|CUSIP|{row.cusip}|' +
+                    f'BID/ASK|{row.bidPrice}/{row.askPrice}|CHANGE|{row.regularMarketNetChange}' +
+                    f'|{row.description}')
+    td_ameritrade.refresh_data()
+    masked_account_number = config_helper.get_masked_account_number(account_config)
+    current_cash_balance = td_ameritrade.parse_accounts().loc[masked_account_number].currentBalances_cashBalance
+    cash_equivalents_balance = td_ameritrade.get_account_portfolio_data(masked_account_number,
+                                                                        'CASH_EQUIVALENT').marketValue.sum()
+    total_amount_available = current_cash_balance + cash_equivalents_balance
+    investment_base = 1000
+    investment_amount = math.floor(total_amount_available / investment_base) * investment_base
+    logger.info(f'ACCOUNT|{masked_account_number}|CASH_VALUE|{current_cash_balance}|' +
+                f'CASH_EQUIV|{cash_equivalents_balance}|' +
+                f'AVAILABLE|{total_amount_available}|' +
+                f'USING|{investment_amount}')
     # TODO: Make stock trades
+    trade_configurations_df = optimal_holdings.to_frame()
+    trade_configurations_df['Amount'] = (trade_configurations_df.optimalWeights * investment_amount).round(0)
+    quotes_df = td_ameritrade.get_quotes(list(trade_configurations_df.index.to_list()))[
+        ['assetType', 'bidPrice', 'askPrice', 'regularMarketLastPrice']]
+    trade_configurations_df = pd.concat([trade_configurations_df, quotes_df], axis=1)
+    trade_configurations_df['Quantity'] = (
+                trade_configurations_df.Amount / trade_configurations_df.regularMarketLastPrice).round(0)
+    for symbol, row in trade_configurations_df.iterrows():
+
+        instruction = 'BUY'
+        quantity = int(abs(row.Quantity))
+        if quantity <= min_shares_to_buy:
+            logger.warning(f'Trade for {symbol} is less than {min_shares_to_buy}, skipping...')
+            continue
+        ask_price = round(row.regularMarketLastPrice, 2)
+
+        order = amc.create_limit_order(masked_account_number,
+                                       symbol, 'EQUITY', quantity, instruction, 'NORMAL', 'DAY', ask_price)
+        logger.info(f'ORDER|{order}')
+        td_ameritrade.place_order(order, saved=True)

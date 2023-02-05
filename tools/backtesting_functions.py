@@ -108,9 +108,11 @@ def backtest_factors(price_histories: pd.DataFrame,
                      risk_cap: float = 0.05,
                      weights_max: float = 0.10,
                      weights_min: float = 0.0,
-                     ) -> (pd.Series, pd.DataFrame):
+                     ) -> (pd.Series, pd.DataFrame, pd.Series):
     logger = logging.getLogger('BacktestingFunctions.backtest_factors')
     logger.info('Running backtest...')
+    logger.info(f'PREDICTING_FORWARD|{forward_prediction_days}')
+    logger.info(f'BACKTESTING_DAYS|{backtest_days}')
     returns = alpha_factors.FactorReturns(price_histories).factor_data
     delayed_returns = returns[-backtest_days:].shift(-forward_prediction_days).dropna()
     opt_dates = delayed_returns.index.to_list()
@@ -120,22 +122,26 @@ def backtest_factors(price_histories: pd.DataFrame,
                                                    risk_cap,
                                                    weights_max,
                                                    weights_min)
-
     adv = alpha_factors.AverageDollarVolume(price_histories, forward_prediction_days).factor_data
     tc_lambda = get_lambda(adv)
     current_holdings = pd.Series(np.zeros(len(delayed_returns.columns)), index=delayed_returns.columns)
     estimated_returns_by_date = {}
+    trading_costs_by_date = {}
     for key, est_return in tqdm(delayed_returns.iterrows(), desc='Optimal Holdings', unit=' Date'):
         optimal_holdings = optimal_holdings_df.loc[key]
         returns_from_holdings = (optimal_holdings * est_return).sum()
         trading_costs = get_total_transaction_costs(current_holdings, optimal_holdings, tc_lambda.loc[key])
-        estimated_returns_by_date[key] = returns_from_holdings + trading_costs
+        estimated_returns_by_date[key] = returns_from_holdings
+        trading_costs_by_date[key] = trading_costs
         current_holdings = optimal_holdings
 
     estimated_returns_by_date_se = pd.Series(estimated_returns_by_date.values(),
                                              index=estimated_returns_by_date.keys(),
                                              name='Returns')
-    return estimated_returns_by_date_se, optimal_holdings_df
+    trading_costs_by_date_se = pd.Series(trading_costs_by_date.values(),
+                                         index=trading_costs_by_date.keys(),
+                                         name="Trading_Costs")
+    return estimated_returns_by_date_se, optimal_holdings_df, trading_costs_by_date_se
 
 
 def predict_optimal_holdings(alpha_vectors: pd.DataFrame,

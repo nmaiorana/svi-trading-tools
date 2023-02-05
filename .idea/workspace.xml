@@ -6,9 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/portfolio_holdings_adjustment.py" beforeDir="false" afterPath="$PROJECT_DIR$/portfolio_holdings_adjustment.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tools/backtesting_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/backtesting_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/tests/backtesting_functions_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/tests/backtesting_functions_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/trading_strategy_evaluation/config/ai_alpha_config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/trading_strategy_evaluation/config/ai_alpha_config.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/trading_strategy_evaluation/create_and_backtest_stock_selection_strategies.py" beforeDir="false" afterPath="$PROJECT_DIR$/trading_strategy_evaluation/create_and_backtest_stock_selection_strategies.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -242,7 +244,7 @@
       <workItem from="1672427866438" duration="14112000" />
       <workItem from="1672690043928" duration="4148000" />
       <workItem from="1673625782503" duration="237690000" />
-      <workItem from="1675563392138" duration="5339000" />
+      <workItem from="1675563392138" duration="13926000" />
     </task>
     <task id="LOCAL-00001" summary="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <created>1653248026830</created>
@@ -348,12 +350,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/portfolio_holdings_adjustment.py</url>
-          <line>128</line>
+          <line>131</line>
           <option name="timeStamp" value="92" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/tools/backtesting_functions.py</url>
-          <line>129</line>
+          <line>131</line>
           <option name="timeStamp" value="93" />
         </line-breakpoint>
       </breakpoints>
