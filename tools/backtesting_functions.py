@@ -85,7 +85,7 @@ def generate_beta_factors(price_histories: pd.DataFrame, number_of_years: int = 
         start_of_returns = beta_date - pd.offsets.DateOffset(years=1)
         beta_returns = returns.loc[start_of_returns:beta_date]
         risk_model = alpha_factors.RiskModelPCA(beta_returns, 1, num_exposures)
-        daily_betas[beta_date.strftime('%m/%d/%Y')] = risk_model
+        daily_betas[beta_date] = risk_model
     save_beta_factors(daily_betas, storage_path)
     return daily_betas
 
@@ -105,43 +105,60 @@ def backtest_factors(price_histories: pd.DataFrame,
                      daily_betas: dict,
                      forward_prediction_days: int = 5,
                      backtest_days: int = 10,
-                     min_viable_return: float = 0.08,
                      risk_cap: float = 0.05,
                      weights_max: float = 0.10,
                      weights_min: float = 0.0,
-                     data_path: Path = None,
-                     reload: bool = False
-                     ) -> (pd.Series, pd.Series):
+                     ) -> (pd.Series, pd.DataFrame):
     logger = logging.getLogger('BacktestingFunctions.backtest_factors')
-    logger.info(f'OPTIMIZATION|risk_cap|{risk_cap}')
-    logger.info(f'OPTIMIZATION|weights_max|{weights_max}')
-    logger.info(f'OPTIMIZATION|weights_min|{weights_min}')
+    logger.info('Running backtest...')
     returns = alpha_factors.FactorReturns(price_histories).factor_data
-    adv = alpha_factors.AverageDollarVolume(price_histories, forward_prediction_days).factor_data
     delayed_returns = returns[-backtest_days:].shift(-forward_prediction_days).dropna()
-    start_date = list(delayed_returns.index)[0]
-    end_date = list(delayed_returns.index)[-1]
-    logger.info(f'OPT|{start_date}|{end_date}')
+    opt_dates = delayed_returns.index.to_list()
+    optimal_holdings_df = predict_optimal_holdings(alpha_vectors,
+                                                   daily_betas,
+                                                   opt_dates,
+                                                   risk_cap,
+                                                   weights_max,
+                                                   weights_min)
+
+    adv = alpha_factors.AverageDollarVolume(price_histories, forward_prediction_days).factor_data
     tc_lambda = get_lambda(adv)
     current_holdings = pd.Series(np.zeros(len(delayed_returns.columns)), index=delayed_returns.columns)
-    opt_date_returns = {}
-    opt_date_tc = {}
-    for opt_date in tqdm(delayed_returns.index.to_list()[::forward_prediction_days], desc='Dates',
+    estimated_returns_by_date = {}
+    for key, est_return in tqdm(delayed_returns.iterrows(), desc='Optimal Holdings', unit=' Date'):
+        optimal_holdings = optimal_holdings_df.loc[key]
+        returns_from_holdings = (optimal_holdings * est_return).sum()
+        trading_costs = get_total_transaction_costs(current_holdings, optimal_holdings, tc_lambda.loc[key])
+        estimated_returns_by_date[key] = returns_from_holdings + trading_costs
+        current_holdings = optimal_holdings
+
+    estimated_returns_by_date_se = pd.Series(estimated_returns_by_date.values(),
+                                             index=estimated_returns_by_date.keys(),
+                                             name='Returns')
+    return estimated_returns_by_date_se, optimal_holdings_df
+
+
+def predict_optimal_holdings(alpha_vectors: pd.DataFrame,
+                             daily_betas: dict,
+                             opt_dates: list = None,
+                             risk_cap: float = 0.05,
+                             weights_max: float = 0.10,
+                             weights_min: float = 0.0,
+                             ) -> pd.DataFrame:
+    if opt_dates is None:
+        opt_dates = list(daily_betas.keys())
+    logger = logging.getLogger('BacktestingFunctions.predict_optimal_holdings')
+    logger.info(f'PARAMETERS|risk_cap|{risk_cap}|weights_max|{weights_max}|weights_min|{weights_min}')
+    logger.info(f'DATE_RANGE|{opt_dates[0]}|{opt_dates[-1]}')
+    holdings_dict = {}
+    for opt_date in tqdm(opt_dates, desc='Dates',
                          unit=' Portfolio Optimization'):
         alpha_vector = pd.DataFrame(alpha_vectors.loc[opt_date])
-        risk_model = daily_betas[opt_date.strftime('%m/%d/%Y')]
-        est_return = delayed_returns.loc[opt_date]
+        risk_model = daily_betas[opt_date]
         optimal_weights = OptimalHoldings(risk_cap=risk_cap, weights_max=weights_max,
                                           weights_min=weights_min).find(alpha_vector,
                                                                         risk_model.factor_betas_,
                                                                         risk_model.factor_cov_matrix_,
                                                                         risk_model.idiosyncratic_var_vector_)
-        new_holdings = optimal_weights['optimalWeights']
-        opt_date_returns[opt_date] = (new_holdings * est_return).sum()
-        # trading costs
-        opt_date_tc[opt_date] = get_total_transaction_costs(current_holdings, new_holdings, tc_lambda.loc[opt_date])
-        current_holdings = new_holdings
-    tc_ser = pd.Series(opt_date_tc)
-    re_ser = pd.Series(opt_date_returns)
-    net_returns = re_ser + tc_ser
-    return net_returns, optimal_weights
+        holdings_dict[pd.to_datetime(opt_date)] = optimal_weights['optimalWeights']
+    return pd.DataFrame.from_dict(holdings_dict, orient="index")

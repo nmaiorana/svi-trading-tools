@@ -12,7 +12,6 @@ import tools.configuration_helper as config_helper
 import tools.utils as utils
 import warnings
 
-
 warnings.filterwarnings('ignore')
 
 logging.config.fileConfig('../config/logging.ini')
@@ -41,7 +40,6 @@ alpha_vectors_reload = False
 daily_betas_reload = False
 backtest_factors_reload = False
 
-
 if not config_helper.get_price_histories_path(alpha_config).exists():
     alpha_factors_reload = True
     ai_alpha_model_reload = True
@@ -56,7 +54,6 @@ if not config_helper.get_alpha_factors_path(alpha_config).exists():
     alpha_vectors_reload = True
     daily_betas_reload = True
     backtest_factors_reload = True
-
 
 # This is the price histories for those stocks
 price_histories = phh.from_yahoo_finance(symbols=snp_500_stocks.index.to_list(),
@@ -133,21 +130,20 @@ for strategy in evaluation_strategies:
                                             config_helper.get_daily_betas_path(strategy_config),
                                             reload=daily_betas_reload)
     min_viable_return = float(strategy_config['min_viable_port_return'])
-    net_returns, optimal_holdings = btf.backtest_factors(price_histories,
-                                                         alpha_vectors,
-                                                         daily_betas,
-                                                         int(strategy_config['ForwardPredictionDays']),
-                                                         backtest_days=int(126),
-                                                         risk_cap=float(strategy_config['risk_cap']),
-                                                         weights_max=float(strategy_config['weights_max']),
-                                                         weights_min=float(strategy_config['weights_min']),
-                                                         data_path=eval_strategy_path,
-                                                         reload=backtest_factors_reload)
-    optimal_holdings = optimal_holdings[(100 * optimal_holdings['optimalWeights']).round() > 5.0]
-    for index, row in optimal_holdings.iterrows():
-        logger.info(f'STOCK|{index:20}|HOLDING|{row.optimalWeights:2f}')
+    net_returns, optimal_holdings_df = btf.backtest_factors(price_histories,
+                                                            alpha_vectors,
+                                                            daily_betas,
+                                                            int(strategy_config['ForwardPredictionDays']),
+                                                            backtest_days=int(126),
+                                                            risk_cap=float(strategy_config['risk_cap']),
+                                                            weights_max=float(strategy_config['weights_max']),
+                                                            weights_min=float(strategy_config['weights_min']))
+    optimal_holdings = optimal_holdings_df.iloc[-1].round(2)
+    optimal_holdings = optimal_holdings[optimal_holdings > 0.05]
+    for index, value in optimal_holdings.items():
+        logger.info(f'STOCK|{index:20}|HOLDING|{value:2f}')
 
-    pd.Series(net_returns).cumsum().plot(title=strategy+' Backtest Returns')
+    net_returns.cumsum().plot(title=strategy + ' Backtest Returns')
     plt.show()
     port_return = round(net_returns.sum() * 100, 2)
     logger.info(f'OPT_PORT_RETURN|{port_return}%')
