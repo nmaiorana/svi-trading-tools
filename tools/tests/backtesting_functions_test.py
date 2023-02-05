@@ -56,7 +56,7 @@ class BacktestingFunctions(unittest.TestCase):
         alpha_vectors = btf.load_alpha_vectors(self.alpha_vectors_path)
         daily_betas = btf.load_beta_factors(self.daily_betas_path)
         estimated_returns_by_date_ser, optimal_holdings_ser = btf.backtest_factors(self.price_histories,
-                                                                                 alpha_vectors, daily_betas, 1, 2)
+                                                                                   alpha_vectors, daily_betas, 1, 2)
         self.assertIsInstance(estimated_returns_by_date_ser, pd.Series)
         self.assertIsInstance(optimal_holdings_ser, pd.Series)
 

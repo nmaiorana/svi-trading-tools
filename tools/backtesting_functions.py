@@ -161,4 +161,4 @@ def predict_optimal_holdings(alpha_vectors: pd.DataFrame,
                                                                         risk_model.factor_cov_matrix_,
                                                                         risk_model.idiosyncratic_var_vector_)
         holdings_dict[pd.to_datetime(opt_date)] = optimal_weights['optimalWeights']
-    return pd.DataFrame.from_dict(holdings_dict, orient="index")
+    return pd.DataFrame.from_dict(holdings_dict, orient="index").round(2)
