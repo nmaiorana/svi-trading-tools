@@ -134,7 +134,7 @@ for strategy in evaluation_strategies:
                                                     alpha_vectors,
                                                     daily_betas,
                                                     int(strategy_config['ForwardPredictionDays']),
-                                                    backtest_days=int(126),
+                                                    backtest_days=int(90),
                                                     risk_cap=float(strategy_config['risk_cap']),
                                                     weights_max=float(strategy_config['weights_max']),
                                                     weights_min=float(strategy_config['weights_min']))

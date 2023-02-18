@@ -1,9 +1,9 @@
 # Silent Viper Investments (SVI) - Trading Tools
 
 # Purpose
-This repository was created from my journey through my lessons in [Udacity's](https://www.udacity.com) AI for Trading Nano Degree Program. It is a culmination of the insights I gather to perform stock analyis using Alhpa and Beta factors.
+This repository was created from my journey through my lessons in [Udacity's](https://www.udacity.com) AI for Trading Nano Degree Program. It is a culmination of the insights I gather to perform stock analysis using Alpha and Beta factors.
 
-The project will consist of some python modules and then example notebooks on how to apply these functions. The currnet source data for stock prices are retreived from [Yahoo Finance](https://finance.yahoo.com/).
+The project will consist of some python modules and then example notebooks on how to apply these functions. The current source data for stock prices are retrieved from [Yahoo Finance](https://finance.yahoo.com/).
 
 I have also tied this project to setting buy/sell orders using TD Ameritrade.  To do this you will need is to obtain a software key from [Ameritrade Developer](https://developer.tdameritrade.com/). If you want to analyze your own stock portfolios, and you have an Ameritrade account, then the library has an authentication method and funcitons to pull your data from Ameritrade.
 
@@ -28,10 +28,11 @@ This forced me to create my own Alpha factors toolset using Pandas. I think I di
   - Start with current portfolio stocks using "gather_stock_histories_yahoo" notebook to pull S&P 500 stock histories
   - This notebook also uses the latest sentiment analysis from [Finviz](https://finviz.com/) to reduce the stocks that have poor sentiment
   
-# Flow
+# General Flow
 ```mermaid
 stateDiagram-v2
-[*] --> gather_sp500_price_histories
+[*] --> Determin_Strategy_to_Use
+Determin_Strategy_to_Use --> Move_Stragegy_to_Datadirectory
 gather_sp500_price_histories --> price_histories_yahoo.csv
 price_histories_yahoo.csv --> generate_alpha_beta_factors
 generate_alpha_beta_factors --> all_factors.csv
@@ -48,7 +49,7 @@ daily_beta.pickle --> portfolio_XXX_adjust_holdings
 portfolio_XXX_adjust_holdings --> [*]
 ```
 
-## Training model
+## Model Evaluation
 ```mermaid
 sequenceDiagram
 participant gather_sp500_price_histories

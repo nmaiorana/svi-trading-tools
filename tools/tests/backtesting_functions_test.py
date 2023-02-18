@@ -35,7 +35,7 @@ class BacktestingFunctions(unittest.TestCase):
         self.assertIsNotNone(alpha_vectors_df['AAPL'])
         alpha_vectors_path = Path('test_data/backtest_ai_alpha_vector.parquet')
         alpha_vectors_path.unlink(missing_ok=True)
-        alpha_vectors_df = btf.get_alpha_vectors(self.ai_alpha_factors_df, alpha_vectors_path, reload=True)
+        alpha_vectors_df = btf.get_alpha_vectors(ai_alpha_factors_df, alpha_vectors_path, reload=True)
         self.assertTrue(alpha_vectors_path.exists())
         alpha_vectors_df_reloaded = btf.get_alpha_vectors(self.ai_alpha_factors_df, alpha_vectors_path, reload=False)
         self.assertEquals(alpha_vectors_df.shape, alpha_vectors_df_reloaded.shape)
@@ -48,17 +48,18 @@ class BacktestingFunctions(unittest.TestCase):
         alpha_vectors = btf.load_alpha_vectors(self.alpha_vectors_path)
         daily_betas = btf.load_beta_factors(self.daily_betas_path)
         opt_dates = list(daily_betas.keys())[-2:]
-        optimal_holdings_ser = btf.predict_optimal_holdings(alpha_vectors, daily_betas, opt_dates)
-        self.assertIsInstance(optimal_holdings_ser, pd.Series)
-        self.assertEquals('OptimalWeights', optimal_holdings_ser.name)
+        optimal_holdings_df = btf.predict_optimal_holdings(alpha_vectors, daily_betas, opt_dates)
+        self.assertIsInstance(optimal_holdings_df, pd.DataFrame)
 
     def test_backtest_factors(self):
         alpha_vectors = btf.load_alpha_vectors(self.alpha_vectors_path)
         daily_betas = btf.load_beta_factors(self.daily_betas_path)
-        estimated_returns_by_date_ser, optimal_holdings_ser = btf.backtest_factors(self.price_histories,
-                                                                                   alpha_vectors, daily_betas, 1, 2)
+        estimated_returns_by_date_ser, optimal_holdings_df, \
+            trading_costs_by_date_se = btf.backtest_factors(self.price_histories,
+                                                            alpha_vectors, daily_betas, 1, 2)
         self.assertIsInstance(estimated_returns_by_date_ser, pd.Series)
-        self.assertIsInstance(optimal_holdings_ser, pd.Series)
+        self.assertIsInstance(optimal_holdings_df, pd.DataFrame)
+        self.assertIsInstance(trading_costs_by_date_se, pd.Series)
 
 
 if __name__ == '__main__':

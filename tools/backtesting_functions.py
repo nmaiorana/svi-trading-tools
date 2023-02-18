@@ -118,7 +118,7 @@ def backtest_factors(price_histories: pd.DataFrame,
     opt_dates = delayed_returns.index.to_list()
     optimal_holdings_df = predict_optimal_holdings(alpha_vectors,
                                                    daily_betas,
-                                                   opt_dates,
+                                                   opt_dates[::forward_prediction_days],
                                                    risk_cap,
                                                    weights_max,
                                                    weights_min)
@@ -127,8 +127,8 @@ def backtest_factors(price_histories: pd.DataFrame,
     current_holdings = pd.Series(np.zeros(len(delayed_returns.columns)), index=delayed_returns.columns)
     estimated_returns_by_date = {}
     trading_costs_by_date = {}
-    for key, est_return in tqdm(delayed_returns.iterrows(), desc='Optimal Holdings', unit=' Date'):
-        optimal_holdings = optimal_holdings_df.loc[key]
+    for key, optimal_holdings in tqdm(optimal_holdings_df.iterrows(), desc='Optimal Holdings', unit=' Date'):
+        est_return = delayed_returns.loc[key]
         returns_from_holdings = (optimal_holdings * est_return).sum()
         trading_costs = get_total_transaction_costs(current_holdings, optimal_holdings, tc_lambda.loc[key])
         estimated_returns_by_date[key] = returns_from_holdings
