@@ -27,20 +27,6 @@ This forced me to create my own Alpha factors toolset using Pandas. I think I di
 
 ### Overview
 ```mermaid
-journey
-    title Create and Use Trading Strategy
-    section Eval Trading Strategy
-      Edit Config: 5: Me
-      Clear out files: 5: Me
-      Run eval script: 5: Me
-      Move final strategies: 5: Me
-    section Use Strategies
-      Define Accounts: 5: Me
-      Define Strategy: 5: Me
-      Compute Holdings: 5: Me
-      Run Trades: 5: Me
-```
-```mermaid
 stateDiagram-v2
 create_and_backtest_stock_selection_strategies.py --> trading_strategy_evaluation/config/strategy_name_final
 trading_strategy_evaluation/config/strategy_name_final --> data_directory/strategy_name_final

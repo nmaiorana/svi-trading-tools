@@ -4,7 +4,7 @@ In this section you can generate various model training and backtesting strategi
 
 You start in the config folder and define your strategy parameters, and which strategies you want to work with. With the acceptance criteria you give, like minimum viable portfolio return (min_viable_port_return), if the strategy passes it will be moved to the final folder name you provide.
 
-Accepted strategies are automatically skipped, so you can focus on new ones. The idea is that accepted strategies are copied into the super config folder where all the trading decisions are made.
+Accepted strategies are automatically skipped ([strategy_name]_final), so you can focus on new ones. The idea is that accepted strategies are copied into the super config folder where all the trading decisions are made.
 
 As you move through each evaluation routine, the system saves off files to save time on replaying unnecessary steps. For instance, if you are using 10 years of price histories, you don't need to keep pulling them down everytime you run an evaluation. If you do want to get fresh data, simply remove the file from the data directory and the process will automatically create a fresh copy. The script knows to build downstream data files when upstream ones have been changed.
 
@@ -23,8 +23,6 @@ The chain of artifacts looks like this:
 Strategies = (names of all the strategies to evaluate)
 
 [strategy_name]
-name = (may remove)
-final_name = (may remove)
 min_sharpe_ratio = .85 (for each alpha factor, choose the ones with this sharpe value or higher)
 ForwardPredictionDays = 5 (How often are you trading)
 PredictionQuantiles = 2 (Number of categories to predict)

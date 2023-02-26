@@ -122,7 +122,7 @@ for account in accounts:
     strategy_config_parser = configparser.ConfigParser()
     strategy_config_parser.read('./data/' + implemented_strategy + '/config.ini')
     strategy_config = strategy_config_parser['DEFAULT']
-    final_strategy_path = config_helper.get_final_strategy_path(strategy_config)
+    final_strategy_path = config_helper.get_strategy_final_path(strategy_config)
     alpha_vectors = btf.load_alpha_vectors(config_helper.get_alpha_vectors_final_path(strategy_config))
     daily_betas = btf.load_beta_factors(config_helper.get_daily_betas_final_path(strategy_config))
     min_viable_return = strategy_config.getfloat('min_viable_port_return')
