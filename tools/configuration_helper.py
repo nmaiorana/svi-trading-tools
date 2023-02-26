@@ -42,29 +42,28 @@ def get_number_of_years_of_price_histories(configuration: SectionProxy) -> str:
     return configuration.get(YEARS_PRICE_HISTORIES) + 'y'
 
 
-def get_strategy_path(configuration: SectionProxy):
-    return get_data_directory(configuration).joinpath(configuration.get(NAME))
+def get_strategy_eval_path(configuration: SectionProxy):
+    return get_data_directory(configuration).joinpath(configuration.name + '_eval')
 
 
-# TODO: Final version of all strategy paths
+def get_strategy_final_path(configuration: SectionProxy):
+    return get_data_directory(configuration).joinpath(configuration.name + '_final')
+
+
 def get_ai_model_path(configuration: SectionProxy):
-    return get_strategy_path(configuration).joinpath(configuration.get(MODEL_FILE_NAME))
+    return get_strategy_eval_path(configuration).joinpath(configuration.get(MODEL_FILE_NAME))
 
 
 def get_ai_alpha_path(configuration: SectionProxy):
-    return get_strategy_path(configuration).joinpath(configuration.get(AI_ALPHA_FILE_NAME))
+    return get_strategy_eval_path(configuration).joinpath(configuration.get(AI_ALPHA_FILE_NAME))
 
 
 def get_alpha_vectors_path(configuration: SectionProxy):
-    return get_strategy_path(configuration).joinpath(configuration.get(ALPHA_VECTORS_FILE_NAME))
+    return get_strategy_eval_path(configuration).joinpath(configuration.get(ALPHA_VECTORS_FILE_NAME))
 
 
 def get_daily_betas_path(configuration: SectionProxy):
-    return get_strategy_path(configuration).joinpath(configuration.get(BETA_FACTORS_FILE_NAME))
-
-
-def get_final_strategy_path(configuration: SectionProxy):
-    return get_data_directory(configuration).joinpath(configuration.get(FINAL_NAME))
+    return get_strategy_eval_path(configuration).joinpath(configuration.get(BETA_FACTORS_FILE_NAME))
 
 
 def get_number_of_risk_exposures(strategy_config: SectionProxy) -> int:
@@ -88,7 +87,7 @@ def get_long_term_asset_types(account_config: SectionProxy) -> list:
 
 
 def get_strategy_config_path(configuration: SectionProxy):
-    return get_strategy_path(configuration).joinpath(configuration.get(STRATEGY_CONFIG_FILENAME, 'config.ini'))
+    return get_strategy_eval_path(configuration).joinpath(configuration.get(STRATEGY_CONFIG_FILENAME, 'config.ini'))
 
 
 def get_implemented_strategy(account_config: SectionProxy):
@@ -96,16 +95,16 @@ def get_implemented_strategy(account_config: SectionProxy):
 
 
 def get_ai_model_final_path(strategy_config: SectionProxy):
-    return get_final_strategy_path(strategy_config).joinpath(strategy_config.get(MODEL_FILE_NAME))
+    return get_strategy_final_path(strategy_config).joinpath(strategy_config.get(MODEL_FILE_NAME))
 
 
 def get_ai_alpha_final_path(strategy_config: SectionProxy):
-    return get_final_strategy_path(strategy_config).joinpath(strategy_config.get(AI_ALPHA_FILE_NAME))
+    return get_strategy_final_path(strategy_config).joinpath(strategy_config.get(AI_ALPHA_FILE_NAME))
 
 
 def get_alpha_vectors_final_path(strategy_config: SectionProxy):
-    return get_final_strategy_path(strategy_config).joinpath(strategy_config.get(ALPHA_VECTORS_FILE_NAME))
+    return get_strategy_final_path(strategy_config).joinpath(strategy_config.get(ALPHA_VECTORS_FILE_NAME))
 
 
 def get_daily_betas_final_path(strategy_config):
-    return get_final_strategy_path(strategy_config).joinpath(strategy_config.get(BETA_FACTORS_FILE_NAME))
+    return get_strategy_final_path(strategy_config).joinpath(strategy_config.get(BETA_FACTORS_FILE_NAME))

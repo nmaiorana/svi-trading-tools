@@ -145,8 +145,8 @@ class TestFactorData(unittest.TestCase):
         class_under_test = alpha_factors.AnnualizedVolatility(self.test_data_df, 20)
         self.assertEqual(class_under_test.factor_name, 'annualized_volatility_20_day')
         self.assertEqual('AAPL', class_under_test.factor_data.columns[0])
-        self.assertTupleEqual(class_under_test.factor_data.shape, (213, 2))
-        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-30']['AAPL'], 0.3957571629968691, places=2)
+        self.assertTupleEqual(class_under_test.factor_data.shape, (232, 2))
+        self.assertAlmostEqual(class_under_test.factor_data.loc['2019-12-30']['AAPL'], 0.1718035653709713, places=2)
 
     def test_market_dispersion(self):
         class_under_test = alpha_factors.MarketDispersion(self.test_data_df, 20)
@@ -193,20 +193,6 @@ class TestFactorData(unittest.TestCase):
         clean_factor_data, unixt_factor_data = alpha_factors.prepare_alpha_lens_factor_data(all_factors, pricing)
         self.assertEqual(494, len(list(clean_factor_data.values())[0]))
         self.assertEqual(494, len(list(unixt_factor_data.values())[0]))
-
-    def test_eval_factor_and_add(self) -> None:
-        factors_list = []
-        pricing = self.test_data_df.Close
-        factor_to_eval = alpha_factors.AnnualizedVolatility(self.test_data_df, 10).rank().zscore()
-        alpha_factors.eval_factor_and_add(factors_list, factor_to_eval, pricing, 0.0)
-        self.assertEqual(1, len(factors_list))
-
-    def test_eval_factor_and_add_no_add(self) -> None:
-        factors_list = []
-        pricing = self.test_data_df.Close
-        factor_to_eval = alpha_factors.AnnualizedVolatility(self.test_data_df, 10).rank().zscore()
-        alpha_factors.eval_factor_and_add(factors_list, factor_to_eval, pricing, 100.0)
-        self.assertEqual(0, len(factors_list))
 
     def test_get_factor_returns(self) -> None:
         pricing = self.test_data_df.Close

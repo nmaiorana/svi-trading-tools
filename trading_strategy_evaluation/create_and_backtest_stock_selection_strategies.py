@@ -12,6 +12,10 @@ import tools.configuration_helper as config_helper
 import tools.utils as utils
 import warnings
 
+"""
+Use this script to evaluate configured strategies. The strategies are defined in the 'strategy_eval_config.ini' file.
+
+"""
 warnings.filterwarnings('ignore')
 
 logging.config.fileConfig('../config/logging.ini')
@@ -25,8 +29,8 @@ logger.info(f'Python version: {python_version()}')
 logger.info(f'Pandas version: {pd.__version__}')
 
 config = configparser.ConfigParser()
-config.read('./config/ai_alpha_config.ini')
-alpha_config = config["AIAlpha"]
+config.read('./config/strategy_eval_config.ini')
+evaluation_config = config["EVALUATION"]
 
 # These are the stocks to use
 snp_500_stocks = utils.get_snp500()
@@ -40,7 +44,7 @@ alpha_vectors_reload = False
 daily_betas_reload = False
 backtest_factors_reload = False
 
-if not config_helper.get_price_histories_path(alpha_config).exists():
+if not config_helper.get_price_histories_path(evaluation_config).exists():
     alpha_factors_reload = True
     ai_alpha_model_reload = True
     ai_alpha_factor_reload = True
@@ -48,7 +52,7 @@ if not config_helper.get_price_histories_path(alpha_config).exists():
     daily_betas_reload = True
     backtest_factors_reload = True
 
-if not config_helper.get_alpha_factors_path(alpha_config).exists():
+if not config_helper.get_alpha_factors_path(evaluation_config).exists():
     ai_alpha_model_reload = True
     ai_alpha_factor_reload = True
     alpha_vectors_reload = True
@@ -57,8 +61,8 @@ if not config_helper.get_alpha_factors_path(alpha_config).exists():
 
 # This is the price histories for those stocks
 price_histories = phh.from_yahoo_finance(symbols=snp_500_stocks.index.to_list(),
-                                         period=config_helper.get_number_of_years_of_price_histories(alpha_config),
-                                         storage_path=config_helper.get_price_histories_path(alpha_config),
+                                         period=config_helper.get_number_of_years_of_price_histories(evaluation_config),
+                                         storage_path=config_helper.get_price_histories_path(evaluation_config),
                                          reload=price_histories_reload)
 
 # We will need a sector helper for the alphas
@@ -66,14 +70,14 @@ sector_helper = afh.get_sector_helper(snp_500_stocks, price_histories)
 
 # These are the alpha factors
 alpha_factors_df = afh.get_alpha_factors(price_histories, sector_helper,
-                                         storage_path=config_helper.get_alpha_factors_path(alpha_config),
+                                         storage_path=config_helper.get_alpha_factors_path(evaluation_config),
                                          reload=alpha_factors_reload)
-evaluation_strategies = alpha_config['Strategies'].split()
+evaluation_strategies = evaluation_config['Strategies'].split()
 for strategy in evaluation_strategies:
     logger = logging.getLogger(f'GenerateAndSelectAlphaFactors.{strategy}')
     strategy_config = config[strategy]
-    eval_strategy_path = config_helper.get_strategy_path(strategy_config)
-    final_strategy_path = config_helper.get_final_strategy_path(strategy_config)
+    eval_strategy_path = config_helper.get_strategy_eval_path(strategy_config)
+    final_strategy_path = config_helper.get_strategy_final_path(strategy_config)
     logger.info('**********************************************************************************************')
     logger.info(f'Checking existing strategy completion: {final_strategy_path}')
     if final_strategy_path.exists():

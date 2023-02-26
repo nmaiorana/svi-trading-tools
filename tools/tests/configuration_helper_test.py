@@ -30,8 +30,11 @@ class ConfigurationHelperTest(unittest.TestCase):
     def test_get_number_of_years_of_price_histories(self):
         self.assertIsInstance(config_helper.get_number_of_years_of_price_histories(self.config[DEFAULT]), str)
 
-    def test_get_strategy_path(self):
-        self.assertIsInstance(config_helper.get_strategy_path(self.config[STRATEGY]), Path)
+    def test_get_strategy_eval_path(self):
+        self.assertIsInstance(config_helper.get_strategy_eval_path(self.config[STRATEGY]), Path)
+
+    def test_get_strategy_final_path(self):
+        self.assertIsInstance(config_helper.get_strategy_final_path(self.config[STRATEGY]), Path)
 
     def test_get_ai_alpha_path(self):
         self.assertIsInstance(config_helper.get_ai_alpha_path(self.config[STRATEGY]), Path)
@@ -44,9 +47,6 @@ class ConfigurationHelperTest(unittest.TestCase):
 
     def test_get_ai_model_path(self):
         self.assertIsInstance(config_helper.get_ai_model_path(self.config[STRATEGY]), Path)
-
-    def test_get_final_strategy_path(self):
-        self.assertIsInstance(config_helper.get_final_strategy_path(self.config[STRATEGY]), Path)
 
     def test_get_number_of_risk_exposures(self):
         self.assertIsInstance(config_helper.get_number_of_risk_exposures(self.config[STRATEGY]), int)
