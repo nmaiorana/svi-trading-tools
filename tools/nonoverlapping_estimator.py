@@ -1,5 +1,5 @@
 import abc
-import tools.utils as utils
+import utils
 import numpy as np
 
 import sklearn

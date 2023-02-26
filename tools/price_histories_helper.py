@@ -46,11 +46,14 @@ def save_price_histories(price_histories: pd.DataFrame, storage_path: Path = Non
 
 
 def load_price_histories(storage_path: Path = None) -> pd.DataFrame:
+    logger = logging.getLogger('phh.load_price_histories')
     if storage_path.suffix == 'parquet':
-        return pd.read_parquet(storage_path)
+        price_histories = pd.read_parquet(storage_path)
     else:
-        return pd.read_csv(storage_path,
-                           header=[0, 1], index_col=[0], parse_dates=True, low_memory=False)
+        price_histories = pd.read_csv(storage_path,
+                                      header=[0, 1], index_col=[0], parse_dates=True, low_memory=False)
+    logger.info(f'PRICE_HISTORIES|{len(price_histories)}|{price_histories.index.min()}|{price_histories.index.max()}')
+    return price_histories
 
 
 def download_histories_and_adjust(symbols: list, start=None, end=None, period='5y') -> pd.DataFrame:

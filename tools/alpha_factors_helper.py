@@ -4,8 +4,8 @@ import pandas as pd
 import pickle
 from alphalens.utils import MaxLossExceededError
 from sklearn.ensemble import RandomForestClassifier
-import tools.trading_factors_yahoo as alpha_factors
-from tools.nonoverlapping_estimator import NoOverlapVoter
+import trading_factors_yahoo as alpha_factors
+from nonoverlapping_estimator import NoOverlapVoter
 import matplotlib.pyplot as plt
 
 plt.interactive(False)

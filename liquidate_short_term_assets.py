@@ -6,6 +6,12 @@ import pandas as pd
 import tools.configuration_helper as config_helper
 import tools.ameritrade_functions as amc
 
+"""
+Use this script if you want to sell off all short-term holdings in your listed accounts.
+Short-term holdings are defined by NOT being long_term_asset_types or long_term_stocks as configured for each account.
+This is defined in a way that allows for short-term assets to be more dynamic.
+"""
+
 logging.config.fileConfig('./config/logging.ini')
 main_logger_name = 'LiquidateShortTermAssets'
 logger = logging.getLogger(main_logger_name)
