@@ -24,6 +24,11 @@ This forced me to create my own Alpha factors toolset using Pandas. I think I di
   - Get an Ameritrade developers consumer key  [Ameritrade Developer API](https://developer.tdameritrade.com/)
   - Python 3.8
   - Python modules are listed in the requirements.txt file
+  - trading_strategy_evaluation/create_and_backtest_stock_selection_strategies.py To Create Trading Strategies
+  - compute_new_holdings.py To Determine holdings by account based on strategy
+  - portfolio_holdings_adjustment.py To place buy/sell orders based on new holdings
+    - Existing stocks identified in new holdings are not changed, existing stocks are removed and holdings are adjusted
+  - liquidate_short_term_assets.py To liquidate all short-term assets 
 
 ### Overview
 ```mermaid
@@ -34,104 +39,28 @@ trading_strategy_evaluation/config/strategy_name_final --> data_directory/strate
 
 
   
-# General Flow
+### Create and Test A Trading Strategy
 ```mermaid
 stateDiagram-v2
-[*] --> Determin_Strategy_to_Use
-Determin_Strategy_to_Use --> Move_Stragegy_to_Datadirectory
-gather_sp500_price_histories --> price_histories_yahoo.csv
-price_histories_yahoo.csv --> generate_alpha_beta_factors
-generate_alpha_beta_factors --> all_factors.csv
-generate_alpha_beta_factors --> daily_beta.pickle
-price_histories_yahoo.csv --> generate_ai_alpha_model
-all_factors.csv --> generate_ai_alpha_model
-generate_ai_alpha_model --> alpha_ai_model.pickle
-alpha_ai_model.pickle --> generate_ai_alpha
-generate_ai_alpha --> alpha_vectors.csv
-price_histories_yahoo.csv --> portfolio_XXX_adjust_holdings
-alpha_vectors.csv --> portfolio_XXX_adjust_holdings
-daily_beta.pickle --> portfolio_XXX_adjust_holdings
-
-portfolio_XXX_adjust_holdings --> [*]
+[*] --> Configure_Strategy(ies)
+Configure_Strategy(ies) --> Gather_Data
+Gather_Data --> BackTest_Strategy(ies)
+BackTest_Strategy(ies) --> Evaluate_Strategy(ies)
+Evaluate_Strategy(ies) --> Move_Strategy(ies)_to_Final: If Score Met
+Move_Strategy(ies)_to_Final --> Move_Final_To_Main_Directory
+Move_Final_To_Main_Directory --> [*]
 ```
 
-## Model Evaluation
+### Use Strategy(ies) to adjust portfolio
 ```mermaid
-sequenceDiagram
-participant gather_sp500_price_histories
-participant generate_alpha_beta_factors
-participant generate_ai_alpha_model
-participant trading_factors_yahoo
-participant nonoverlapping_estimator
-
-gather_sp500_price_histories ->> price_histories_yahoo.csv: Get S&P 500 Price histories
-
-generate_alpha_beta_factors ->> trading_factors_yahoo: Generate Alpha Factors
-trading_factors_yahoo --> price_histories_yahoo.csv: Uses Price histories
-trading_factors_yahoo -) generate_alpha_beta_factors: Alpha Factors
-generate_alpha_beta_factors ->> all_factors.csv: Store Alpha Factors
-
-generate_ai_alpha_model ->> trading_factors_yahoo: Get Factor Return Quantiles
-trading_factors_yahoo --> price_histories_yahoo.csv: Uses Price histories
-trading_factors_yahoo -) generate_ai_alpha_model: Factor Return Quantiles
-generate_ai_alpha_model --> all_factors.csv: Uses Alpha Factors
-generate_ai_alpha_model --> generate_ai_alpha_model: Set Model Input Features to Alhpa Factors
-generate_ai_alpha_model --> generate_ai_alpha_model: Adjust Factor Return Quantiles by Forward Prediction Days
-generate_ai_alpha_model --> generate_ai_alpha_model: Set Model Target Values to Factor Return Quantiles
-generate_ai_alpha_model ->> nonoverlapping_estimator: Fit model (Training Data)
-nonoverlapping_estimator -) generate_ai_alpha_model: AI Alpha Model
-generate_ai_alpha_model ->> alpha_ai_model.pickle: Store Alpha Model
-```
-
-## Using model to construct datasets
-```mermaid
-sequenceDiagram
-participant gather_sp500_price_histories
-participant generate_alpha_beta_factors
-participant generate_ai_alpha
-participant trading_factors_yahoo
-
-gather_sp500_price_histories ->> price_histories_yahoo.csv: Store S&P 500 Price histories
-
-generate_alpha_beta_factors ->> trading_factors_yahoo: Generate Alpha Factors
-trading_factors_yahoo --> price_histories_yahoo.csv: Uses Price histories
-trading_factors_yahoo -) generate_alpha_beta_factors: Alpha Factors
-generate_alpha_beta_factors ->> all_factors.csv: Store Alpha Factors
-
-generate_alpha_beta_factors ->> trading_factors_yahoo: Get Factor Returns
-trading_factors_yahoo --> price_histories_yahoo.csv: Use Price Histories
-trading_factors_yahoo -) generate_alpha_beta_factors: Factor Returns
-generate_alpha_beta_factors ->> trading_factors_yahoo: Get Daily Risk Models
-trading_factors_yahoo --> trading_factors_yahoo: Use Factor Returns
-trading_factors_yahoo -) generate_alpha_beta_factors: Daily Risk Models
-generate_alpha_beta_factors ->> daily_beta.pickle: Store Beta Factors
-
-generate_ai_alpha ->> trading_factors_yahoo: Add Alpha Score
-trading_factors_yahoo --> all_factors.csv: Use Alpha Factors
-trading_factors_yahoo --> alpha_ai_model.pickle: Use AI Alpha Model
-trading_factors_yahoo -) generate_ai_alpha: Alpha Scores
-generate_ai_alpha --> generate_ai_alpha: Get Alpha Vector
-generate_ai_alpha ->> alpha_vectors.csv: Store Alpha Vector
-```
-
-
-## Use datasets to adjust portfolio
-```mermaid
-sequenceDiagram
-participant portfolio_XXX_adjust_holdings
-participant portfolio_optimizer
-participant ameritrade_functions
-portfolio_XXX_adjust_holdings ->> portfolio_optimizer: Find optimal holdings
-
-portfolio_optimizer --> price_histories_yahoo.csv: Use Price Histories
-portfolio_optimizer --> alpha_vectors.csv: Use Alpha Vector
-portfolio_optimizer --> daily_beta.pickle: Use Beta Facotrs
-portfolio_optimizer -) portfolio_XXX_adjust_holdings: New portfolio holdings
-
-portfolio_XXX_adjust_holdings ->> ameritrade_functions: Get current holdings
-ameritrade_functions -) portfolio_XXX_adjust_holdings: Current holdings
-portfolio_XXX_adjust_holdings --> portfolio_XXX_adjust_holdings: Compute new investment amount
-portfolio_XXX_adjust_holdings --> portfolio_XXX_adjust_holdings: Determine adjustments
-portfolio_XXX_adjust_holdings ->> ameritrade_functions: Place Sell Orders
-portfolio_XXX_adjust_holdings ->> ameritrade_functions: Place Buy Orders
+stateDiagram-v2
+[*] --> Configure_Account(s): Set Strategies
+Configure_Account(s) --> Update_Data
+Update_Data --> Compute_New_Holdings
+Compute_New_Holdings --> Store_Holdings: By Account
+Store_Holdings --> Determine_Sell_Orders
+Determine_Sell_Orders --> Place_Sell_Orders
+Store_Holdings --> Determine_Buy_Orders: When sell orders execute
+Determine_Buy_Orders --> Place_Buy_Orders
+Place_Buy_Orders --> [*]
 ```
