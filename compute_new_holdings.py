@@ -45,7 +45,7 @@ alpha_vectors_reload = False
 daily_betas_reload = False
 backtest_factors_reload = False
 
-if not config_helper.get_price_histories_path(portfolio_config).exists():
+if price_histories_reload or not config_helper.get_price_histories_path(portfolio_config).exists():
     alpha_factors_reload = True
     ai_alpha_model_reload = True
     ai_alpha_factor_reload = True
@@ -53,7 +53,7 @@ if not config_helper.get_price_histories_path(portfolio_config).exists():
     daily_betas_reload = True
     backtest_factors_reload = True
 
-if not config_helper.get_alpha_factors_path(portfolio_config).exists():
+if alpha_factors_reload or not config_helper.get_alpha_factors_path(portfolio_config).exists():
     ai_alpha_model_reload = False
     ai_alpha_factor_reload = True
     alpha_vectors_reload = True
@@ -86,29 +86,30 @@ for account in accounts:
 for strategy in implemented_strategies:
     logger = logging.getLogger(f'GenerateAndSelectAlphaFactors.{strategy}')
     strategy_config = configparser.ConfigParser()
-    strategy_config.read('./data/' + strategy + '/config.ini')
+    final_strategy_path = config_helper.get_strategy_final_path(portfolio_config, strategy)
+    strategy_config.read(final_strategy_path.joinpath('config.ini'))
     strategy_config = strategy_config['DEFAULT']
-    final_strategy_path = config_helper.get_final_strategy_path(strategy_config)
     logger.info('**********************************************************************************************')
     logger.info(f'Updating strategy data: {final_strategy_path}')
 
     # Train a model to generate the AI Alpha
-    ai_alpha_model = afh.load_ai_alpha_model(storage_path=config_helper.get_ai_model_final_path(strategy_config))
+    ai_alpha_model = afh.load_ai_alpha_model(storage_path=final_strategy_path.joinpath(
+        strategy_config.get(config_helper.MODEL_FILE_NAME)))
 
     # Create AI Alpha factors using the model and existing alpha factors
     ai_alpha_name = strategy_config['AIAlphaName']
     ai_alpha_df = afh.get_ai_alpha_factor(alpha_factors_df,
                                           ai_alpha_model,
                                           ai_alpha_name,
-                                          storage_path=config_helper.get_ai_alpha_final_path(strategy_config),
+                                          storage_path=config_helper.get_ai_alpha_final_path(strategy_config, strategy),
                                           reload=ai_alpha_factor_reload)
     alpha_vectors = btf.get_alpha_vectors(alpha_factors_df,
-                                          config_helper.get_alpha_vectors_final_path(strategy_config),
+                                          config_helper.get_alpha_vectors_final_path(strategy_config, strategy),
                                           reload=alpha_vectors_reload)
     daily_betas = btf.generate_beta_factors(price_histories,
                                             config_helper.get_number_of_years_of_price_histories_int(portfolio_config),
                                             config_helper.get_number_of_risk_exposures(strategy_config),
-                                            config_helper.get_daily_betas_final_path(strategy_config),
+                                            config_helper.get_daily_betas_final_path(strategy_config, strategy),
                                             reload=daily_betas_reload)
 
 td_ameritrade = amc.AmeritradeRest()
@@ -122,9 +123,10 @@ for account in accounts:
     strategy_config_parser = configparser.ConfigParser()
     strategy_config_parser.read('./data/' + implemented_strategy + '/config.ini')
     strategy_config = strategy_config_parser['DEFAULT']
-    final_strategy_path = config_helper.get_strategy_final_path(strategy_config)
-    alpha_vectors = btf.load_alpha_vectors(config_helper.get_alpha_vectors_final_path(strategy_config))
-    daily_betas = btf.load_beta_factors(config_helper.get_daily_betas_final_path(strategy_config))
+    final_strategy_path = config_helper.get_strategy_final_path(strategy_config, implemented_strategy)
+    alpha_vectors = btf.load_alpha_vectors(config_helper.get_alpha_vectors_final_path(strategy_config,
+                                                                                      implemented_strategy))
+    daily_betas = btf.load_beta_factors(config_helper.get_daily_betas_final_path(strategy_config, implemented_strategy))
     min_viable_return = strategy_config.getfloat('min_viable_port_return')
     forward_prediction_days = strategy_config.getint('ForwardPredictionDays')
     optimal_holdings_df = btf.predict_optimal_holdings(alpha_vectors,

@@ -76,8 +76,8 @@ evaluation_strategies = evaluation_config['Strategies'].split()
 for strategy in evaluation_strategies:
     logger = logging.getLogger(f'GenerateAndSelectAlphaFactors.{strategy}')
     strategy_config = config[strategy]
-    eval_strategy_path = config_helper.get_strategy_eval_path(strategy_config)
-    final_strategy_path = config_helper.get_strategy_final_path(strategy_config)
+    eval_strategy_path = config_helper.get_strategy_eval_path(strategy_config, strategy)
+    final_strategy_path = config_helper.get_strategy_final_path(strategy_config, strategy)
     logger.info('**********************************************************************************************')
     logger.info(f'Checking existing strategy completion: {final_strategy_path}')
     if final_strategy_path.exists():
@@ -86,7 +86,7 @@ for strategy in evaluation_strategies:
 
     logger.info(f'Constructing and Evaluating strategy {strategy}')
     # Check for reloading of downstream artifacts
-    if not config_helper.get_ai_model_path(strategy_config).exists():
+    if not config_helper.get_ai_model_path(strategy_config, strategy).exists():
         ai_alpha_factor_reload = True
         alpha_vectors_reload = True
         daily_betas_reload = True
@@ -99,7 +99,7 @@ for strategy in evaluation_strategies:
                                             int(strategy_config['ForwardPredictionDays']),
                                             int(strategy_config['PredictionQuantiles']),
                                             int(strategy_config['RandomForestNTrees']),
-                                            storage_path=config_helper.get_ai_model_path(strategy_config),
+                                            storage_path=config_helper.get_ai_model_path(strategy_config, strategy),
                                             reload=ai_alpha_model_reload)
 
     # Create AI Alpha factors using the model and existing alpha factors
@@ -107,7 +107,7 @@ for strategy in evaluation_strategies:
     ai_alpha_df = afh.get_ai_alpha_factor(alpha_factors_df,
                                           ai_alpha_model,
                                           ai_alpha_name,
-                                          storage_path=config_helper.get_ai_alpha_path(strategy_config),
+                                          storage_path=config_helper.get_ai_alpha_path(strategy_config, strategy),
                                           reload=ai_alpha_factor_reload)
 
     # Make some plots
@@ -126,12 +126,12 @@ for strategy in evaluation_strategies:
 
     # Back testing phase
     alpha_vectors = btf.get_alpha_vectors(alpha_factors_df,
-                                          config_helper.get_alpha_vectors_path(strategy_config),
+                                          config_helper.get_alpha_vectors_path(strategy_config, strategy),
                                           reload=alpha_vectors_reload)
     daily_betas = btf.generate_beta_factors(price_histories,
                                             config_helper.get_number_of_years_of_price_histories_int(strategy_config),
                                             config_helper.get_number_of_risk_exposures(strategy_config),
-                                            config_helper.get_daily_betas_path(strategy_config),
+                                            config_helper.get_daily_betas_path(strategy_config, strategy),
                                             reload=daily_betas_reload)
     min_viable_return = float(strategy_config['min_viable_port_return'])
     returns, holdings, costs = btf.backtest_factors(price_histories,
@@ -155,7 +155,8 @@ for strategy in evaluation_strategies:
     logger.info(f'OPT_PORT_RETURN|{port_return}%')
     if port_return >= min_viable_return:
         logger.info(f'OPT|PROCEED|{port_return}% >= {min_viable_return}%')
-        strategy_config_path = config_helper.get_strategy_config_path(strategy_config)
+        strategy_config_path = config_helper.get_strategy_config_path(strategy_config, strategy)
+        # TODO: Set the name of the section to the strategy name
         logger.info(f'Saving strategy configuration to {strategy_config_path}')
         strategy_config_parser = configparser.ConfigParser(strategy_config)
         with open(strategy_config_path, 'w') as configfile:

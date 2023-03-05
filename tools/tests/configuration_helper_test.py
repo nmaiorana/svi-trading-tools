@@ -31,22 +31,22 @@ class ConfigurationHelperTest(unittest.TestCase):
         self.assertIsInstance(config_helper.get_number_of_years_of_price_histories(self.config[DEFAULT]), str)
 
     def test_get_strategy_eval_path(self):
-        self.assertIsInstance(config_helper.get_strategy_eval_path(self.config[STRATEGY]), Path)
+        self.assertIsInstance(config_helper.get_strategy_eval_path(self.config[STRATEGY], STRATEGY), Path)
 
     def test_get_strategy_final_path(self):
-        self.assertIsInstance(config_helper.get_strategy_final_path(self.config[STRATEGY]), Path)
+        self.assertIsInstance(config_helper.get_strategy_final_path(self.config[STRATEGY], STRATEGY), Path)
 
     def test_get_ai_alpha_path(self):
-        self.assertIsInstance(config_helper.get_ai_alpha_path(self.config[STRATEGY]), Path)
+        self.assertIsInstance(config_helper.get_ai_alpha_path(self.config[STRATEGY], STRATEGY), Path)
 
     def test_get_alpha_vectors_path(self):
-        self.assertIsInstance(config_helper.get_alpha_vectors_path(self.config[STRATEGY]), Path)
+        self.assertIsInstance(config_helper.get_alpha_vectors_path(self.config[STRATEGY], STRATEGY), Path)
 
     def test_get_daily_betas_path(self):
-        self.assertIsInstance(config_helper.get_daily_betas_path(self.config[STRATEGY]), Path)
+        self.assertIsInstance(config_helper.get_daily_betas_path(self.config[STRATEGY], STRATEGY), Path)
 
     def test_get_ai_model_path(self):
-        self.assertIsInstance(config_helper.get_ai_model_path(self.config[STRATEGY]), Path)
+        self.assertIsInstance(config_helper.get_ai_model_path(self.config[STRATEGY], STRATEGY), Path)
 
     def test_get_number_of_risk_exposures(self):
         self.assertIsInstance(config_helper.get_number_of_risk_exposures(self.config[STRATEGY]), int)
@@ -67,23 +67,23 @@ class ConfigurationHelperTest(unittest.TestCase):
         self.assertIsInstance(config_helper.get_long_term_asset_types(self.config[account]), list)
 
     def test_get_strategy_config_path(self):
-        self.assertIsInstance(config_helper.get_strategy_config_path(self.config[STRATEGY]), Path)
+        self.assertIsInstance(config_helper.get_strategy_config_path(self.config[STRATEGY], STRATEGY), Path)
 
     def test_get_implemented_strategy(self):
         account = config_helper.get_accounts(self.config[DEFAULT])[0]
         self.assertIsInstance(config_helper.get_implemented_strategy(self.config[account]), str)
 
     def test_get_ai_model_final_path(self):
-        self.assertIsInstance(config_helper.get_ai_model_final_path(self.config[STRATEGY]), Path)
+        self.assertIsInstance(config_helper.get_ai_model_final_path(self.config[STRATEGY], STRATEGY), Path)
 
     def test_get_ai_alpha_final_path(self):
-        self.assertIsInstance(config_helper.get_ai_alpha_final_path(self.config[STRATEGY]), Path)
+        self.assertIsInstance(config_helper.get_ai_alpha_final_path(self.config[STRATEGY], STRATEGY), Path)
 
     def test_get_alpha_vectors_final_path(self):
-        self.assertIsInstance(config_helper.get_alpha_vectors_final_path(self.config[STRATEGY]), Path)
+        self.assertIsInstance(config_helper.get_alpha_vectors_final_path(self.config[STRATEGY], STRATEGY), Path)
 
     def test_get_daily_betas_final_path(self):
-        self.assertIsInstance(config_helper.get_daily_betas_final_path(self.config[STRATEGY]), Path)
+        self.assertIsInstance(config_helper.get_daily_betas_final_path(self.config[STRATEGY], STRATEGY), Path)
 
 
 if __name__ == '__main__':
