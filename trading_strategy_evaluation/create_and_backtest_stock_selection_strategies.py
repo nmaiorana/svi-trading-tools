@@ -44,7 +44,7 @@ alpha_vectors_reload = False
 daily_betas_reload = False
 backtest_factors_reload = False
 
-if not config_helper.get_price_histories_path(evaluation_config).exists():
+if price_histories_reload or not config_helper.get_price_histories_path(evaluation_config).exists():
     alpha_factors_reload = True
     ai_alpha_model_reload = True
     ai_alpha_factor_reload = True
@@ -52,7 +52,7 @@ if not config_helper.get_price_histories_path(evaluation_config).exists():
     daily_betas_reload = True
     backtest_factors_reload = True
 
-if not config_helper.get_alpha_factors_path(evaluation_config).exists():
+if alpha_factors_reload or not config_helper.get_alpha_factors_path(evaluation_config).exists():
     ai_alpha_model_reload = True
     ai_alpha_factor_reload = True
     alpha_vectors_reload = True
@@ -134,14 +134,15 @@ for strategy in evaluation_strategies:
                                             config_helper.get_daily_betas_path(strategy_config, strategy),
                                             reload=daily_betas_reload)
     min_viable_return = float(strategy_config['min_viable_port_return'])
+    # TODO: Make Backtesting Days configurable
     returns, holdings, costs = btf.backtest_factors(price_histories,
                                                     alpha_vectors,
                                                     daily_betas,
                                                     int(strategy_config['ForwardPredictionDays']),
-                                                    backtest_days=int(90),
-                                                    risk_cap=float(strategy_config['risk_cap']),
-                                                    weights_max=float(strategy_config['weights_max']),
-                                                    weights_min=float(strategy_config['weights_min']))
+                                                    backtest_days=strategy_config.getint('backtest_days'),
+                                                    risk_cap=strategy_config.getfloat('risk_cap'),
+                                                    weights_max=strategy_config.getfloat('weights_max'),
+                                                    weights_min=strategy_config.getfloat('weights_min'))
     optimal_holdings = holdings.iloc[-1].round(2)
     optimal_holdings = optimal_holdings[optimal_holdings > 0.05]
     for index, value in optimal_holdings.items():
@@ -156,15 +157,14 @@ for strategy in evaluation_strategies:
     if port_return >= min_viable_return:
         logger.info(f'OPT|PROCEED|{port_return}% >= {min_viable_return}%')
         strategy_config_path = config_helper.get_strategy_config_path(strategy_config, strategy)
-        # TODO: Set the name of the section to the strategy name
         logger.info(f'Saving strategy configuration to {strategy_config_path}')
         strategy_config_parser = configparser.ConfigParser(strategy_config)
+        strategy_config_parser.optionxform = str
         with open(strategy_config_path, 'w') as configfile:
             strategy_config_parser.write(configfile)
         logger.info(f'Rendering final strategy {final_strategy_path}')
         eval_strategy_path.replace(final_strategy_path)
     else:
         logger.warning(f'OPT|STOP|{port_return}% < {min_viable_return}%')
-        raise RuntimeError(f'Backtest indicates this strategy needs more work! ({port_return}%)') from None
     # TODO: Store port_return data.
     # TODO: Store a config file in the strategy to match all the parameters needed in prod
