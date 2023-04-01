@@ -29,7 +29,7 @@ for account in accounts:
     logger = logging.getLogger(f'{main_logger_name}.{account}')
     logger.info(f'Processing account {account}...')
     account_config = config[account]
-    new_holdings_path = config_helper.get_data_directory(account_config).joinpath(account+'_new_holdings.parquet')
+    new_holdings_path = config_helper.get_data_directory(account_config).joinpath(account + '_new_holdings.parquet')
     stocks_to_buy = pd.read_parquet(new_holdings_path)
     masked_account_number = config_helper.get_masked_account_number(account_config)
     total_portfolio_value = round(td_ameritrade.get_account_value(masked_account_number), 2)
@@ -51,6 +51,17 @@ for account in accounts:
     stocks_to_trade = [symbol for symbol in portfolio_stock_symbols
                        if symbol not in (long_term_stocks + long_term_by_type)]
     # if we already own the stock and new holdings say to buy, do not sell and adjust the percentage for remaining
+    stocks_to_buy_tickers = stocks_to_buy.index.to_list()
+    stocks_already_own = list(filter(lambda x: x in stocks_to_trade, stocks_to_buy_tickers))
+    stocks_to_trade = list(filter(lambda x: x not in stocks_already_own, stocks_to_trade))
+    logger.info(f'Removing {stocks_already_own} from list to trade...')
+    adj_holdings_df = stocks_to_buy[~stocks_to_buy.index.isin(stocks_already_own)]
+    adj_holdings_df = (adj_holdings_df / adj_holdings_df.sum()).round(2)
+    for index, row in adj_holdings_df.iterrows():
+        logger.info(f'STOCK|{index:20}|HOLDING|{row.optimalWeights:2f}')
+    adjusted_holdings_path = config_helper.get_data_directory(account_config).joinpath(account + '_adjusted_holdings'
+                                                                                                 '.parquet')
+    adj_holdings_df.to_parquet(adjusted_holdings_path)
 
     logger.info(f'STOCKS_TO_TRADE|{stocks_to_trade}')
     if len(stocks_to_trade) == 0:

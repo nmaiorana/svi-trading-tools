@@ -37,7 +37,7 @@ portfolio_config = config["DEFAULT"]
 snp_500_stocks = utils.get_snp500()
 
 # See which artifacts need to be reproduced based on the upstream artifacts
-price_histories_reload = False
+price_histories_reload = True
 alpha_factors_reload = False
 ai_alpha_model_reload = False
 ai_alpha_factor_reload = False
