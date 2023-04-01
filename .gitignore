@@ -6,3 +6,6 @@ tools/tests/test_data/alpha_factors_test_data.parquet
 tools/__pycache__/__init__.cpython-38.pyc
 tools/__pycache__/ameritrade_functions.cpython-38.pyc
 tools/tests/__pycache__/ameritrade_functions_test.cpython-38.pyc
+tools/__pycache__/__init__.cpython-38.pyc
+tools/__pycache__/ameritrade_functions.cpython-38.pyc
+tools/tests/__pycache__/ameritrade_functions_test.cpython-38.pyc
