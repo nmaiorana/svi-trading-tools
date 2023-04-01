@@ -99,7 +99,7 @@
       <recent name="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools\tools" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.Python tests in ameritrade_functions_test.py">
+  <component name="RunManager" selected="Python.place_new_holdings_sell_orders">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -170,9 +170,6 @@
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -235,10 +232,10 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.place_new_holdings_sell_orders" />
         <item itemvalue="Python tests.Python tests in ameritrade_functions_test.py" />
         <item itemvalue="Python tests.Python tests for ameritrade_functions_test.TestAuthorizationTokens.test_load_authorization" />
         <item itemvalue="Python.place_new_holdings_buy_orders" />
-        <item itemvalue="Python.place_new_holdings_sell_orders" />
         <item itemvalue="Python.compute_new_holdings" />
       </list>
     </recent_temporary>
