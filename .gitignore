@@ -1,2 +1,5 @@
 *.csv
 *.pickle
+*.parquet
+*.parquet
+tools/tests/test_data/alpha_factors_test_data.parquet
