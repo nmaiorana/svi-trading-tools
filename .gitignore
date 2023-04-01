@@ -9,3 +9,13 @@ tools/tests/__pycache__/ameritrade_functions_test.cpython-38.pyc
 tools/__pycache__/__init__.cpython-38.pyc
 tools/__pycache__/ameritrade_functions.cpython-38.pyc
 tools/tests/__pycache__/ameritrade_functions_test.cpython-38.pyc
+data/weekly_2q_low_risk_max20_final/ai_alpha_factor.parquet
+data/weekly_2q_low_risk_max20_final/alpha_vectors.parquet
+data/weekly_2q_low_risk_max20_final/ai_alpha_factor.parquet
+data/weekly_2q_low_risk_max20_final/alpha_ai_model.pickle
+data/weekly_2q_low_risk_max20_final/alpha_vectors.parquet
+data/weekly_2q_low_risk_max20_final/daily_betas.pickle
+data/weekly_low_risk_max15_final/ai_alpha_factor.parquet
+data/weekly_low_risk_max15_final/alpha_ai_model.pickle
+data/weekly_low_risk_max15_final/alpha_vectors.parquet
+data/weekly_low_risk_max15_final/daily_betas.pickle
