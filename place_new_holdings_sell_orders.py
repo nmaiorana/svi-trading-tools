@@ -57,8 +57,8 @@ for account in accounts:
     logger.info(f'Removing {stocks_already_own} from list to trade...')
     adj_holdings_df = stocks_to_buy[~stocks_to_buy.index.isin(stocks_already_own)]
     adj_holdings_df = (adj_holdings_df / adj_holdings_df.sum()).round(2)
-    for index, row in adj_holdings_df.iterrows():
-        logger.info(f'STOCK|{index:20}|HOLDING|{row.optimalWeights:2f}')
+    for index, row in adj_holdings_df.itertuples():
+        logger.info(f'STOCK|{index:20}|HOLDING|{row:2f}')
     adjusted_holdings_path = config_helper.get_data_directory(account_config).joinpath(account + '_adjusted_holdings'
                                                                                                  '.parquet')
     adj_holdings_df.to_parquet(adjusted_holdings_path)

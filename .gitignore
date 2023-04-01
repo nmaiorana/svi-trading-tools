@@ -20,3 +20,6 @@ data/weekly_low_risk_max15_final/alpha_ai_model.pickle
 data/weekly_low_risk_max15_final/alpha_vectors.parquet
 data/weekly_low_risk_max15_final/daily_betas.pickle
 tools/__pycache__/configuration_helper.cpython-38.pyc
+tools/__pycache__/__init__.cpython-38.pyc
+tools/__pycache__/ameritrade_functions.cpython-38.pyc
+tools/__pycache__/configuration_helper.cpython-38.pyc
