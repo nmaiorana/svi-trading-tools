@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/compute_new_holdings.py" beforeDir="false" afterPath="$PROJECT_DIR$/compute_new_holdings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/place_new_holdings_sell_orders.py" beforeDir="false" afterPath="$PROJECT_DIR$/place_new_holdings_sell_orders.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/place_new_holdings_buy_orders.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -91,7 +89,7 @@
       <recent name="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools\tools" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.place_new_holdings_sell_orders">
+  <component name="RunManager" selected="Python.place_new_holdings_buy_orders">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -155,6 +153,25 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="place_new_holdings_buy_orders" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="svi-trading-tools" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/place_new_holdings_buy_orders.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="place_new_holdings_sell_orders" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -172,21 +189,6 @@
       <option name="MODULE_MODE" value="false" />
       <option name="REDIRECT_INPUT" value="false" />
       <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="Python tests for configuration_helper_test.ConfigurationHelperTest.test_get_strategy_config_path" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
-      <module name="svi-trading-tools" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tools/tests" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;configuration_helper_test.ConfigurationHelperTest.test_get_strategy_config_path&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
     <configuration name="Python tests in configuration_helper_test.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
@@ -221,11 +223,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.place_new_holdings_buy_orders" />
         <item itemvalue="Python.place_new_holdings_sell_orders" />
         <item itemvalue="Python.compute_new_holdings" />
         <item itemvalue="Python.create_and_backtest_stock_selection_strategies" />
         <item itemvalue="Python tests.Python tests in configuration_helper_test.py" />
-        <item itemvalue="Python tests.Python tests for configuration_helper_test.ConfigurationHelperTest.test_get_strategy_config_path" />
       </list>
     </recent_temporary>
   </component>
@@ -258,7 +260,7 @@
       <workItem from="1678045250830" duration="894000" />
       <workItem from="1678046451380" duration="307000" />
       <workItem from="1678046976013" duration="14722000" />
-      <workItem from="1680276057217" duration="3640000" />
+      <workItem from="1680276057217" duration="4918000" />
     </task>
     <task id="LOCAL-00001" summary="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <created>1653248026830</created>
