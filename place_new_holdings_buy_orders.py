@@ -21,6 +21,7 @@ logger.info(f'Pandas version: {pd.__version__}')
 
 config = configparser.ConfigParser()
 config.read('./config/config.ini')
+
 default_config = config['DEFAULT']
 logger.info(f'Getting TD Ameritrade...')
 td_ameritrade = amc.AmeritradeRest()

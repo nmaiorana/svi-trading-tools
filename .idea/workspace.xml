@@ -6,7 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/place_new_holdings_sell_orders.py" beforeDir="false" afterPath="$PROJECT_DIR$/place_new_holdings_sell_orders.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/IND_adjusted_holdings.parquet" beforeDir="false" afterPath="$PROJECT_DIR$/data/IND_adjusted_holdings.parquet" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/IND_new_holdings.parquet" beforeDir="false" afterPath="$PROJECT_DIR$/data/IND_new_holdings.parquet" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/IRA_adjusted_holdings.parquet" beforeDir="false" afterPath="$PROJECT_DIR$/data/IRA_adjusted_holdings.parquet" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/IRA_new_holdings.parquet" beforeDir="false" afterPath="$PROJECT_DIR$/data/IRA_new_holdings.parquet" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/JOINT_adjusted_holdings.parquet" beforeDir="false" afterPath="$PROJECT_DIR$/data/JOINT_adjusted_holdings.parquet" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/JOINT_new_holdings.parquet" beforeDir="false" afterPath="$PROJECT_DIR$/data/JOINT_new_holdings.parquet" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/place_new_holdings_buy_orders.py" beforeDir="false" afterPath="$PROJECT_DIR$/place_new_holdings_buy_orders.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -97,7 +103,7 @@
       <recent name="C:\Users\HP-Z440\Anaconda Projects\svi-trading-tools\tools" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.place_new_holdings_sell_orders">
+  <component name="RunManager" selected="Python.place_new_holdings_buy_orders">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -168,6 +174,9 @@
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -230,11 +239,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.place_new_holdings_buy_orders" />
         <item itemvalue="Python.place_new_holdings_sell_orders" />
+        <item itemvalue="Python.compute_new_holdings" />
         <item itemvalue="Python tests.Python tests in ameritrade_functions_test.py" />
         <item itemvalue="Python tests.Python tests for ameritrade_functions_test.TestAuthorizationTokens.test_load_authorization" />
-        <item itemvalue="Python.place_new_holdings_buy_orders" />
-        <item itemvalue="Python.compute_new_holdings" />
       </list>
     </recent_temporary>
   </component>

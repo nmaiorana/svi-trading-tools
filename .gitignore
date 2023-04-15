@@ -23,3 +23,4 @@ tools/__pycache__/configuration_helper.cpython-38.pyc
 tools/__pycache__/__init__.cpython-38.pyc
 tools/__pycache__/ameritrade_functions.cpython-38.pyc
 tools/__pycache__/configuration_helper.cpython-38.pyc
+*.parquet
