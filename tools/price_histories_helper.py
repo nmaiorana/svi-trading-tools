@@ -38,7 +38,7 @@ def save_price_histories(price_histories: pd.DataFrame, storage_path: Path = Non
         return
 
     ensure_data_directory(storage_path)
-    if storage_path.suffix == 'parquet':
+    if storage_path.suffix == '.parquet':
         price_histories.to_parquet(storage_path)
     else:
         price_histories.to_csv(storage_path, index=True)
@@ -47,7 +47,7 @@ def save_price_histories(price_histories: pd.DataFrame, storage_path: Path = Non
 
 def load_price_histories(storage_path: Path = None) -> pd.DataFrame:
     logger = logging.getLogger('phh.load_price_histories')
-    if storage_path.suffix == 'parquet':
+    if storage_path.suffix == '.parquet':
         price_histories = pd.read_parquet(storage_path)
     else:
         price_histories = pd.read_csv(storage_path,

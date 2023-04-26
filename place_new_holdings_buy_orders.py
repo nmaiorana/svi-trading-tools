@@ -14,7 +14,7 @@ This is defined in a way that allows for short-term assets to be more dynamic.
 """
 
 logging.config.fileConfig('./config/logging.ini')
-main_logger_name = 'LiquidateShortTermAssets'
+main_logger_name = 'PlaceNewHoldingsBuyOrders'
 logger = logging.getLogger(main_logger_name)
 logger.info(f'Python version: {python_version()}')
 logger.info(f'Pandas version: {pd.__version__}')

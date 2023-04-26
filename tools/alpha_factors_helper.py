@@ -64,7 +64,7 @@ def save_alpha_factors(factors_df: pd.DataFrame, storage_path: Path = None):
         return
 
     storage_path.parent.mkdir(parents=True, exist_ok=True)
-    if storage_path.suffix == 'parquet':
+    if storage_path.suffix == '.parquet':
         factors_df.to_parquet(storage_path)
     else:
         factors_df.to_csv(storage_path, index=True)
@@ -72,7 +72,7 @@ def save_alpha_factors(factors_df: pd.DataFrame, storage_path: Path = None):
 
 
 def load_alpha_factors(storage_path: Path = None) -> pd.DataFrame:
-    if storage_path.suffix == 'parquet':
+    if storage_path.suffix == '.parquet':
         return pd.read_parquet(storage_path)
     else:
         return pd.read_csv(storage_path, parse_dates=['Date']).set_index(['Date', 'Symbols']).sort_index()
