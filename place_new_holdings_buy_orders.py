@@ -48,6 +48,8 @@ for account in accounts:
                 f'AVAILABLE|{total_amount_available}|' +
                 f'USING|{investment_amount}')
 
+    if investment_amount <= 0:
+        continue
     trade_configurations_df = stocks_to_buy
     trade_configurations_df['Amount'] = (trade_configurations_df.optimalWeights * investment_amount).round(0)
     quotes_df = td_ameritrade.get_quotes(list(trade_configurations_df.index.to_list()))[
@@ -56,6 +58,7 @@ for account in accounts:
     trade_configurations_df['Quantity'] = (
                 trade_configurations_df.Amount / trade_configurations_df.regularMarketLastPrice).round(0)
 
+    trade_configurations_df.fillna(0)
     for symbol, row in trade_configurations_df.iterrows():
         instruction = 'BUY'
         quantity = int(abs(row.Quantity))

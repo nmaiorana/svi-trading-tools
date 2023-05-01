@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b268ada3-7130-49be-928a-d0434b8ceafc" name="Changes" comment="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
-      <change afterPath="$PROJECT_DIR$/experimenting/parquet_files.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/logging.ini" beforeDir="false" afterPath="$PROJECT_DIR$/config/logging.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/IND_adjusted_holdings.parquet" beforeDir="false" afterPath="$PROJECT_DIR$/data/IND_adjusted_holdings.parquet" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/IND_new_holdings.parquet" beforeDir="false" afterPath="$PROJECT_DIR$/data/IND_new_holdings.parquet" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/IRA_adjusted_holdings.parquet" beforeDir="false" afterPath="$PROJECT_DIR$/data/IRA_adjusted_holdings.parquet" afterDir="false" />
@@ -15,10 +13,6 @@
       <change beforePath="$PROJECT_DIR$/data/JOINT_adjusted_holdings.parquet" beforeDir="false" afterPath="$PROJECT_DIR$/data/JOINT_adjusted_holdings.parquet" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/JOINT_new_holdings.parquet" beforeDir="false" afterPath="$PROJECT_DIR$/data/JOINT_new_holdings.parquet" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/place_new_holdings_buy_orders.py" beforeDir="false" afterPath="$PROJECT_DIR$/place_new_holdings_buy_orders.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/place_new_holdings_sell_orders.py" beforeDir="false" afterPath="$PROJECT_DIR$/place_new_holdings_sell_orders.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/alpha_factors_helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/alpha_factors_helper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/backtesting_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/backtesting_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/price_histories_helper.py" beforeDir="false" afterPath="$PROJECT_DIR$/tools/price_histories_helper.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -137,9 +131,6 @@
       <module name="svi-trading-tools" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -280,7 +271,7 @@
       <workItem from="1680276057217" duration="4918000" />
       <workItem from="1680361249174" duration="2581000" />
       <workItem from="1681601836099" duration="8265000" />
-      <workItem from="1682188220584" duration="2131000" />
+      <workItem from="1682188220584" duration="3821000" />
     </task>
     <task id="LOCAL-00001" summary="Latest Backtest&#10;Cleaned up imports to trading_factors.py&#10;Re-ran unit tests">
       <created>1653248026830</created>
