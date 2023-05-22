@@ -12,7 +12,7 @@ logging.config.fileConfig('./test_config/logging.ini')
 
 class BacktestingFunctions(unittest.TestCase):
     alpha_factors_path = None
-    number_of_years = None
+    number_of_years = 5
     ai_alpha_factors_df = None
 
     @classmethod
