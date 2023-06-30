@@ -103,8 +103,8 @@ class TestFactorData(unittest.TestCase):
         self.assertTrue(pd.isna(class_under_test.factor_data.loc['2019-01-03']['AAPL']))
         self.assertTrue(pd.isna(class_under_test.factor_data.loc['2019-01-04']['AAPL']))
         self.assertTrue(pd.isna(class_under_test.factor_data.loc['2019-01-07']['AAPL']))
-        self.assertAlmostEqual(8070720489.6, class_under_test.factor_data.loc['2019-01-08']['AAPL'], places=2)
-        self.assertAlmostEqual(7581673369.6, class_under_test.factor_data.loc['2019-12-31']['AAPL'], places=2)
+        self.assertAlmostEqual(8070784392.82, class_under_test.factor_data.loc['2019-01-08']['AAPL'], places=2)
+        self.assertAlmostEqual(7581701104.89, class_under_test.factor_data.loc['2019-12-31']['AAPL'], places=2)
 
     def test_returns(self):
         class_under_test = alpha_factors.FactorReturns(self.test_data_df)

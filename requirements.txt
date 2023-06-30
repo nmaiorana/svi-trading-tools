@@ -1,7 +1,6 @@
 alphalens~=0.4.0
 beautifulsoup4==4.11.1
 cvxpy~=1.2.2
-matplotlib~=3.6.2
 matplotlib==3.7.1
 numpy~=1.23.5
 pandas~=1.5.2
