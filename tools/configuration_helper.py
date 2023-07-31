@@ -110,3 +110,7 @@ def get_alpha_vectors_final_path(strategy_config: SectionProxy, strategy_name: s
 def get_daily_betas_final_path(strategy_config: SectionProxy, strategy_name: str):
     return get_strategy_final_path(strategy_config, strategy_name)\
         .joinpath(strategy_config.get(BETA_FACTORS_FILE_NAME))
+
+
+def get_max_investment_amount(account_config: SectionProxy) -> float:
+    return account_config.getfloat('max_investment_amount', 1000000.0)

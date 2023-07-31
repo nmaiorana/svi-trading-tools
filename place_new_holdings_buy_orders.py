@@ -41,6 +41,7 @@ for account in accounts:
     cash_equivalents_balance = td_ameritrade.get_account_portfolio_data(masked_account_number,
                                                                         'CASH_EQUIVALENT').marketValue.sum()
     total_amount_available = current_cash_balance + cash_equivalents_balance
+    total_amount_available = min(total_amount_available, config_helper.get_max_investment_amount(account_config))
     investment_base = 1000
     investment_amount = math.floor(total_amount_available / investment_base) * investment_base
     logger.info(f'ACCOUNT|{masked_account_number}|CASH_VALUE|{current_cash_balance}|' +

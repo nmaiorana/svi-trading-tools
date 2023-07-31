@@ -85,6 +85,14 @@ class ConfigurationHelperTest(unittest.TestCase):
     def test_get_daily_betas_final_path(self):
         self.assertIsInstance(config_helper.get_daily_betas_final_path(self.config[STRATEGY], STRATEGY), Path)
 
+    def test_max_investment_amount(self):
+        account = config_helper.get_accounts(self.config[DEFAULT])[0]
+        self.assertIsInstance(config_helper.get_max_investment_amount(self.config[account]), float)
+        self.assertEqual(config_helper.get_max_investment_amount(self.config[account]), 20000.0)
+        account = config_helper.get_accounts(self.config[DEFAULT])[1]
+        self.assertIsInstance(config_helper.get_max_investment_amount(self.config[account]), float)
+        self.assertEqual(config_helper.get_max_investment_amount(self.config[account]), 1000000.0)
+
 
 if __name__ == '__main__':
     unittest.main()
