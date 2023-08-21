@@ -63,7 +63,7 @@ class TestAlphaFactorsHelper(unittest.TestCase):
                                            storage_path=alpha_factors_path, reload=True)
         self.assertTrue(alpha_factors_path.exists())
         factors_df_reloaded = afh.get_alpha_factors(storage_path=alpha_factors_path, reload=False)
-        self.assertEquals(len(factors_df), len(factors_df_reloaded))
+        self.assertEqual(len(factors_df), len(factors_df_reloaded))
         alpha_factors_path.unlink(missing_ok=True)
 
     def test_eval_factor(self):
@@ -98,8 +98,8 @@ class TestAlphaFactorsHelper(unittest.TestCase):
         self.assertTrue(np.array_equal(model.classes_, model_reloaded.classes_))
         self.assertTrue(np.array_equal(model.feature_importances_, model_reloaded.feature_importances_))
         self.assertTrue(np.array_equal(model.feature_names_in_, model_reloaded.feature_names_in_))
-        self.assertEquals(model.oob_score_, model_reloaded.oob_score_)
-        self.assertEquals(model.n_features_in_, model_reloaded.n_features_in_)
+        self.assertEqual(model.oob_score_, model_reloaded.oob_score_)
+        self.assertEqual(model.n_features_in_, model_reloaded.n_features_in_)
         ai_model_path.unlink(missing_ok=True)
 
     def _no_test_generate_ai_alpha(self):

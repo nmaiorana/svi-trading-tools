@@ -140,7 +140,8 @@ def default_factors(price_histories: pd.DataFrame, sector_helper: dict) -> list:
 
 
 def load_ai_alpha_model(storage_path):
-    return pickle.load(open(storage_path, 'rb'))
+    with open(storage_path, 'rb') as f:
+        return pickle.load(f)
 
 
 def get_ai_alpha_model(alpha_factors_df: pd.DataFrame,

@@ -279,7 +279,7 @@ def add_alpha_score(factor_data, classifier, ai_factor_name='AI_ALPHA'):
 # TODO: See if this is still needed. It would be nice to pot.
 def evaluate_alpha(data, pricing):
     clean_factor_data, unix_time_factor_data = prepare_alpha_lens_factor_data(data.copy(), pricing)
-    factor_returns_data = get_factor_returns(clean_factor_data)
+    factor_returns_data = get_factor_returns(data)
     return factor_returns_data, clean_factor_data, unix_time_factor_data
 
 
@@ -288,7 +288,7 @@ def prepare_alpha_lens_factor_data(all_factors, pricing):
     # TODO: Find a way to continue if max_loss is exceeded
     clean_factor_data = {
         factor: al.utils.get_clean_factor_and_forward_returns(
-            factor=factor_data, prices=pricing, periods=[1]) for factor, factor_data in all_factors.iteritems()}
+            factor=factor_data, prices=pricing, periods=[1]) for factor, factor_data in all_factors.items()}
 
     unix_time_factor_data = {
         factor: factor_data.set_index(pd.MultiIndex.from_tuples(
