@@ -27,3 +27,4 @@ tools/__pycache__/configuration_helper.cpython-38.pyc
 tools/tests/test_data/alpha_factors_test_data.parquet
 *.pyc
 *.pyc
+*.parquet

@@ -22,7 +22,7 @@ This forced me to create my own Alpha factors toolset using Pandas. I think I di
     - You can make necessary changes to use your own source 
   - Get an Ameritrade account [TD Ameritrade](https://www.tdameritrade.com/)
   - Get an Ameritrade developers consumer key  [Ameritrade Developer API](https://developer.tdameritrade.com/)
-  - Python 3.8
+  - Python 3.9
   - Python modules are listed in the requirements.txt file
   - trading_strategy_evaluation/create_and_backtest_stock_selection_strategies.py To Create Trading Strategies
   - compute_new_holdings.py To Determine holdings by account based on strategy
@@ -33,13 +33,13 @@ This forced me to create my own Alpha factors toolset using Pandas. I think I di
 ### Overview
 ```mermaid
 stateDiagram-v2
-create_and_backtest_stock_selection_strategies.py --> trading_strategy_evaluation/config/strategy_name_final
+create_and_backtest_stock_selection_strategies --> trading_strategy_evaluation/config/strategy_name_final
 trading_strategy_evaluation/config/strategy_name_final --> data_directory/strategy_name_final
 ```
 
 
   
-### Create and Test A Trading Strategy
+### Create and Test a Trading Strategy
 ```mermaid
 stateDiagram-v2
 [*] --> Configure_Strategy(ies)

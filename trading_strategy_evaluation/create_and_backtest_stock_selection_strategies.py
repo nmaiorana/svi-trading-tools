@@ -35,7 +35,8 @@ evaluation_config = config["EVALUATION"]
 # These are the stocks to use
 snp_500_stocks = utils.get_snp500()
 
-# See which artifacts need to be reproduced based on the upstream artifacts
+# See which artifacts need to be reproduced bas
+# ed on the upstream artifacts
 price_histories_reload = True
 alpha_factors_reload = False
 ai_alpha_model_reload = False

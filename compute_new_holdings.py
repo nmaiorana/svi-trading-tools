@@ -74,9 +74,6 @@ alpha_factors_df = afh.get_alpha_factors(price_histories, sector_helper,
                                          storage_path=config_helper.get_alpha_factors_path(portfolio_config),
                                          reload=alpha_factors_reload)
 
-# TODO: Go through all the portfolio configurations and pull out the strategies used
-# TODO: With a list of strategies to use, process the data to get alphas, ai_alpha, alpha vectors, daily betas
-# TODO: With list of portfolios, generate the optimal holdings for each one using the selected strategy
 accounts = config_helper.get_accounts(portfolio_config)
 implemented_strategies = set()
 for account in accounts:

@@ -279,7 +279,7 @@ def add_alpha_score(factor_data, classifier, ai_factor_name='AI_ALPHA'):
 # TODO: See if this is still needed. It would be nice to pot.
 def evaluate_alpha(data, pricing):
     clean_factor_data, unix_time_factor_data = prepare_alpha_lens_factor_data(data.copy(), pricing)
-    factor_returns_data = get_factor_returns(data)
+    factor_returns_data = get_factor_returns(clean_factor_data)
     return factor_returns_data, clean_factor_data, unix_time_factor_data
 
 
