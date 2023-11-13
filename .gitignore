@@ -28,3 +28,4 @@ tools/tests/test_data/alpha_factors_test_data.parquet
 *.pyc
 *.pyc
 *.parquet
+*.parquet
