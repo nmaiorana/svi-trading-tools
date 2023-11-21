@@ -61,6 +61,8 @@ for account in accounts:
 
     trade_configurations_df.fillna(0)
     for symbol, row in trade_configurations_df.iterrows():
+        if pd.isna(row.Quantity) or row.Quantity == 0:
+            continue
         instruction = 'BUY'
         quantity = int(abs(row.Quantity))
         if quantity <= min_shares_to_buy:
