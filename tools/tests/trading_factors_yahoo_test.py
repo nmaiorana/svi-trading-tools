@@ -1,20 +1,23 @@
 import unittest
-import pandas as pd
-import os.path
-from pathlib import Path
-import pandas_datareader as pdr
-import yfinance as yf
 from datetime import datetime
-import tools.trading_factors_yahoo as alpha_factors
+from pathlib import Path
+
+import pandas as pd
+
 import tools.price_histories_helper as phh
+import tools.trading_factors_yahoo as alpha_factors
 import tools.utils as utils
-import ssl
+
 
 # This is used to get s&p 500 data. Without it, we get cert errors
 # ssl._create_default_https_context = ssl._create_unverified_context
 
 
 class TestFactorData(unittest.TestCase):
+    close = None
+    snp_500_stocks = None
+    test_data_df = None
+
     @classmethod
     def setUpClass(cls):
         start = datetime(year=2019, month=1, day=1)

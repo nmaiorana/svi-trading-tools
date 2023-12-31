@@ -1,17 +1,17 @@
-import sys
-import unittest
 import logging
-import pandas as pd
-import numpy as np
-from pathlib import Path
+import unittest
 from datetime import datetime
+from pathlib import Path
 
-import tools.trading_factors_yahoo as alpha_factors
-from tools.nonoverlapping_estimator import NoOverlapVoter
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
 import tools.alpha_factors_helper as afh
 import tools.price_histories_helper as phh
+import tools.trading_factors_yahoo as alpha_factors
 import tools.utils as utils
-import matplotlib.pyplot as plt
+from tools.nonoverlapping_estimator import NoOverlapVoter
 
 logging.config.fileConfig('./test_config/logging.ini')
 
@@ -25,12 +25,15 @@ def default_test_factors(price_histories: pd.DataFrame):
 
 
 class TestAlphaFactorsHelper(unittest.TestCase):
+    factors_array = None
+    close = None
+    snp_500_stocks = None
+    price_histories = None
+
     @classmethod
     def setUpClass(cls):
         symbols = ['AAPL', 'GOOG', 'AMZN', 'MMM', 'BBY', 'DUK']
         cls.snp_500_stocks = utils.get_snp500()
-        start = datetime(year=2020, month=1, day=1)
-        end = datetime(year=2023, month=1, day=1)
         price_histories_path = Path('test_data/alpha_factors_test_data.parquet')
         cls.price_histories = phh.from_yahoo_finance(symbols=symbols,
                                                      period='1mo',
@@ -86,10 +89,9 @@ class TestAlphaFactorsHelper(unittest.TestCase):
         self.assertTrue(np.array_equal(self.factors_df.columns, model.feature_names_in_))
 
     def test_get_ai_alpha_model(self):
-        training_data_rows = 20
         ai_model_path = Path('test_data/alpha_ai_model.pickle')
         model = afh.get_ai_alpha_model(self.factors_df, self.price_histories,
-                                       n_trees=2,
+                                       n_trees=10,
                                        storage_path=ai_model_path, reload=True)
         self.assertTrue(ai_model_path.exists())
         model_reloaded = afh.get_ai_alpha_model(self.factors_df, self.price_histories,
@@ -102,21 +104,17 @@ class TestAlphaFactorsHelper(unittest.TestCase):
         self.assertEqual(model.n_features_in_, model_reloaded.n_features_in_)
         ai_model_path.unlink(missing_ok=True)
 
-    def _no_test_generate_ai_alpha(self):
-        ai_alpha_model, factors_with_alpha = afh.generate_ai_alpha(self.price_histories,
-                                                                   self.snp_500_stocks,
-                                                                   ai_alpha_name='AI_ALPHA',
-                                                                   n_trees=10,
-                                                                   factors_array=self.factors_array)
-        self.assertIsInstance(factors_with_alpha, pd.DataFrame)
-        self.assertIsInstance(ai_alpha_model, NoOverlapVoter)
-
-        ai_alpha = factors_with_alpha[['AI_ALPHA']].copy()
-        factor_returns, _, _ = alpha_factors.evaluate_alpha(ai_alpha, self.price_histories.Close)
-        cumulative_factor_returns = (1 + factor_returns).cumprod()
-        total_return = cumulative_factor_returns.iloc[-1].values[0]
-        print(total_return)
-        plt.show()
+    def test_get_ai_alpha_factor(self):
+        factors_df = afh.generate_factors_df(factors_array=self.factors_array)
+        model = afh.get_ai_alpha_model(self.factors_df, self.price_histories,
+                                       n_trees=10,
+                                       storage_path=None)
+        ai_alpha_df = afh.get_ai_alpha_factor(factors_df.copy(),
+                                              model,
+                                              ai_alpha_name='AI_ALPHA',
+                                              storage_path=None)
+        self.assertIsInstance(ai_alpha_df, pd.DataFrame)
+        self.assertTrue(np.array_equal(ai_alpha_df.index, factors_df.index))
 
 
 if __name__ == '__main__':

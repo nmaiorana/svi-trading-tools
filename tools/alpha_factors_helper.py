@@ -256,7 +256,7 @@ def get_ai_alpha_factor(alpha_factors_df: pd.DataFrame,
                         ai_alpha_model: NoOverlapVoter,
                         ai_alpha_name: str = 'AI_ALPHA',
                         storage_path: Path = None,
-                        reload: bool = False):
+                        reload: bool = False) -> pd.DataFrame:
     logger = logging.getLogger('AlphaFactorsHelper.get_ai_alpha_factor')
     logger.info(f'Generating AI Alpha Score...')
     if storage_path is not None and storage_path.exists():

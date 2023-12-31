@@ -271,9 +271,10 @@ def compute_ai_alpha_score(samples, classifier):
 
 
 def add_alpha_score(factor_data, classifier, ai_factor_name='AI_ALPHA'):
-    alpha_score = compute_ai_alpha_score(factor_data, classifier)
-    factor_data[ai_factor_name] = alpha_score
-    return factor_data
+    samples_df = factor_data.copy()
+    alpha_score = compute_ai_alpha_score(samples_df, classifier)
+    samples_df[ai_factor_name] = alpha_score
+    return samples_df
 
 
 # TODO: See if this is still needed. It would be nice to pot.
