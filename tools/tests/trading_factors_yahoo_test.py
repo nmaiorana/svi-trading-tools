@@ -200,8 +200,8 @@ class TestFactorData(unittest.TestCase):
         clean_factor_data, _ = alpha_factors.prepare_alpha_lens_factor_data(factor_data.to_frame().copy(), pricing)
         factor_returns_data = alpha_factors.get_factor_returns(clean_factor_data)
         self.assertEqual(247, len(factor_returns_data))
-        self.assertAlmostEqual(0.0092433, factor_returns_data.iloc[0][0], places=2)
-        self.assertAlmostEqual(0.0033237, factor_returns_data.iloc[-1][0], places=2)
+        self.assertAlmostEqual(0.0092433, factor_returns_data.iloc[0].iloc[0], places=2)
+        self.assertAlmostEqual(0.0033237, factor_returns_data.iloc[-1].iloc[0], places=2)
 
     def test_compute_sharpe_ratio(self) -> None:
         pricing = self.test_data_df.Close
@@ -225,7 +225,7 @@ class TestFactorData(unittest.TestCase):
         self.assertEqual(-1.0, class_under_test.factor_betas_.iloc[-1][0])
         self.assertAlmostEqual(5.112652940153704e-05, class_under_test.factor_cov_matrix_[0][0], 6)
         self.assertAlmostEqual(5.112652940153704e-05, class_under_test.factor_cov_matrix_[-1][0], 6)
-        self.assertAlmostEqual(7.867674112695941e-36, class_under_test.idiosyncratic_var_vector_[0][0], 20)
+        self.assertAlmostEqual(7.867674112695941e-36, class_under_test.idiosyncratic_var_vector_.iloc[0][0], 20)
         portfolio_variance = class_under_test.compute_portfolio_variance([.5])
         self.assertAlmostEqual(0.00357514088538959, portfolio_variance, 4)
         portfolio_variance = class_under_test.compute_portfolio_variance([1.0])

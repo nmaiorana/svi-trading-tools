@@ -18,7 +18,7 @@ def save_alpha_vectors(factors_df: pd.DataFrame, storage_path: Path = None):
 
     storage_path.parent.mkdir(parents=True, exist_ok=True)
     if storage_path.suffix == '.parquet':
-        factors_df.to_parquet(storage_path)
+        factors_df.to_parquet(storage_path, index=True)
     else:
         factors_df.to_csv(storage_path, index=True)
     logger.info(f'ALPHA_VECTORS_FILE|SAVED|{storage_path}')

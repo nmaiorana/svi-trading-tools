@@ -35,22 +35,35 @@ evaluation_config = config["EVALUATION"]
 # These are the stocks to use
 snp_500_stocks = utils.get_snp500()
 
-# See which artifacts need to be reproduced bas
-# ed on the upstream artifacts
+# See which artifacts need to be reproduced based on the upstream artifacts
+"""
+price_histories_reload -> alpha_factors_reload
+price_histories_reload -> daily_betas_reload
+alpha_factors_reload -> ai_alpha_model_reload
+ai_alpha_model_reload -> ai_alpha_factor_reload
+ai_alpha_factor_reload -> alpha_vectors_reload
+(price_histories_reload, alpha_factors_reload, daily_betas_reload) -> backtest_factors_reload
+
+"""
+# price_histories_reload will trigger a reload of all artifacts
 price_histories_reload = True
+# alpha_factors_reload will trigger a reload of all artifacts downstream of alpha_factors
 alpha_factors_reload = False
+
 ai_alpha_model_reload = False
 ai_alpha_factor_reload = False
 alpha_vectors_reload = False
 daily_betas_reload = False
-backtest_factors_reload = False
+
+# backtest_factors_reload has to be set to true since it's the point of this exercise
+backtest_factors_reload = True
 
 if price_histories_reload or not config_helper.get_price_histories_path(evaluation_config).exists():
     alpha_factors_reload = True
+    daily_betas_reload = True
     ai_alpha_model_reload = True
     ai_alpha_factor_reload = True
     alpha_vectors_reload = True
-    daily_betas_reload = True
     backtest_factors_reload = True
 
 if alpha_factors_reload or not config_helper.get_alpha_factors_path(evaluation_config).exists():
@@ -168,4 +181,3 @@ for strategy in evaluation_strategies:
     else:
         logger.warning(f'OPT|STOP|{port_return}% < {min_viable_return}%')
     # TODO: Store port_return data.
-    # TODO: Store a config file in the strategy to match all the parameters needed in prod

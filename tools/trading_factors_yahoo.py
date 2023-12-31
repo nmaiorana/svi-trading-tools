@@ -392,7 +392,7 @@ def portfolio_variance_using_factors(X, B, F, S):
 def idiosyncratic_var_matrix(returns, factor_returns, factor_betas, ann_factor):
     common_returns_ = pd.DataFrame(np.dot(factor_returns, factor_betas.T), returns.index, returns.columns)
     residuals_ = (returns - common_returns_)
-    return pd.DataFrame(np.diag(np.var(residuals_)) * ann_factor, returns.columns, returns.columns)
+    return pd.DataFrame(np.diag(residuals_.var()) * ann_factor, returns.columns, returns.columns)
 
 
 class RiskModelPCA(object):

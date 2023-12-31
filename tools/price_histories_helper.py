@@ -32,14 +32,14 @@ def from_yahoo_finance(symbols: list,
 
 
 def save_price_histories(price_histories: pd.DataFrame, storage_path: Path = None):
-    logger = logging.getLogger('phh.save')
+    logger = logging.getLogger('phh.save_price_histories')
     if storage_path is None:
         logger.info(f'PRICE_HISTORIES_FILE|NOT_SAVED')
         return
 
     ensure_data_directory(storage_path)
     if storage_path.suffix == '.parquet':
-        price_histories.to_parquet(storage_path)
+        price_histories.to_parquet(storage_path, index=True)
     else:
         price_histories.to_csv(storage_path, index=True)
     logger.info(f'PRICE_HISTORIES_FILE|SAVED|{storage_path}')
