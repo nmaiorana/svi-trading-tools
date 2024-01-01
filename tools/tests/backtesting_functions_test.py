@@ -3,8 +3,8 @@ import unittest
 from pathlib import Path
 import pandas as pd
 
+import test_data_helper as tdh
 import tools.alpha_factors_helper as afh
-import tools.price_histories_helper as phh
 import tools.backtesting_functions as btf
 
 logging.config.fileConfig('./test_config/logging.ini')
@@ -17,28 +17,26 @@ class BacktestingFunctions(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        # TODO: Create required files in setup -vs- having them already there
         cls.alpha_factors_path = Path('test_data/backtest_ai_alpha_factor.parquet')
         cls.alpha_vectors_path = Path('test_data/backtest_alpha_vectors.parquet')
         cls.daily_betas_path = Path('test_data/backtest_daily_betas.pickle')
-        price_histories_path = Path('test_data/backtest_price_histories.parquet')
         ai_alpha_factors_df = afh.load_alpha_factors(cls.alpha_factors_path)
         symbols = ai_alpha_factors_df.index.get_level_values('Symbols').tolist()
-        cls.price_histories = phh.from_yahoo_finance(symbols=symbols,
-                                                     period=str(cls.number_of_years) + 'y',
-                                                     storage_path=price_histories_path, reload=False)
+        cls.price_histories = tdh.get_price_histories(symbols)
 
     def test_get_alpha_vectors(self):
         ai_alpha_factors_df = afh.load_alpha_factors(self.alpha_factors_path)
         alpha_vectors_df = btf.get_alpha_vectors(ai_alpha_factors_df)
         self.assertIsInstance(alpha_vectors_df, pd.DataFrame)
-        self.assertEquals(alpha_vectors_df.index.name, 'Date')
+        self.assertEqual(alpha_vectors_df.index.name, 'Date')
         self.assertIsNotNone(alpha_vectors_df['AAPL'])
         alpha_vectors_path = Path('test_data/backtest_ai_alpha_vector.parquet')
         alpha_vectors_path.unlink(missing_ok=True)
         alpha_vectors_df = btf.get_alpha_vectors(ai_alpha_factors_df, alpha_vectors_path, reload=True)
         self.assertTrue(alpha_vectors_path.exists())
         alpha_vectors_df_reloaded = btf.get_alpha_vectors(self.ai_alpha_factors_df, alpha_vectors_path, reload=False)
-        self.assertEquals(alpha_vectors_df.shape, alpha_vectors_df_reloaded.shape)
+        self.assertEqual(alpha_vectors_df.shape, alpha_vectors_df_reloaded.shape)
 
     def test_get_beta_factors(self):
         daily_betas = btf.generate_beta_factors(self.price_histories, 2)
@@ -53,7 +51,7 @@ class BacktestingFunctions(unittest.TestCase):
 
     def test_backtest_factors(self):
         alpha_vectors = btf.load_alpha_vectors(self.alpha_vectors_path)
-        daily_betas = btf.load_beta_factors(self.daily_betas_path)
+        daily_betas = tdh.get_daily_betas()
         estimated_returns_by_date_ser, optimal_holdings_df, \
             trading_costs_by_date_se = btf.backtest_factors(self.price_histories,
                                                             alpha_vectors, daily_betas, 1, 2)
