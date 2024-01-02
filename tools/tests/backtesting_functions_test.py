@@ -6,6 +6,7 @@ import pandas as pd
 import test_data_helper as tdh
 import tools.alpha_factors_helper as afh
 import tools.backtesting_functions as btf
+import utils
 
 logging.config.fileConfig('./test_config/logging.ini')
 
@@ -22,12 +23,13 @@ class BacktestingFunctions(unittest.TestCase):
         cls.alpha_factors_path = Path('test_data/backtest_ai_alpha_factor.parquet')
         cls.alpha_vectors_path = Path('test_data/backtest_alpha_vectors.parquet')
         cls.daily_betas_path = Path('test_data/backtest_daily_betas.pickle')
-        ai_alpha_factors_df = afh.load_alpha_factors(cls.alpha_factors_path)
-        cls.symbols = ai_alpha_factors_df.index.get_level_values('Symbols').tolist()
+        # ai_alpha_factors_df = afh.load_alpha_factors(cls.alpha_factors_path)
+        # cls.symbols = ai_alpha_factors_df.index.get_level_values('Symbols').tolist()
+        cls.symbols = utils.get_snp500().index.to_list()
         cls.price_histories = tdh.get_price_histories(cls.symbols)
 
     def test_get_alpha_vectors(self):
-        ai_alpha_factors_df = afh.load_alpha_factors(self.alpha_factors_path)
+        ai_alpha_factors_df = tdh.get_alpha_factors(self.symbols)
         alpha_vectors_df = btf.get_alpha_vectors(ai_alpha_factors_df)
         self.assertIsInstance(alpha_vectors_df, pd.DataFrame)
         self.assertEqual(alpha_vectors_df.index.name, 'Date')

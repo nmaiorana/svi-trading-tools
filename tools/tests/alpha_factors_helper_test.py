@@ -7,20 +7,11 @@ import numpy as np
 import pandas as pd
 
 import tools.alpha_factors_helper as afh
-import tools.price_histories_helper as phh
 import tools.trading_factors_yahoo as alpha_factors
 import tools.utils as utils
 import test_data_helper as tdh
 
 logging.config.fileConfig('./test_config/logging.ini')
-
-
-def default_test_factors(price_histories: pd.DataFrame):
-    factors_array = [
-        alpha_factors.TrailingOvernightReturns(price_histories, 10).for_al(),
-        alpha_factors.TrailingOvernightReturns(price_histories, 1).for_al()
-    ]
-    return factors_array
 
 
 class TestAlphaFactorsHelper(unittest.TestCase):
@@ -35,11 +26,11 @@ class TestAlphaFactorsHelper(unittest.TestCase):
         cls.price_histories = tdh.get_price_histories()
         cls.close = cls.price_histories.Close
         cls.sector_helper = alpha_factors.get_sector_helper(cls.snp_500_stocks, 'GICS Sector', cls.close.columns)
-        cls.factors_array = default_test_factors(cls.price_histories)
+        cls.factors_array = tdh.default_test_factors(cls.price_histories)
         cls.factors_df = pd.concat(cls.factors_array, axis=1)
 
     def test_generate_factors_df(self):
-        factors_df = afh.generate_factors_df(factors_array=self.factors_array)
+        factors_df = tdh.get_alpha_factors(['AAPL', 'GOOG'])
         self.assertIsInstance(factors_df.index, pd.MultiIndex)
         self.assertIsInstance(factors_df.index.get_level_values(level='Date').to_list()[0], datetime)
         self.assertIsInstance(factors_df, pd.DataFrame)

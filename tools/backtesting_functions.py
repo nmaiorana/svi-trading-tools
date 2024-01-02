@@ -47,7 +47,8 @@ def get_alpha_vectors(ai_alpha_factors: pd.DataFrame, storage_path: Path = None,
 
 
 def load_beta_factors(storage_path):
-    return pickle.load(open(storage_path, 'rb'))
+    with open(storage_path, 'rb') as file:
+        return pickle.load(file)
 
 
 def save_beta_factors(daily_betas: dict, storage_path):
