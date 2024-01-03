@@ -114,7 +114,7 @@ def backtest_factors(price_histories: pd.DataFrame,
     logger.info('Running backtest...')
     logger.info(f'PREDICTING_FORWARD|{forward_prediction_days}')
     logger.info(f'BACKTESTING_DAYS|{backtest_days}')
-    returns = alpha_factors.FactorReturns(price_histories).factor_data
+    returns = alpha_factors.FactorReturns(price_histories, forward_prediction_days).factor_data
     delayed_returns = returns[-backtest_days:].shift(-forward_prediction_days).dropna()
     opt_dates = delayed_returns.index.to_list()
     optimal_holdings_df = predict_optimal_holdings(alpha_vectors,

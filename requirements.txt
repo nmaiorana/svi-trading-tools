@@ -1,9 +1,8 @@
 beautifulsoup4~=4.12.2
-cvxpy~=1.2.5
+cvxpy~=1.4.1
 matplotlib~=3.7.2
-numpy~=1.25.2
+numpy~=1.26.2
 pandas~=2.1.4
-pyarrow~=14.0.2
 #requests~=2.31.0
 scipy~=1.11.4
 selenium~=4.11.2

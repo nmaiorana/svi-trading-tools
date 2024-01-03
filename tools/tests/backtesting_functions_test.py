@@ -4,7 +4,6 @@ from pathlib import Path
 import pandas as pd
 
 import test_data_helper as tdh
-import tools.alpha_factors_helper as afh
 import tools.backtesting_functions as btf
 import utils
 
