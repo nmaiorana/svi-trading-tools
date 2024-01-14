@@ -18,7 +18,7 @@ def save_alpha_vectors(factors_df: pd.DataFrame, storage_path: Path = None):
 
     storage_path.parent.mkdir(parents=True, exist_ok=True)
     if storage_path.suffix == '.parquet':
-        factors_df.to_parquet(storage_path)
+        factors_df.to_parquet(storage_path, index=True)
     else:
         factors_df.to_csv(storage_path, index=True)
     logger.info(f'ALPHA_VECTORS_FILE|SAVED|{storage_path}')
@@ -47,7 +47,8 @@ def get_alpha_vectors(ai_alpha_factors: pd.DataFrame, storage_path: Path = None,
 
 
 def load_beta_factors(storage_path):
-    return pickle.load(open(storage_path, 'rb'))
+    with open(storage_path, 'rb') as file:
+        return pickle.load(file)
 
 
 def save_beta_factors(daily_betas: dict, storage_path):
@@ -113,7 +114,7 @@ def backtest_factors(price_histories: pd.DataFrame,
     logger.info('Running backtest...')
     logger.info(f'PREDICTING_FORWARD|{forward_prediction_days}')
     logger.info(f'BACKTESTING_DAYS|{backtest_days}')
-    returns = alpha_factors.FactorReturns(price_histories).factor_data
+    returns = alpha_factors.FactorReturns(price_histories, forward_prediction_days).factor_data
     delayed_returns = returns[-backtest_days:].shift(-forward_prediction_days).dropna()
     opt_dates = delayed_returns.index.to_list()
     optimal_holdings_df = predict_optimal_holdings(alpha_vectors,

@@ -1,20 +1,23 @@
 import unittest
-import pandas as pd
-import os.path
-from pathlib import Path
-import pandas_datareader as pdr
-import yfinance as yf
 from datetime import datetime
-import tools.trading_factors_yahoo as alpha_factors
+from pathlib import Path
+
+import pandas as pd
+
 import tools.price_histories_helper as phh
+import tools.trading_factors_yahoo as alpha_factors
 import tools.utils as utils
-import ssl
+
 
 # This is used to get s&p 500 data. Without it, we get cert errors
 # ssl._create_default_https_context = ssl._create_unverified_context
 
 
 class TestFactorData(unittest.TestCase):
+    close = None
+    snp_500_stocks = None
+    test_data_df = None
+
     @classmethod
     def setUpClass(cls):
         start = datetime(year=2019, month=1, day=1)
@@ -200,8 +203,8 @@ class TestFactorData(unittest.TestCase):
         clean_factor_data, _ = alpha_factors.prepare_alpha_lens_factor_data(factor_data.to_frame().copy(), pricing)
         factor_returns_data = alpha_factors.get_factor_returns(clean_factor_data)
         self.assertEqual(247, len(factor_returns_data))
-        self.assertAlmostEqual(0.0092433, factor_returns_data.iloc[0][0], places=2)
-        self.assertAlmostEqual(0.0033237, factor_returns_data.iloc[-1][0], places=2)
+        self.assertAlmostEqual(0.0092433, factor_returns_data.iloc[0].iloc[0], places=2)
+        self.assertAlmostEqual(0.0033237, factor_returns_data.iloc[-1].iloc[0], places=2)
 
     def test_compute_sharpe_ratio(self) -> None:
         pricing = self.test_data_df.Close
@@ -225,7 +228,7 @@ class TestFactorData(unittest.TestCase):
         self.assertEqual(-1.0, class_under_test.factor_betas_.iloc[-1][0])
         self.assertAlmostEqual(5.112652940153704e-05, class_under_test.factor_cov_matrix_[0][0], 6)
         self.assertAlmostEqual(5.112652940153704e-05, class_under_test.factor_cov_matrix_[-1][0], 6)
-        self.assertAlmostEqual(7.867674112695941e-36, class_under_test.idiosyncratic_var_vector_[0][0], 20)
+        self.assertAlmostEqual(7.867674112695941e-36, class_under_test.idiosyncratic_var_vector_.iloc[0][0], 20)
         portfolio_variance = class_under_test.compute_portfolio_variance([.5])
         self.assertAlmostEqual(0.00357514088538959, portfolio_variance, 4)
         portfolio_variance = class_under_test.compute_portfolio_variance([1.0])

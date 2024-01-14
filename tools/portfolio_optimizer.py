@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import cvxpy as cvx
+import cvxpy as cp
 import numpy as np
 import pandas as pd
 
@@ -52,17 +52,17 @@ class AbstractOptimalHoldings(ABC):
         X = factor_cov_matrix
         S = np.diag(idiosyncratic_var_vector.loc[alpha_vector_index].values.flatten())
 
-        return cvx.quad_form(f, X) + cvx.quad_form(weights, S)
+        return cp.quad_form(f, X) + cp.quad_form(weights, S)
 
     def find(self, alpha_vector, factor_betas, factor_cov_matrix, idiosyncratic_var_vector):
-        weights = cvx.Variable(len(alpha_vector))
+        weights = cp.Variable(len(alpha_vector))
         risk = self._get_risk(weights, factor_betas, alpha_vector.index, factor_cov_matrix, idiosyncratic_var_vector)
 
         obj = self._get_obj(weights, alpha_vector)
         constraints = self._get_constraints(weights, factor_betas.loc[alpha_vector.index].values, risk)
 
-        prob = cvx.Problem(obj, constraints)
-        prob.solve(max_iters=500)
+        prob = cp.Problem(obj, constraints)
+        prob.solve(max_iters=500, solver=cp.ECOS_BB)
 
         optimal_weights = np.asarray(weights.value).flatten()
 
@@ -90,7 +90,7 @@ class OptimalHoldings(AbstractOptimalHoldings):
 
         # TODO: Implement function
 
-        return cvx.Maximize(alpha_vector.values.T @ weights)
+        return cp.Maximize(alpha_vector.values.T @ weights)
 
     def _get_constraints(self, weights, factor_betas, risk):
         """
@@ -119,7 +119,7 @@ class OptimalHoldings(AbstractOptimalHoldings):
             B.T @ weights <= self.factor_max,
             B.T @ weights >= self.factor_min,
             sum(weights) == 1.0,
-            sum(cvx.abs(weights)) <= 1.0,
+            sum(cp.abs(weights)) <= 1.0,
             weights <= self.weights_max,
             weights >= self.weights_min
         ]

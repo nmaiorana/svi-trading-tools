@@ -67,7 +67,7 @@ def save_alpha_factors(factors_df: pd.DataFrame, storage_path: Path = None):
     if storage_path.suffix == '.parquet':
         factors_df.to_parquet(storage_path)
     else:
-        factors_df.to_csv(storage_path, index=True)
+        factors_df.to_csv(storage_path)
     logger.info(f'ALPHA_FACTORS_FILE|SAVED|{storage_path}')
 
 
@@ -117,6 +117,11 @@ def generate_factors_df(price_histories: pd.DataFrame = None,
 
 
 def default_factors(price_histories: pd.DataFrame, sector_helper: dict) -> list:
+    """
+    Using a history of prices, generate a list of standard factors to use for training.
+
+    :rtype: list
+    """
     factors_array = [
         alpha_factors.FactorMomentum(price_histories, 252).demean(
             group_by=sector_helper.values()).rank().zscore().for_al(),
@@ -251,7 +256,7 @@ def get_ai_alpha_factor(alpha_factors_df: pd.DataFrame,
                         ai_alpha_model: NoOverlapVoter,
                         ai_alpha_name: str = 'AI_ALPHA',
                         storage_path: Path = None,
-                        reload: bool = False):
+                        reload: bool = False) -> pd.DataFrame:
     logger = logging.getLogger('AlphaFactorsHelper.get_ai_alpha_factor')
     logger.info(f'Generating AI Alpha Score...')
     if storage_path is not None and storage_path.exists():
