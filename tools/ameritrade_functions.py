@@ -177,7 +177,7 @@ class AmeritradeRest:
 
         chrome_options = Options()
         chrome_options.add_argument('--user-data-dir='+self.user_data_dir)
-        chrome_options.headless = False
+        chrome_options.add_argument('--headless')
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         driver.minimize_window()
         try:
