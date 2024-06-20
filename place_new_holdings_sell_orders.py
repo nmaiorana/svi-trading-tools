@@ -86,4 +86,4 @@ for account in accounts:
         order = amc.create_limit_order(masked_account_number,
                                        symbol, 'EQUITY', quantity, instruction, 'NORMAL', 'DAY', ask_price)
         logger.info(f'ORDER|{order}')
-        td_ameritrade.place_order(order, saved=False)
+        td_ameritrade.place_order(order, saved=True)
