@@ -48,9 +48,9 @@ ai_alpha_factor_reload -> alpha_vectors_reload
 # price_histories_reload will trigger a reload of all artifacts
 price_histories_reload = True
 # alpha_factors_reload will trigger a reload of all artifacts downstream of alpha_factors
-alpha_factors_reload = False
+alpha_factors_reload = True
 
-ai_alpha_model_reload = False
+ai_alpha_model_reload = True
 ai_alpha_factor_reload = False
 alpha_vectors_reload = False
 daily_betas_reload = False
