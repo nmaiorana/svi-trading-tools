@@ -12,7 +12,7 @@ Use this script if you want to sell off all short-term holdings in your listed a
 Short-term holdings are defined by NOT being long_term_asset_types or long_term_stocks as configured for each account.
 This is defined in a way that allows for short-term assets to be more dynamic.
 """
-
+# TODO: Fix computation of the amount of available cash to invest. There is an issue of dipping into margin.
 logging.config.fileConfig('./config/logging.ini')
 main_logger_name = 'PlaceNewHoldingsBuyOrders'
 logger = logging.getLogger(main_logger_name)
@@ -44,6 +44,8 @@ for account in accounts:
     total_amount_available = min(total_amount_available, config_helper.get_max_investment_amount(account_config))
     investment_base = 1000
     investment_amount = math.floor(total_amount_available / investment_base) * investment_base
+    # TODO: Fix the computation of the investment amount. It is currently not working as expected.
+    #       Need to accommodate for margin balance.
     logger.info(f'ACCOUNT|{masked_account_number}|CASH_VALUE|{current_cash_balance}|' +
                 f'CASH_EQUIV|{cash_equivalents_balance}|' +
                 f'AVAILABLE|{total_amount_available}|' +
@@ -73,5 +75,5 @@ for account in accounts:
         order = amc.create_limit_order(masked_account_number,
                                        symbol, 'EQUITY', quantity, instruction, 'NORMAL', 'DAY', ask_price)
         logger.info(f'ORDER|{order}')
-        td_ameritrade.place_order(order, saved=False)
+        td_ameritrade.place_order(order, saved=True)
 

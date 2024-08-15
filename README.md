@@ -22,7 +22,7 @@ This forced me to create my own Alpha factors toolset using Pandas. I think I di
     - You can make necessary changes to use your own source 
   - Get an Ameritrade account [TD Ameritrade](https://www.tdameritrade.com/)
   - Get an Ameritrade developers consumer key  [Ameritrade Developer API](https://developer.tdameritrade.com/)
-  - Python 3.9
+  - Python 3.11
   - Python modules are listed in the requirements.txt file
   - trading_strategy_evaluation/create_and_backtest_stock_selection_strategies.py To Create Trading Strategies
   - compute_new_holdings.py To Determine holdings by account based on strategy
